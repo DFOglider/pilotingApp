@@ -1,6 +1,6 @@
 rm(list=ls())
 library(shiny)
-load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
+#load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -11,7 +11,8 @@ ui <- fluidPage(
   fluidRow(
     column(2, wellPanel(
          selectInput(inputId="Glider", label="Glider:", choices=c('SEA019'='SEA019','SEA021'='SEA021','SEA022'='SEA022','SEA024'='SEA024'), selected = 'Navigation'),
-         numericInput(inputId="Mission",label="Mission Number:",value='10', min = '10', max = NA),
+         numericInput(inputId="Mission",label="Mission Number:",value='29', min = '10', max = NA),
+         actionButton("LoadData", "Load Data"),
          selectInput(inputId="Var", label="Data Set:", choices=c('Navigation'='Navigation','Science'='Science'), selected = 'Navigation'),
         
         conditionalPanel(
@@ -64,6 +65,8 @@ server <- function(input, output) {
   # Loading the data
   #local({
   load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
+  #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
+  #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
     #ls()
   #})
   output$plot1 <- renderPlot({
