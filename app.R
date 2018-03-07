@@ -1,6 +1,6 @@
 rm(list=ls())
 library(shiny)
-load("currentMission.RData")
+load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -63,7 +63,7 @@ server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
   #local({
-    load("currentMission.RData")
+  load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
     #ls()
   #})
   output$plot1 <- renderPlot({
