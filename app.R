@@ -1,5 +1,9 @@
 rm(list=ls())
 library(shiny)
+library(measurements)
+library(oce)
+library(ocedata)
+data('coastlineWorldFine')
 #load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
 # Define UI for app that draws a histogram ----
