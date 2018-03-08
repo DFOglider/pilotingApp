@@ -1,3 +1,4 @@
+
 rm(list=ls())
 graphics.off()
 setwd('/Users/BelzileM/Documents/Gliders/Rdata')
@@ -6,13 +7,13 @@ setwd('/Users/BelzileM/Documents/Gliders/Rdata')
 ##### LOAD NAV DATA #####
 
 #dataDir <- '/Users/BelzileM/Documents/Gliders/Socib/Data/SEA019/M29/all_data/'
-dataDir <- 'R:/Shared/Gliders/SEA0019/Data/M36/Navigation/logs/'
+dataDir <- 'R:/Shared/Gliders/SEA019/Data/M36/Navigation/logs/'
 #ncname <- 'sea019.29.gli.sub.4'
 #ncfname <- paste(dataDir,ncname,'.gz', sep = '')
 #data <- read.table(ncfname, sep=";")
 
 
-files_tmp <- dir(path='R:/Shared/Gliders/SEA0019/Data/M36/Navigation/logs/',pattern='*.gli.sub.*.gz')
+files_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M36/Navigation/logs/',pattern='*.gli.sub.*.gz')
 files <- paste(dataDir,as.list(files_tmp),sep = '')
 
 # to put the files in the right order
@@ -89,8 +90,8 @@ glider <- data.frame(
 
 
 ##### LOAD SCI DATA #####
-dataDirsci <- 'R:/Shared/Gliders/SEA0019/Data/M36/Payload/logs/logs/'
-filesci_tmp <- dir(path='R:/Shared/Gliders/SEA0019/Data/M36/Payload/logs/logs/',pattern='*.pld1.sub.*.gz')
+dataDirsci <- 'R:/Shared/Gliders/SEA019/Data/M36/Payload/logs/logs/'
+filesci_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M36/Payload/logs/logs/',pattern='*.pld1.sub.*.gz')
 filesci <- paste(dataDirsci,as.list(filesci_tmp),sep = '')
 
 # to put the files in the right order
@@ -119,6 +120,18 @@ time_tmpsci <- unlist(lapply(data_allsci, function(k) k$PLD_REALTIMECLOCK))
 timesci <- as.POSIXct(time_tmpsci,format='%d/%m/%Y %H:%M:%S',tz='UTC')
 timesci[timesci < as.POSIXct('2010-01-01')] <- NA
 
+#calculate distance traveled and glider speed
+LonT <- unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE))
+LonT[LonT == 0] <- NA
+Lontmp <-  sub("\\$", "", sub('(.{3})', '\\1 ', LonT))
+
+
+LatT <- unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE))
+LatT[LatT == 0] <- NA
+Lattmp <-  sub("\\$", "", sub('(.{2})', '\\1 ', LatT))
+
+
+
 # to put everything in a dataframe where all the dive are together
 PLD <- data.frame(
   timesci=timesci,
@@ -139,5 +152,5 @@ PLD <- data.frame(
 
 
 #save(list = ls(all = TRUE), file= "currentMission.RData")
-save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA0019/Data/M36/currentMission.RData")
+save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
 
