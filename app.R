@@ -7,7 +7,7 @@ data('coastlineWorldFine')
 #load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
 mardef <- c(5.1, 4.1, 4.1, 2.1)
-marcm <- c(5.1, 4.1, 4.1, 4.85)
+marcm <- c(5.1, 4.1, 4.1, 6.1)
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -55,11 +55,8 @@ ui <- fluidPage(
                                                     resetOnNew = TRUE),
                                   height="310px")),
     column(10,
-           plotOutput("plot2", height="310px"))
-              
-  
-              
-            )
+        plotOutput("plot2", height="310px"))
+        )
 )
 
 
@@ -354,8 +351,8 @@ server <- function(input, output) {
                        'BB_scaled' = 'Backscatter')
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
-        par(xaxs='i',yaxs='i')
-        drawPalette(colormap = cm, zlab = zlab, mar = mardef)
+        par(xaxs='i',yaxs='i', mar=mardef)
+        drawPalette(colormap = cm, zlab = zlab)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
         plot(PLD$timesci, PLD$Press,
@@ -365,6 +362,7 @@ server <- function(input, output) {
              xlab = '', ylab = '')
         grid()
         mtext(ylabp, side = 2, line = 2)
+        par(mar=mardef)
       }
       
     }  
