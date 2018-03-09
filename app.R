@@ -17,7 +17,7 @@ ui <- fluidPage(
   
   fluidRow(
     column(2, wellPanel(
-         selectInput(inputId="Glider", label="Glider:", choices=c('SEA019'='SEA019','SEA021'='SEA021','SEA022'='SEA022','SEA024'='SEA024'), selected = 'Navigation'),
+         selectInput(inputId="Glider", label="Glider:", choices=c('SEA019'='SEA019','SEA021'='SEA021','SEA022'='SEA022','SEA024'='SEA024','SEA032'='SEA032'), selected = 'Navigation'),
          numericInput(inputId="Mission",label="Mission Number:",value='29', min = '10', max = NA),
          actionButton("LoadData", "Load Data"),
          selectInput(inputId="Var", label="Data Set:", choices=c('Navigation'='Navigation','Science'='Science'), selected = 'Navigation'),
@@ -347,6 +347,14 @@ server <- function(input, output) {
       mapLines(coastlineWorldFine)
       mapLines(Lon,Lat,type='l',col='red',lwd=3)
       mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
+      mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
       
       } else if (input$SciVar=='Mapcloseup') {
       data(coastlineWorldFine)
@@ -359,6 +367,15 @@ server <- function(input, output) {
       mapLines(coastlineWorldFine)
       mapLines(Lon,Lat,type='l',col='red',lwd=3)
       mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
+      mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
+      mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
+      
       } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
         # CL's work for science plots
         # get science data, make color map
@@ -389,11 +406,20 @@ server <- function(input, output) {
         drawPalette(colormap = cm, zlab = zlab)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
+        if (is.null(state$brushed)) {
         plot(PLD$timesci, PLD$Press,
              ylim = rev(range(glider$altHit,na.rm = TRUE)),
              xlim = (range(glider$time, na.rm = TRUE)),
              pch = 20, col = cm$zcol,
              xlab = '', ylab = '')
+
+        } else {
+          plot(PLD$timesci, PLD$Press,
+               ylim = rev(range(glider$altHit,na.rm = TRUE)),
+               xlim=state$xlim,
+               pch = 20, col = cm$zcol,
+               xlab = '', ylab = '')
+        }
         grid()
         mtext(ylabp, side = 2, line = 2)
         par(mar=mardef)
