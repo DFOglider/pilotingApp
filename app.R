@@ -69,14 +69,20 @@ ui <- fluidPage(
              )),
     
     # Main panel for displaying outputs ----
-    column(10,
+    tabsetPanel(type = 'tabs',
+      tabPanel("Plots",
+        column(10,
         plotOutput("plot1",brush = brushOpts(id="plot_brush",
-                                                    direction="x",
-                                                    resetOnNew = TRUE),
-                                  height="310px")),
-    column(10,
-        plotOutput("plot2", height="310px"))
-        )
+                                             direction="x",
+                                             resetOnNew = TRUE),
+                                            height="310px")),
+        column(10,
+        plotOutput("plot2", height="310px"))),
+      tabPanel("Map",
+               leafletOutput("map"))
+
+    )
+    )
 )
 
 
@@ -411,6 +417,16 @@ server <- function(input, output) {
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
+    
+    # output$map <- renderLeaflet({
+    #   leaflet(as.data.frame(cbind(c(-65,-64.5, -64), c(45, 45.1, 45.2))))%>%
+    #   addProviderTiles(providers$Esri.OceanBasemap) %>%
+    #   fitBounds(lng1 = -63,
+    #             lat1 = 44,
+    #             lng2 = -66,
+    #             lat2 = 46) %>%
+    #   addScaleBar(position = 'topright')
+    # })
   
 }
 
