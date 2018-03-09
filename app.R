@@ -69,19 +69,20 @@ ui <- fluidPage(
              )),
     
     # Main panel for displaying outputs ----
-    tabsetPanel(type = 'tabs',
-      tabPanel("Plots",
+    #tabsetPanel(type = 'tabs',
+      #tabPanel("Plots",
         column(10,
         plotOutput("plot1",brush = brushOpts(id="plot_brush",
                                              direction="x",
                                              resetOnNew = TRUE),
                                             height="310px")),
         column(10,
-        plotOutput("plot2", height="310px"))),
-      tabPanel("Map",
-               leafletOutput("map"))
+        plotOutput("plot2", height="310px"))
+    #),
+      #tabPanel("Map",
+      #         leafletOutput("map"))
 
-    )
+    #)
     )
 )
 
