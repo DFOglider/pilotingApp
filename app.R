@@ -26,14 +26,34 @@ ui <- fluidPage(
           condition="input.Var=='Navigation'", 
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
-                  choices = c('Alarm'='alarm','Pitch'='Pitch','Vertical Speed'='VertSpeed','Battery Voltage'='BatterieVolt','Internal Pressure'='int_pres','Heading'='Heading','Ballast'='BallastPos','Angular'='AngPos','Linear'='LinPos','Roll'='Roll','Yo Numbers'='profileNumber'),
+                  choices = c('Alarm'='alarm',
+                              'Pitch'='Pitch',
+                              'Vertical Speed'='VertSpeed',
+                              'Battery Voltage'='BatterieVolt',
+                              'Internal Pressure'='int_pres',
+                              'Heading'='Heading',
+                              'Ballast'='BallastPos',
+                              'Angular'='AngPos',
+                              'Linear'='LinPos',
+                              'Roll'='Roll',
+                              'Yo Numbers'='profileNumber'),
                   selected = 'Pitch')),
            
         conditionalPanel(
           condition="input.Var=='Science'", 
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
-                      choices = c('Map'='Map','Map close up'='Mapcloseup','Temperature'='Temp','Conductivity'='Cond','Salinity'='Sal','Density'='Dens','Dissolved Oxygen'='DOF','Chlorophyl'='CHL_scaled','CDOM'='CDOM_scaled','BB_700nm'='BB_scaled'),
+                      choices = c('Map'='Map',
+                                  'Map close up'='Mapcloseup',
+                                  'Temperature'='Temp',
+                                  'Conductivity'='Cond',
+                                  'Salinity'='Sal',
+                                  'Density'='Dens',
+                                  'Dissolved Oxygen'='DOF',
+                                  'Oxygen Saturation' = 'OxySat',
+                                  'Chlorophyl'='CHL_scaled',
+                                  'CDOM'='CDOM_scaled',
+                                  'BB_700nm'='BB_scaled'),
                       selected = 'Map'),
             uiOutput('sciScaleBar')),
       #  conditionalPanel(
@@ -88,15 +108,19 @@ server <- function(input, output) {
                   'Dens' = c(0, 35),
                   'CHL_scaled' = c(-5,5),
                   'CDOM_scaled' = c(-12,12),
-                  'BB_scaled' = c(-0.5, 0.5))
+                  'BB_scaled' = c(-0.5, 0.5),
+                  'DOF' = c(2000, 5000),
+                  'OxySat' = c(0,10))
     value <- switch(input$SciVar,
-                    'Temp' = range(PLD$Temperature, na.rm = TRUE),
+                    'Temp' = range(PLD$Temp, na.rm = TRUE),
                     'Sal' = range(PLD$Sal, na.rm = TRUE),
                     'Cond' = range(PLD$Conduc, na.rm = TRUE),
                     'Dens' = range(PLD$SigTheta, na.rm = TRUE),
                     'CHL_scaled' = range(PLD$CHL_scaled, na.rm = TRUE),
                     'CDOM_scaled' = range(PLD$CDOM_scaled, na.rm = TRUE),
-                    'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE))
+                    'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE),
+                    'DOF' = range(PLD$DOF, na.rm = TRUE),
+                    'OxySat' = range(PLD$OxySat, na.rm = TRUE))
     sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
                 value = value, animate = FALSE)  
     
@@ -339,7 +363,9 @@ server <- function(input, output) {
                        'Dens' = PLD$SigTheta,
                        'CHL_scaled' = PLD$CHL_scaled,
                        'CDOM_scaled' = PLD$CDOM_scaled,
-                       'BB_scaled' = PLD$BB_scaled)
+                       'BB_scaled' = PLD$BB_scaled,
+                       'DOF' = PLD$DOF,
+                       'OxySat' = PLD$OxySat)
         #use CL's file for resizable label for biological variables ?
         zlab <- switch(input$SciVar,
                        'Temp' = resizableLabel('T', axis = 'y'),
@@ -348,7 +374,9 @@ server <- function(input, output) {
                        'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
                        'CHL_scaled' = 'Chlorophyll',
                        'CDOM_scaled' = 'CDOM',
-                       'BB_scaled' = 'Backscatter')
+                       'BB_scaled' = 'Backscatter',
+                       'DOF' = 'Dissolved Oxygen [Hz',
+                       'OxySat' = resizableLabel('oxygen mL/L', axis = 'y'))
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
         par(xaxs='i',yaxs='i', mar=mardef)
