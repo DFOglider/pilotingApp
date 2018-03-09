@@ -31,7 +31,8 @@ ui <- fluidPage(
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
                       choices = c('Map'='Map','Map close up'='Mapcloseup','Temperature'='Temp','Conductivity'='Cond','Salinity'='Sal','Density'='Dens','Dissolved Oxygen'='DOF','Chlorophyl'='CHL_scaled','CDOM'='CDOM_scaled','BB_700nm'='BB_scaled'),
-                      selected = 'Map')),
+                      selected = 'Map'),
+            uiOutput('sciScaleBar')),
       #  conditionalPanel(
       #    condition = "input.Var == 'Navigation'",
       #    "Click/Drag top panel to zoom."),
@@ -39,11 +40,10 @@ ui <- fluidPage(
           condition = "input.Var == 'Navigation'",
           actionButton("resetNav", "Reset plot")),
       
-      conditionalPanel(
-        condition = "input.Var == 'Science'",
-        actionButton("resetSci", "Reset plot"))
-             
-                    )),
+        conditionalPanel(
+          condition = "input.Var == 'Science'",
+          actionButton("resetSci", "Reset plot"))
+             )),
     
     # Main panel for displaying outputs ----
     column(10,
@@ -69,10 +69,39 @@ server <- function(input, output) {
   # Loading the data
   #local({
   load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+  
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
     #ls()
   #})
+  
+  # CL enter output for sciScaleBar based on input$SciVar
+  #  variable names 
+  # c('Map'='Map','Map close up'='Mapcloseup','Temperature'='Temp','Conductivity'='Cond',
+  #   'Salinity'='Sal','Density'='Dens','Dissolved Oxygen'='DOF','Chlorophyl'='CHL_scaled',
+  #   'CDOM'='CDOM_scaled','BB_700nm'='BB_scaled'),
+  output$sciScaleBar <- renderUI({
+    rng <- switch(input$SciVar,
+                  'Temp' = c(-5,45),
+                  'Sal' = c(15, 45),
+                  'Cond' = c(0,7),
+                  'Dens' = c(0, 35),
+                  'CHL_scaled' = c(-5,5),
+                  'CDOM_scaled' = c(-12,12),
+                  'BB_scaled' = c(-0.5, 0.5))
+    value <- switch(input$SciVar,
+                    'Temp' = range(PLD$Temperature, na.rm = TRUE),
+                    'Sal' = range(PLD$Sal, na.rm = TRUE),
+                    'Cond' = range(PLD$Conduc, na.rm = TRUE),
+                    'Dens' = range(PLD$SigTheta, na.rm = TRUE),
+                    'CHL_scaled' = range(PLD$CHL_scaled, na.rm = TRUE),
+                    'CDOM_scaled' = range(PLD$CDOM_scaled, na.rm = TRUE),
+                    'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE))
+    sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
+                value = value, animate = FALSE)  
+    
+  })
+  
   output$plot1 <- renderPlot({
  # if (input$Var == 'Navigation') {
     
@@ -256,7 +285,6 @@ server <- function(input, output) {
         }   
       }
     } else if (input$Var == 'Science') {
-      
       Lontmp <-  sub("\\$", "", sub('(.{3})', '\\1 ', PLD$Lon))
       Lon <- as.numeric(conv_unit(Lontmp,from = 'deg_dec_min', to = 'dec_deg'))
       Lattmp <-  sub("\\$", "", sub('(.{2})', '\\1 ', PLD$Lat))
@@ -282,7 +310,41 @@ server <- function(input, output) {
       mapLines(coastlineWorldFine)
       mapLines(Lon,Lat,type='l',col='red',lwd=3)
       mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
-      }  
+      } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
+        # CL's work for science plots
+        # get science data, make color map
+        data <- switch(input$SciVar,
+                       'Temp' = PLD$Temp,
+                       'Sal' = PLD$Sal,
+                       'Cond' = PLD$Conduc,
+                       'Dens' = PLD$SigTheta,
+                       'CHL_scaled' = PLD$CHL_scaled,
+                       'CDOM_scaled' = PLD$CDOM_scaled,
+                       'BB_scaled' = PLD$BB_scaled)
+        #use CL's file for resizable label for biological variables ?
+        zlab <- switch(input$SciVar,
+                       'Temp' = resizableLabel('T', axis = 'y'),
+                       'Sal' = resizableLabel('S', axis = 'y'),
+                       'Cond' = resizableLabel('conductivity S/m', axis = 'y'),
+                       'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
+                       'CHL_scaled' = 'Chlorophyll',
+                       'CDOM_scaled' = 'CDOM',
+                       'BB_scaled' = 'Backscatter')
+        cm <- colormap(data, zlim = input$sciLimits)
+        ylabp <- resizableLabel('p', axis = 'y')
+        drawPalette(colormap = cm, zlab = zlab)
+        par(xaxs='i',yaxs='i')
+        # match top panel, so use range of altHits for ylim
+        #                  and nav time for xlim
+        plot(PLD$timesci, PLD$Press,
+             ylim = rev(range(glider$altHit,na.rm = TRUE)),
+             xlim = (range(glider$time, na.rm = TRUE)),
+             pch = 20, col = cm$zcol,
+             xlab = '', ylab = '')
+        grid()
+        mtext(ylabp, side = 2, line = 2)
+      }
+      
     }  
     })
 
@@ -305,4 +367,5 @@ server <- function(input, output) {
 }
 
 # Create Shiny app ----
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, options = list("display.mode" = "showcase")) #see code when app is ran
+#shinyApp(ui = ui, server = server)

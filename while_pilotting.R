@@ -1,7 +1,10 @@
-
 rm(list=ls())
 graphics.off()
-setwd('/Users/BelzileM/Documents/Gliders/Rdata')
+#setwd('/Users/BelzileM/Documents/Gliders/Rdata') # CL: not needed
+
+#load functions to convert oxygen frequency to saturation
+source('swSatO2.R')
+source('sbeO2Hz2Sat.R')
 
 # REAL TIME
 ##### LOAD NAV DATA #####
@@ -149,7 +152,20 @@ PLD <- data.frame(
   DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
   Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
 )
-
+# calculate salinity, sigTheta, and oxygen saturation
+PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
+                  temperature = PLD$Temp, 
+                  pressure = PLD$Press, 
+                  conductivityUnit = "S/m")
+PLD$SigTheta <- swSigmaTheta(salinity = PLD$Sal,
+                             temperature = PLD$Temp,
+                             pressure = PLD$Press)
+# use coefficients from calibration files located in
+# R:/Shared/Gliders/SEA019/Calibration_files/43-3338 Oxygen cal.pdf [as of 2018-03-08]
+PLD$OxySat <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
+                          pressure = PLD$Press, oxygenFrequency = PLD$DOF,
+                          Soc = 3.2305e-4, Foffset = -830.74, A = -3.4562e-3, B = 1.1709e-4,
+                          C = -1.7302e-6, Enom = 0.036)
 
 #save(list = ls(all = TRUE), file= "currentMission.RData")
 save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
