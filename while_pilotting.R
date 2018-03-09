@@ -1,5 +1,6 @@
 rm(list=ls())
 graphics.off()
+library(oce)
 #setwd('/Users/BelzileM/Documents/Gliders/Rdata') # CL: not needed
 
 #load functions to convert oxygen frequency to saturation
@@ -10,13 +11,13 @@ source('sbeO2Hz2Sat.R')
 ##### LOAD NAV DATA #####
 
 #dataDir <- '/Users/BelzileM/Documents/Gliders/Socib/Data/SEA019/M29/all_data/'
-dataDir <- 'R:/Shared/Gliders/SEA019/Data/M36/Navigation/logs/'
+dataDir <- 'R:/Shared/Gliders/SEA019/Data/M29/Navigation/logs/'
 #ncname <- 'sea019.29.gli.sub.4'
 #ncfname <- paste(dataDir,ncname,'.gz', sep = '')
 #data <- read.table(ncfname, sep=";")
 
 
-files_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M36/Navigation/logs/',pattern='*.gli.sub.*.gz')
+files_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M29/Navigation/logs/',pattern='*.gli.sub.*.gz')
 files <- paste(dataDir,as.list(files_tmp),sep = '')
 
 # to put the files in the right order
@@ -93,8 +94,8 @@ glider <- data.frame(
 
 
 ##### LOAD SCI DATA #####
-dataDirsci <- 'R:/Shared/Gliders/SEA019/Data/M36/Payload/logs/logs/'
-filesci_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M36/Payload/logs/logs/',pattern='*.pld1.sub.*.gz')
+dataDirsci <- 'R:/Shared/Gliders/SEA019/Data/M29/Payload/logs/logs/'
+filesci_tmp <- dir(path='R:/Shared/Gliders/SEA019/Data/M29/Payload/logs/logs/',pattern='*.pld1.sub.*.gz')
 filesci <- paste(dataDirsci,as.list(filesci_tmp),sep = '')
 
 # to put the files in the right order
@@ -168,5 +169,5 @@ PLD$OxySat <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal,
                           C = -1.7302e-6, Enom = 0.036)
 
 #save(list = ls(all = TRUE), file= "currentMission.RData")
-save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
+save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
 
