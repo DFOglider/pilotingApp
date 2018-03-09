@@ -383,11 +383,20 @@ server <- function(input, output) {
         drawPalette(colormap = cm, zlab = zlab)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
+        if (is.null(state$brushed)) {
         plot(PLD$timesci, PLD$Press,
              ylim = rev(range(glider$altHit,na.rm = TRUE)),
              xlim = (range(glider$time, na.rm = TRUE)),
              pch = 20, col = cm$zcol,
              xlab = '', ylab = '')
+
+        } else {
+          plot(PLD$timesci, PLD$Press,
+               ylim = rev(range(glider$altHit,na.rm = TRUE)),
+               xlim=state$xlim,
+               pch = 20, col = cm$zcol,
+               xlab = '', ylab = '')
+        }
         grid()
         mtext(ylabp, side = 2, line = 2)
         par(mar=mardef)
