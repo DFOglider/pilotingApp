@@ -6,6 +6,9 @@ library(ocedata)
 data('coastlineWorldFine')
 #load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
+mardef <- c(5.1, 4.1, 4.1, 2.1)
+marcm <- c(5.1, 4.1, 4.1, 4.85)
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
@@ -104,14 +107,15 @@ server <- function(input, output) {
   
   output$plot1 <- renderPlot({
  # if (input$Var == 'Navigation') {
-    
       if (is.null(state$xlim)) {
+        par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=(range(glider$time, na.rm = TRUE)),ylab='Depth (m)',xlab='Time')
         points(glider$time,glider$altHit,pch=19,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=19,cex = 1, col = "dark blue")
         grid()
       } else {
+        par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=state$xlim,ylab='Depth (m)',xlab='Time')
         points(glider$time,glider$altHit,pch=19,cex = 1, col = "red")
@@ -127,6 +131,7 @@ server <- function(input, output) {
     if (input$Var == 'Navigation') {
       if (input$NavVar=='Pitch') {
         if (is.null(state$brushed)) {
+          par(mar=marcm)
            par(xaxs='i',yaxs='i')#tight
            plot(glider$time, glider[[input$NavVar]],
            ylim=c(-80,40),
@@ -137,6 +142,7 @@ server <- function(input, output) {
            lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
            grid()
         } else {
+          par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
           ylim=c(-80,40),
@@ -150,6 +156,7 @@ server <- function(input, output) {
       } else if (input$NavVar=='VertSpeed') {
         if (is.null(state$brushed)) {
         par(xaxs='i',yaxs='i')#tight
+        par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
              ylim=c(-30,30),
              xlim=(range(glider$time, na.rm = TRUE)),
@@ -160,6 +167,7 @@ server <- function(input, output) {
         grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                ylim=c(-30,30),
                xlim=state$xlim,
@@ -172,6 +180,7 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='BatterieVolt') {
         if (is.null(state$brushed)) {
+          par(mar = marcm)
          par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider[[input$NavVar]],
              ylim=c(24,30),
@@ -182,6 +191,7 @@ server <- function(input, output) {
         grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                ylim=c(24,30),
                xlim=state$xlim,
@@ -194,6 +204,7 @@ server <- function(input, output) {
       } else if (input$NavVar=='Heading') {
         if (is.null(state$brushed)) {
         par(xaxs='i',yaxs='i')#tight
+        par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
              xlab='Time',ylab='',type='n')
@@ -201,6 +212,7 @@ server <- function(input, output) {
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
         grid()
         } else {
+          par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
@@ -213,6 +225,7 @@ server <- function(input, output) {
       } else if (input$NavVar=='BallastPos') {
         if (is.null(state$brushed)) {
         par(xaxs='i',yaxs='i')#tight
+        par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
              xlab='Time',ylab='',type='n')
@@ -221,6 +234,7 @@ server <- function(input, output) {
         grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
                xlab='Time',ylab='',type='n')
@@ -232,6 +246,7 @@ server <- function(input, output) {
       } else if (input$NavVar=='LinPos') {
         if (is.null(state$brushed)) {
         par(xaxs='i',yaxs='i')#tight
+        par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
              xlab='Time',ylab='',type='n')
@@ -240,6 +255,7 @@ server <- function(input, output) {
         grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
                xlab='Time',ylab='',type='n')
@@ -250,6 +266,7 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='AngPos') {
         if (is.null(state$brushed)) {
+        par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
@@ -259,6 +276,7 @@ server <- function(input, output) {
         grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
                xlab='Time',ylab='',type='n')
@@ -270,6 +288,7 @@ server <- function(input, output) {
       } else {
         if (is.null(state$brushed)) {  
       par(xaxs='i',yaxs='i')#tight
+      par(mar = marcm)
       plot(glider$time, glider[[input$NavVar]],
            xlim=(range(glider$time, na.rm = TRUE)),
            xlab='Time',ylab='',type="n")
@@ -277,6 +296,7 @@ server <- function(input, output) {
       grid()
         } else {
           par(xaxs='i',yaxs='i')#tight
+          par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
                xlab='Time',ylab='',type="n")
@@ -294,6 +314,7 @@ server <- function(input, output) {
       data(coastlineWorldFine)
       lonlim <- c(mean(Lon,na.rm = TRUE)-3, mean(Lon,na.rm = TRUE)+3)
       latlim <- c(mean(Lat,na.rm = TRUE)-1, mean(Lat,na.rm = TRUE)+1)
+      par(mar = marcm)
       mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
               longitudelim=lonlim, latitudelim=latlim) 
       mapLines(coastlineWorldFine)
@@ -305,6 +326,7 @@ server <- function(input, output) {
       lonlim <- c(Lon[length(Lon)]-0.25, Lon[length(Lon)]+0.25)
       latlim <- c(Lat[length(Lat)]-0.10, Lat[length(Lat)]+0.10)
       #par(new=TRUE,fig=c(0.05,0.5,0.55,0.80))
+      par(mar = marcm)
       mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
               longitudelim=lonlim, latitudelim=latlim) 
       mapLines(coastlineWorldFine)
@@ -332,8 +354,8 @@ server <- function(input, output) {
                        'BB_scaled' = 'Backscatter')
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
-        drawPalette(colormap = cm, zlab = zlab)
         par(xaxs='i',yaxs='i')
+        drawPalette(colormap = cm, zlab = zlab, mar = mardef)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
         plot(PLD$timesci, PLD$Press,
