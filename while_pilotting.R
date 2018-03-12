@@ -1,6 +1,7 @@
 rm(list=ls())
 graphics.off()
 library(oce)
+library(geosphere)
 #setwd('/Users/BelzileM/Documents/Gliders/Rdata') # CL: not needed
 
 #load functions to convert oxygen frequency to saturation
@@ -120,27 +121,70 @@ if(catesci==1){
 }
 
 # to read the time in the right format
+
 time_tmpsci <- unlist(lapply(data_allsci, function(k) k$PLD_REALTIMECLOCK))
 timesci <- as.POSIXct(time_tmpsci,format='%d/%m/%Y %H:%M:%S',tz='UTC')
 timesci[timesci < as.POSIXct('2010-01-01')] <- NA
 
 #calculate distance traveled and glider speed
+  # convert lat long to decimal
+conv <- function(x) {
+  res <- rep(NA, length(x))
+  zeros <- x == "0"
+  nas <- is.na(x)
+  good <- !(zeros | nas)
+  res[good] <- ifelse(substr(x[good], 1, 1) == "-", -1, 1)*
+    ((abs(as.numeric(x[good])/100) - floor(abs(as.numeric(x[good])/100)))*100/60 
+     + floor(abs(as.numeric(x[good])/100)))
+  res[zeros] <- 0
+  return(res)
+}
 LonT <- unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE))
-LonT[LonT == 0] <- NA
-Lontmp <-  sub("\\$", "", sub('(.{3})', '\\1 ', LonT))
-
-
+Lond <- conv(LonT)
 LatT <- unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE))
-LatT[LatT == 0] <- NA
-Lattmp <-  sub("\\$", "", sub('(.{2})', '\\1 ', LatT))
+Latd <- conv(LatT)
+  # Identify each surfacing (Navstate=115) time and position for calculation
+index115 <- which(glider$NavState %in% 115)
+NavTime115t <- glider$time[index115]
+NavTime115 <- NavTime115t[!is.na(NavTime115t)]
 
+index115sci <- rep(NA, length(NavTime115))
+for (j in c(1:length(NavTime115))){
+  index115sci[j] <- which.min(abs(timesci - NavTime115[j]))
+}
+PLDTime115 <- timesci[index115sci]
 
+dist <- distGeo(matrix(c(Lond[index115sci], Latd[index115sci]),nrow=length(PLDTime115),ncol=2))/1000
+distsum<- rep(NA, length(dist))
+speed<- rep(NA, length(dist))
+for (j in c(1:length(dist))){
+  distsum[j] <- sum(dist[1:j])
+  speed[j] <- dist[j]*1000/as.numeric(PLDTime115[j+1]-PLDTime115[j],units='secs')
+}
+timedist <- PLDTime115[2:length(PLDTime115)]
+speed_goodi <- which(speed!=0)
+speed_good <- speed[speed_goodi]
+timespeed <- timedist[speed_goodi]
+  #put speed and dist back on glider$time ref
+indexspeed <- rep(NA, length(timespeed))
+indexdist <- rep(NA, length(timedist))
+for (j in c(1:length(timespeed))){
+  indexspeed[j] <- which.min(abs(glider$time - timespeed[j]))
+}
+for (j in c(1:length(timedist))){
+  indexdist[j] <- which.min(abs(glider$time - timedist[j]))
+}
+ # put 2 new variables in glider data frame
+glider$speedms <- rep(NA, length(glider$time))
+glider$distkm <-  rep(NA, length(glider$time)) 
+glider$speedms[indexspeed] <- speed_good
+glider$distkm[indexdist] <- distsum
 
 # to put everything in a dataframe where all the dive are together
 PLD <- data.frame(
   timesci=timesci,
-  Lat=unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE)),
-  Lon=unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE)),
+  Lat=Latd,
+  Lon=Lond,
   Depthsci=unlist(lapply(data_allsci, function(k) k$NAV_DEPTH)),
   CHL_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_COUNT)),
   CHL_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_SCALED)),
@@ -170,4 +214,6 @@ PLD$OxySat <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal,
 
 #save(list = ls(all = TRUE), file= "currentMission.RData")
 save('data_all', 'glider','data_allsci','PLD', file= "R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+
+
 
