@@ -3,11 +3,12 @@ library(shiny)
 library(measurements)
 library(oce)
 library(ocedata)
+library(leaflet)
 data('coastlineWorldFine')
 #load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
 
-mardef <- c(5.1, 4.1, 4.1, 2.1)
-marcm <- c(5.1, 4.1, 4.1, 6.1)
+mardef <- c(5.1, 4.1, 4.1, 2.1) #default margins
+marcm <- c(5.1, 4.1, 4.1, 6.1) #color bar with zlab margins
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -43,9 +44,7 @@ ui <- fluidPage(
           condition="input.Var=='Science'", 
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
-                      choices = c('Map'='Map',
-                                  'Map close up'='Mapcloseup',
-                                  'Temperature'='Temp',
+                      choices = c('Temperature'='Temp',
                                   'Conductivity'='Cond',
                                   'Salinity'='Sal',
                                   'Density'='Dens',
@@ -54,11 +53,9 @@ ui <- fluidPage(
                                   'Chlorophyl'='CHL_scaled',
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
-                      selected = 'Map'),
+                      selected = 'Temperature'),
             uiOutput('sciScaleBar')),
-      #  conditionalPanel(
-      #    condition = "input.Var == 'Navigation'",
-      #    "Click/Drag top panel to zoom."),
+        
         conditionalPanel(
           condition = "input.Var == 'Navigation'",
           actionButton("resetNav", "Reset plot")),
@@ -69,22 +66,19 @@ ui <- fluidPage(
              )),
     
     # Main panel for displaying outputs ----
-    #tabsetPanel(type = 'tabs',
-      #tabPanel("Plots",
-        column(10,
-        plotOutput("plot1",brush = brushOpts(id="plot_brush",
+    tabsetPanel(type = 'tabs',
+      tabPanel("Plots",
+        column(10, plotOutput("plot1",brush = brushOpts(id="plot_brush",
                                              direction="x",
                                              resetOnNew = TRUE),
                                             height="310px")),
-        column(10,
-        plotOutput("plot2", height="310px"))
-    #),
-      #tabPanel("Map",
-      #         leafletOutput("map"))
-
-    #)
-    )
-)
+        column(10, plotOutput("plot2", height="310px"))
+    ),
+      tabPanel("Map",
+        column(10, leafletOutput("map")))
+      ) #closes tabset
+    ) #closes fluidRow
+) #closes ui
 
 
                
@@ -95,7 +89,8 @@ server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
   #local({
-  load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+  # load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+  load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
   
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
@@ -445,15 +440,15 @@ server <- function(input, output) {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
     
-    # output$map <- renderLeaflet({
-    #   leaflet(as.data.frame(cbind(c(-65,-64.5, -64), c(45, 45.1, 45.2))))%>%
-    #   addProviderTiles(providers$Esri.OceanBasemap) %>%
-    #   fitBounds(lng1 = -63,
-    #             lat1 = 44,
-    #             lng2 = -66,
-    #             lat2 = 46) %>%
-    #   addScaleBar(position = 'topright')
-    # })
+     output$map <- renderLeaflet({
+       leaflet(as.data.frame(cbind(c(-65,-64.5, -64), c(45, 45.1, 45.2))))%>%
+       addProviderTiles(providers$Esri.OceanBasemap) %>%
+       fitBounds(lng1 = -63,
+                 lat1 = 44,
+                 lng2 = -66,
+                 lat2 = 46) %>%
+       addScaleBar(position = 'topright')
+     })
   
 }
 
