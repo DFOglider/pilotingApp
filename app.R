@@ -333,46 +333,46 @@ server <- function(input, output) {
       Lattmp <-  sub("\\$", "", sub('(.{2})', '\\1 ', PLD$Lat))
       Lat <- as.numeric(conv_unit(Lattmp,from = 'deg_dec_min', to = 'dec_deg'))
       
-      if (input$SciVar=='Map') {
-      data(coastlineWorldFine)
-      lonlim <- c(mean(Lon,na.rm = TRUE)-3, mean(Lon,na.rm = TRUE)+3)
-      latlim <- c(mean(Lat,na.rm = TRUE)-1, mean(Lat,na.rm = TRUE)+1)
-      par(mar = marcm)
-      mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
-              longitudelim=lonlim, latitudelim=latlim) 
-      mapLines(coastlineWorldFine)
-      mapLines(Lon,Lat,type='l',col='red',lwd=3)
-      mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
-      mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
-      
-      } else if (input$SciVar=='Mapcloseup') {
-      data(coastlineWorldFine)
-      lonlim <- c(Lon[length(Lon)]-0.25, Lon[length(Lon)]+0.25)
-      latlim <- c(Lat[length(Lat)]-0.10, Lat[length(Lat)]+0.10)
-      #par(new=TRUE,fig=c(0.05,0.5,0.55,0.80))
-      par(mar = marcm)
-      mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
-              longitudelim=lonlim, latitudelim=latlim) 
-      mapLines(coastlineWorldFine)
-      mapLines(Lon,Lat,type='l',col='red',lwd=3)
-      mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
-      mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
-      mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
-      
-      } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
+      # if (input$SciVar=='Map') {
+      # data(coastlineWorldFine)
+      # lonlim <- c(mean(Lon,na.rm = TRUE)-3, mean(Lon,na.rm = TRUE)+3)
+      # latlim <- c(mean(Lat,na.rm = TRUE)-1, mean(Lat,na.rm = TRUE)+1)
+      # par(mar = marcm)
+      # mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
+      #         longitudelim=lonlim, latitudelim=latlim) 
+      # mapLines(coastlineWorldFine)
+      # mapLines(Lon,Lat,type='l',col='red',lwd=3)
+      # mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
+      # mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
+      # 
+      # } else if (input$SciVar=='Mapcloseup') {
+      # data(coastlineWorldFine)
+      # lonlim <- c(Lon[length(Lon)]-0.25, Lon[length(Lon)]+0.25)
+      # latlim <- c(Lat[length(Lat)]-0.10, Lat[length(Lat)]+0.10)
+      # #par(new=TRUE,fig=c(0.05,0.5,0.55,0.80))
+      # par(mar = marcm)
+      # mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
+      #         longitudelim=lonlim, latitudelim=latlim) 
+      # mapLines(coastlineWorldFine)
+      # mapLines(Lon,Lat,type='l',col='red',lwd=3)
+      # mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
+      # mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
+      # mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
+      # 
+      # } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
         # CL's work for science plots
         # get science data, make color map
         data <- switch(input$SciVar,
