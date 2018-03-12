@@ -443,15 +443,18 @@ server <- function(input, output) {
     #map groups
     map_allposition <- "All Positions"
     map_track <- "Glider Track"
+    map_lastlocation <- "Last received location"
     
      output$map <- renderLeaflet({
-       leaflet(as.data.frame(cbind(c(-65,-64.5, -64), c(45, 45.1, 45.2))))%>%
+       leaflet(as.data.frame(cbind(PLD$Lon, PLD$Lat)))%>%
        addProviderTiles(providers$Esri.OceanBasemap) %>%
-       fitBounds(lng1 = -63,
-                 lat1 = 44,
-                 lng2 = -66,
-                 lat2 = 46) %>%
+         fitBounds(lng1 = max(PLD$Lon, na.rm = TRUE) - 0.2,
+                   lat1 = min(PLD$Lat, na.rm = TRUE) + 0.2,
+                   lng2 = min(PLD$Lon, na.rm = TRUE) + 0.2,
+                   lat2 = max(PLD$Lat, na.rm = TRUE) - 0.2) %>%
          # use NOAA graticules
+         # not sure if it does much, but it allows to zoom further in
+         # no bathy when zoomed in to 500m though.
          addWMSTiles(
            "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
            layers = c("1-degree grid", "5-degree grid"),
@@ -464,28 +467,35 @@ server <- function(input, output) {
                     primaryAreaUnit = "hectares", 
                     secondaryAreaUnit="acres", 
                     position = 'bottomleft') %>%
-         addLayersControl(overlayGroups = c(map_allposition,
-                                            map_track),
-                          options = layersControlOptions(collapsed = FALSE), 
-                          position = 'bottomright')
-     })
-     #glider track layers
-     observe({
-       proxy <- leafletProxy('map')
-       proxy %>%
-         clearMarkers() %>%
-         clearShapes() %>%
+         #line track
          addPolylines(lng = PLD$Lon, lat = PLD$Lat, 
                       weight = 2,
                       group = map_track) %>%
+         #positions
          addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
-                          radius = 6, fillOpacity = .2, stroke = F,
+                          radius = 4, fillOpacity = .2, stroke = F,
                           popup = paste(sep = "<br/>",
                                         "Glider position",
                                         as.character(PLD$timesci),
                                         paste0(as.character(round(PLD$Lat,3)), ', ', as.character(round(PLD$Lon,3)))),
                           label = paste0('Glider position: ', as.character(PLD$timesci)),
-                          group = map_allposition)
+                          group = map_allposition)%>%
+         #last received / current location
+         addCircleMarkers(lng = PLD$Lon[length(PLD$Lon)], lat = PLD$Lat[length(PLD$Lon)],
+                          radius = 4, fillOpacity = 1, stroke = F,
+                          popup = paste(sep = "br/>",
+                                        "Last location received",
+                                        as.character(PLD$timesci[length(PLD$Lon)]),
+                                        paste0(as.character(round(PLD$Lat[length(PLD$Lon)],3)), ', ', as.character(round(PLD$Lon[length(PLD$Lon)],3)))),
+                          label = paste0("Last location received:", as.character(PLD$timesci[length(PLD$Lon)])),
+                          color = 'green',
+                          group = map_lastlocation) %>%
+         
+         addLayersControl(overlayGroups = c(map_allposition,
+                                            map_track,
+                                            map_lastlocation),
+                          options = layersControlOptions(collapsed = FALSE), 
+                          position = 'bottomright')
      })
   
 }
