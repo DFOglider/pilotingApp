@@ -31,6 +31,9 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
+                              'Internal Temperature'='int_temp',
+                              'Distance Travelled'='dist',
+                              'Glider Speed'='speed',
                               'Internal Pressure'='int_pres',
                               'Heading'='Heading',
                               'Ballast'='BallastPos',
@@ -91,12 +94,12 @@ ui <- fluidPage(
 server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
-  # below is temporary to avoid merge conflicts
-  if(Sys.info()[['sysname']] != "Darwin"){
-    load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
-  } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
-    }
-    
+  
+  #local({
+  load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+   
+  #load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
+
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
     #ls()
@@ -226,6 +229,69 @@ server <- function(input, output) {
                xlab='Time',ylab='',type='n')
           polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)  
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
+          grid()
+        }
+        
+      } else if (input$NavVar=='speed') {
+        if (is.null(state$brushed)) {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$speedms,
+               ylim=c(0,0.3),
+               xlim=(range(glider$time, na.rm = TRUE)),
+               xlab='Time',ylab='(m/s)')#,type='n')
+          lines(glider$time, glider$speedms,lwd = 2, col = "red")
+          grid()
+        } else {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$speedms,
+               ylim=c(0,0.03),
+               xlim=state$xlim,
+               xlab='Time',ylab='(m/s)')#,type='n')
+          lines(glider$time, glider$speedms,lwd = 2, col = "red")
+          grid()
+        }
+        
+      } else if (input$NavVar=='dist') {
+        if (is.null(state$brushed)) {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$distkm,
+               ylim=c(0,max(glider$distkm,na.rm = TRUE)),
+               xlim=(range(glider$time, na.rm = TRUE)),
+               xlab='Time',ylab='(km)')#,type='n')
+          lines(glider$time, glider$distkm,lwd = 2, col = "red")
+          grid()
+        } else {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$distkm,
+               ylim=c(0,max(glider$distkm,na.rm = TRUE)),
+               xlim=state$xlim,
+               xlab='Time',ylab='(km)')#,type='n')
+          lines(glider$time, glider$distkm,lwd = 2, col = "red")
+          grid()
+        }
+        
+      } else if (input$NavVar=='int_temp') {
+        if (is.null(state$brushed)) {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$Temperature,
+               ylim=c(0,max(glider$Temperature)+3),
+               xlim=(range(glider$time, na.rm = TRUE)),
+               xlab='Time',ylab='',type='n')
+          lines(glider$time, glider$Temperature,lwd = 2, col = "red")
+          grid()
+        } else {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$Temperature,
+               ylim=c(0,max(glider$Temperature)+3),
+               xlim=state$xlim,
+               xlab='Time',ylab='',type='n')
+           lines(glider$time, glider$Temperature,lwd = 2, col = "red")
           grid()
         }
         

@@ -154,12 +154,12 @@ for (j in c(1:length(NavTime115))){
 }
 PLDTime115 <- timesci[index115sci]
 
-dist <- distGeo(matrix(c(Lond[index115sci], Latd[index115sci]),nrow=length(PLDTime115),ncol=2))/1000
+dist <- distGeo(matrix(c(Lond[index115sci], Latd[index115sci]),nrow=length(PLDTime115),ncol=2))
 distsum<- rep(NA, length(dist))
 speed<- rep(NA, length(dist))
 for (j in c(1:length(dist))){
-  distsum[j] <- sum(dist[1:j])
-  speed[j] <- dist[j]*1000/as.numeric(PLDTime115[j+1]-PLDTime115[j],units='secs')
+  distsum[j] <- sum(dist[1:j])/1000
+  speed[j] <- dist[j]/as.numeric(PLDTime115[j+1]-PLDTime115[j],units='secs')
 }
 timedist <- PLDTime115[2:length(PLDTime115)]
 speed_goodi <- which(speed!=0)
