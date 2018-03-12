@@ -89,8 +89,8 @@ server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
   #local({
-  load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
-  # load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
+  # load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+   load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
   
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
@@ -419,7 +419,7 @@ server <- function(input, output) {
         grid()
         mtext(ylabp, side = 2, line = 2)
         par(mar=mardef)
-      }
+      
       
     }  
     })
