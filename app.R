@@ -440,6 +440,9 @@ server <- function(input, output) {
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
+    #map groups
+    map_allposition <- "All Positions"
+    map_track <- "Glider Track"
     
      output$map <- renderLeaflet({
        leaflet(as.data.frame(cbind(c(-65,-64.5, -64), c(45, 45.1, 45.2))))%>%
@@ -448,9 +451,41 @@ server <- function(input, output) {
                  lat1 = 44,
                  lng2 = -66,
                  lat2 = 46) %>%
-       addScaleBar(position = 'topright') %>%
-       addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
-                          radius = 2, fillOpacity = 1, stroke = F, fillColor = 'red')
+         # use NOAA graticules
+         addWMSTiles(
+           "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
+           layers = c("1-degree grid", "5-degree grid"),
+           options = WMSTileOptions(format = "image/png8", transparent = TRUE),
+           attribution = "NOAA") %>%
+         # add extra map features
+         addScaleBar(position = 'topright')%>%
+         addMeasure(primaryLengthUnit = "kilometers",
+                    secondaryLengthUnit = 'miles', 
+                    primaryAreaUnit = "hectares", 
+                    secondaryAreaUnit="acres", 
+                    position = 'bottomleft') %>%
+         addLayersControl(overlayGroups = c(map_allposition,
+                                            map_track),
+                          options = layersControlOptions(collapsed = FALSE), 
+                          position = 'bottomright')
+     })
+     #glider track layers
+     observe({
+       proxy <- leafletProxy('map')
+       proxy %>%
+         clearMarkers() %>%
+         clearShapes() %>%
+         addPolylines(lng = PLD$Lon, lat = PLD$Lat, 
+                      weight = 2,
+                      group = map_track) %>%
+         addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
+                          radius = 6, fillOpacity = .2, stroke = F,
+                          popup = paste(sep = "<br/>",
+                                        "Glider position",
+                                        as.character(PLD$timesci),
+                                        paste0(as.character(round(PLD$Lat,3)), ', ', as.character(round(PLD$Lon,3)))),
+                          label = paste0('Glider position: ', as.character(PLD$timesci)),
+                          group = map_allposition)
      })
   
 }
