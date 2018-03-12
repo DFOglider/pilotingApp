@@ -53,7 +53,7 @@ ui <- fluidPage(
                                   'Chlorophyl'='CHL_scaled',
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
-                      selected = 'Temperature'),
+                      selected = 'Temp'),
             uiOutput('sciScaleBar')),
         
         conditionalPanel(
@@ -66,17 +66,20 @@ ui <- fluidPage(
              )),
     
     # Main panel for displaying outputs ----
-    tabsetPanel(type = 'tabs',
-      tabPanel("Plots",
-        column(10, plotOutput("plot1",brush = brushOpts(id="plot_brush",
+    column(10,
+      tabsetPanel(type = 'tabs',
+        tabPanel("Plots",
+        #column(10, 
+               plotOutput("plot1",brush = brushOpts(id="plot_brush",
                                              direction="x",
                                              resetOnNew = TRUE),
-                                            height="310px")),
-        column(10, plotOutput("plot2", height="310px"))
-    ),
+                                            height="310px"),
+               plotOutput("plot2", height="310px")
+      ),
       tabPanel("Map",
-        column(10, leafletOutput("map")))
+        leafletOutput("map"))
       ) #closes tabset
+    ) #closes column
     ) #closes fluidRow
 ) #closes ui
 
@@ -89,8 +92,9 @@ server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
   #local({
-  # load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
-   load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
+  load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+   
+  #load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
   
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
