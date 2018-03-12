@@ -332,10 +332,7 @@ server <- function(input, output) {
         }   
       }
     } else if (input$Var == 'Science') {
-      Lontmp <-  sub("\\$", "", sub('(.{3})', '\\1 ', PLD$Lon))
-      Lon <- as.numeric(conv_unit(Lontmp,from = 'deg_dec_min', to = 'dec_deg'))
-      Lattmp <-  sub("\\$", "", sub('(.{2})', '\\1 ', PLD$Lat))
-      Lat <- as.numeric(conv_unit(Lattmp,from = 'deg_dec_min', to = 'dec_deg'))
+
       
       # if (input$SciVar=='Map') {
       # data(coastlineWorldFine)
@@ -452,7 +449,7 @@ server <- function(input, output) {
                  lng2 = -66,
                  lat2 = 46) %>%
        addScaleBar(position = 'topright') %>%
-       addCircleMarkers(lng = Lon, lat = Lat, 
+       addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
                           radius = 2, fillOpacity = 1, stroke = F, fillColor = 'red')
      })
   
