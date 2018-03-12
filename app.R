@@ -91,11 +91,12 @@ ui <- fluidPage(
 server <- function(input, output) {
   state <- reactiveValues()
   # Loading the data
-  #local({
-  #load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
-   
-  load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac
-  
+  # below is temporary to avoid merge conflicts
+  if(Sys.info()[['sysname']] != "Darwin"){
+    load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+  } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
+    }
+    
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
     #ls()
@@ -454,7 +455,7 @@ server <- function(input, output) {
                    lat2 = max(PLD$Lat, na.rm = TRUE) - 0.2) %>%
          # use NOAA graticules
          # not sure if it does much, but it allows to zoom further in
-         # no bathy when zoomed in to 500m though.
+         # no bathy when zoomed less than 500m though.
          addWMSTiles(
            "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
            layers = c("1-degree grid", "5-degree grid"),
