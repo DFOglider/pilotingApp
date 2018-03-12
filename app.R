@@ -451,7 +451,9 @@ server <- function(input, output) {
                  lat1 = 44,
                  lng2 = -66,
                  lat2 = 46) %>%
-       addScaleBar(position = 'topright')
+       addScaleBar(position = 'topright') %>%
+       addCircleMarkers(lng = Lon, lat = Lat, 
+                          radius = 2, fillOpacity = 1, stroke = F, fillColor = 'red')
      })
   
 }
