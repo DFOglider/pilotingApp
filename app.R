@@ -97,7 +97,7 @@ server <- function(input, output) {
   
   # below is temporary to avoid merge conflicts
   if(Sys.info()[['sysname']] != "Darwin"){
-    load("R:/Shared/Gliders/SEA019/Data/M29/currentMission.RData")
+    load("R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
   } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
   }
 
@@ -238,7 +238,7 @@ server <- function(input, output) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
-               ylim=c(0,0.3),
+               ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=(range(glider$time, na.rm = TRUE)),
                xlab='Time',ylab='(m/s)')
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
@@ -247,7 +247,7 @@ server <- function(input, output) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
-               ylim=c(0,0.03),
+               ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=state$xlim,
                xlab='Time',ylab='(m/s)')
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
