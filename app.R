@@ -119,7 +119,7 @@ server <- function(input, output) {
                   'Dens' = c(0, 35),
                   'CHL_scaled' = c(-5,5),
                   'CDOM_scaled' = c(-12,12),
-                  'BB_scaled' = c(-0.5, 0.5),
+                  'BB_scaled' = c(-0.005, 0.005),
                   'DOF' = c(2000, 5000),
                   'OxySat' = c(0,10))
     value <- switch(input$SciVar,
