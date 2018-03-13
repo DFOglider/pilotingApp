@@ -31,10 +31,10 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
-                              'Internal Temperature'='int_temp',
-                              'Distance Travelled'='dist',
-                              'Glider Speed'='speed',
+                              'Internal Temperature'='Temperature',
                               'Internal Pressure'='int_pres',
+                              'Distance'='distkm',
+                              'Speed'='speedms',
                               'Heading'='Heading',
                               'Ballast'='BallastPos',
                               'Angular'='AngPos',
@@ -233,66 +233,66 @@ server <- function(input, output) {
           grid()
         }
         
-      } else if (input$NavVar=='speed') {
+      } else if (input$NavVar=='speedms') {
         if (is.null(state$brushed)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$speedms,
+          plot(glider$time, glider[[input$NavVar]],
                ylim=c(0,0.3),
                xlim=(range(glider$time, na.rm = TRUE)),
-               xlab='Time',ylab='(m/s)')#,type='n')
-          lines(glider$time, glider$speedms,lwd = 2, col = "red")
+               xlab='Time',ylab='(m/s)')
+          points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         } else {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$speedms,
+          plot(glider$time, glider[[input$NavVar]],
                ylim=c(0,0.03),
                xlim=state$xlim,
-               xlab='Time',ylab='(m/s)')#,type='n')
-          lines(glider$time, glider$speedms,lwd = 2, col = "red")
+               xlab='Time',ylab='(m/s)')
+          points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
         
-      } else if (input$NavVar=='dist') {
+      } else if (input$NavVar=='distkm') {
         if (is.null(state$brushed)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$distkm,
-               ylim=c(0,max(glider$distkm,na.rm = TRUE)),
+          plot(glider$time, glider[[input$NavVar]],
+               ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=(range(glider$time, na.rm = TRUE)),
-               xlab='Time',ylab='(km)')#,type='n')
-          lines(glider$time, glider$distkm,lwd = 2, col = "red")
+               xlab='Time',ylab='(km)')
+          points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         } else {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$distkm,
-               ylim=c(0,max(glider$distkm,na.rm = TRUE)),
+          plot(glider$time, glider[[input$NavVar]],
+               ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=state$xlim,
-               xlab='Time',ylab='(km)')#,type='n')
-          lines(glider$time, glider$distkm,lwd = 2, col = "red")
+               xlab='Time',ylab='(km)')
+          points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
         
-      } else if (input$NavVar=='int_temp') {
+      } else if (input$NavVar=='Temperature') {
         if (is.null(state$brushed)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$Temperature,
-               ylim=c(0,max(glider$Temperature)+3),
+          plot(glider$time, glider[[input$NavVar]],
+               ylim=c(0,max(glider[[input$NavVar]])+3),
                xlim=(range(glider$time, na.rm = TRUE)),
                xlab='Time',ylab='',type='n')
-          lines(glider$time, glider$Temperature,lwd = 2, col = "red")
+          lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         } else {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$Temperature,
-               ylim=c(0,max(glider$Temperature)+3),
+          plot(glider$time, glider[[input$NavVar]],
+               ylim=c(0,max(glider[[input$NavVar]])+3),
                xlim=state$xlim,
                xlab='Time',ylab='',type='n')
-           lines(glider$time, glider$Temperature,lwd = 2, col = "red")
+           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         }
         
