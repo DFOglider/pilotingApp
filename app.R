@@ -520,14 +520,17 @@ server <- function(input, output) {
     map_allposition <- "All Positions"
     map_track <- "Glider Track"
     map_lastlocation <- "Last received location"
+    okloc <- PLD$Lat > 0
+    glon <- PLD$Lon[okloc]
+    glat <- PLD$Lat[okloc]
     
      output$map <- renderLeaflet({
-       leaflet(as.data.frame(cbind(PLD$Lon, PLD$Lat)))%>%
+       leaflet(as.data.frame(cbind(glon, glat)))%>%
        addProviderTiles(providers$Esri.OceanBasemap) %>%
-         fitBounds(lng1 = max(PLD$Lon, na.rm = TRUE) - 0.2,
-                   lat1 = min(PLD$Lat, na.rm = TRUE) + 0.2,
-                   lng2 = min(PLD$Lon, na.rm = TRUE) + 0.2,
-                   lat2 = max(PLD$Lat, na.rm = TRUE) - 0.2) %>%
+         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
+                   lat1 = min(glat, na.rm = TRUE) + 0.2,
+                   lng2 = min(glon, na.rm = TRUE) + 0.2,
+                   lat2 = max(glat, na.rm = TRUE) - 0.2) %>%
          # use NOAA graticules
          # not sure if it does much, but it allows to zoom further in
          # no bathy when zoomed less than 500m though.
@@ -544,7 +547,7 @@ server <- function(input, output) {
                     secondaryAreaUnit="acres", 
                     position = 'bottomleft') %>%
          #line track
-         addPolylines(lng = PLD$Lon, lat = PLD$Lat, 
+         addPolylines(lng = glon, lat = glat, 
                       weight = 2,
                       group = map_track) %>%
          # deployment/recovery location
@@ -564,22 +567,22 @@ server <- function(input, output) {
                                        paste0(as.character(round(hfxlat,3)), ',', as.character(round(hfxlon,3)))),
                          label = paste0("HL", 1:7)) %>%
          # glider positions
-         addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
+         addCircleMarkers(lng = glon, lat = glat, 
                           radius = 4, fillOpacity = .2, stroke = F,
                           popup = paste(sep = "<br/>",
                                         "Glider position",
-                                        as.character(PLD$timesci),
-                                        paste0(as.character(round(PLD$Lat,3)), ', ', as.character(round(PLD$Lon,3)))),
-                          label = paste0('Glider position: ', as.character(PLD$timesci)),
+                                        as.character(PLD$timesci[okloc]),
+                                        paste0(as.character(round(glat,3)), ', ', as.character(round(glon,3)))),
+                          label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
                           group = map_allposition)%>%
          # last received / current location
-         addCircleMarkers(lng = PLD$Lon[length(PLD$Lon)], lat = PLD$Lat[length(PLD$Lon)],
+         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
                           radius = 4, fillOpacity = 1, stroke = F,
                           popup = paste(sep = "br/>",
                                         "Last location received",
-                                        as.character(PLD$timesci[length(PLD$Lon)]),
-                                        paste0(as.character(round(PLD$Lat[length(PLD$Lon)],3)), ', ', as.character(round(PLD$Lon[length(PLD$Lon)],3)))),
-                          label = paste0("Last location received:", as.character(PLD$timesci[length(PLD$Lon)])),
+                                        as.character(PLD$timesci[okloc][length(glon)]),
+                                        paste0(as.character(round(glat[length(glon)],3)), ', ', as.character(round(glon[length(glon)],3)))),
+                          label = paste0("Last location received:", as.character(PLD$timesci[okloc][length(glon)])),
                           color = 'green',
                           group = map_lastlocation) %>%
          # layer control legend
