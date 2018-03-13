@@ -10,6 +10,14 @@ data('coastlineWorldFine')
 mardef <- c(5.1, 4.1, 4.1, 2.1) #default margins
 marcm <- c(5.1, 4.1, 4.1, 6.1) #color bar with zlab margins
 
+#deployment/recovery location
+drlon <- -63.406418 
+drlat <- 44.520789
+
+# halifax line
+hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945)
+hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138)
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
@@ -539,7 +547,23 @@ server <- function(input, output) {
          addPolylines(lng = PLD$Lon, lat = PLD$Lat, 
                       weight = 2,
                       group = map_track) %>%
-         #positions
+         # deployment/recovery location
+         addCircleMarkers(lng = drlon, lat = drlat,
+                         radius = 5, fillOpacity = .4, stroke = F,
+                         color = 'black',
+                         popup = paste(sep = "<br/>",
+                                       "Deployment/Recovery Location",
+                                       paste0(as.character(round(drlat,3)), ',', as.character(round(drlon,3)))),
+                         label = paste0("Deployment/Recovery Location"))%>%
+         # halifax line
+         addCircleMarkers(lng = hfxlon, lat = hfxlat,
+                         radius = 5, fillOpacity = .4, stroke = F, 
+                         color = 'black',
+                         popup = paste(sep = "<br/>",
+                                       paste0("HL", as.character(1:7)),
+                                       paste0(as.character(round(hfxlat,3)), ',', as.character(round(hfxlon,3)))),
+                         label = paste0("HL", 1:7)) %>%
+         # glider positions
          addCircleMarkers(lng = PLD$Lon, lat = PLD$Lat, 
                           radius = 4, fillOpacity = .2, stroke = F,
                           popup = paste(sep = "<br/>",
@@ -548,7 +572,7 @@ server <- function(input, output) {
                                         paste0(as.character(round(PLD$Lat,3)), ', ', as.character(round(PLD$Lon,3)))),
                           label = paste0('Glider position: ', as.character(PLD$timesci)),
                           group = map_allposition)%>%
-         #last received / current location
+         # last received / current location
          addCircleMarkers(lng = PLD$Lon[length(PLD$Lon)], lat = PLD$Lat[length(PLD$Lon)],
                           radius = 4, fillOpacity = 1, stroke = F,
                           popup = paste(sep = "br/>",
@@ -558,7 +582,7 @@ server <- function(input, output) {
                           label = paste0("Last location received:", as.character(PLD$timesci[length(PLD$Lon)])),
                           color = 'green',
                           group = map_lastlocation) %>%
-         
+         # layer control legend
          addLayersControl(overlayGroups = c(map_allposition,
                                             map_track,
                                             map_lastlocation),
