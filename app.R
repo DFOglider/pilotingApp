@@ -7,6 +7,7 @@ library(leaflet)
 library(RCurl)
 library(geosphere)
 library(XML)
+options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc 
 
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
 source('readSeaExplorerKml.R') # gets lon lat from kml file
