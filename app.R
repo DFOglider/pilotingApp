@@ -121,19 +121,6 @@ server <- function(input, output) {
     selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions)
   })
   
-  # Loading the data
-  
-  # # below is temporary to avoid merge conflicts
-  # if(Sys.info()[['sysname']] != "Darwin"){
-  #   load("R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
-  # } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
-  # }
-
-  #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
-  #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
-    #ls()
-  #})
-  
   # CL enter output for sciScaleBar based on input$SciVar
   #  variable names 
   # c('Map'='Map','Map close up'='Mapcloseup','Temperature'='Temp','Conductivity'='Cond',
@@ -168,7 +155,7 @@ server <- function(input, output) {
   # download data and load when actionButton clicked
   # make plots too
   observeEvent(input$download,{
-    #might have to put state in here
+    # download and process data
     downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
     PLD <- data$PLD
@@ -462,49 +449,6 @@ server <- function(input, output) {
         }   
       }
     } else if (input$Var == 'Science') {
-
-      
-      # if (input$SciVar=='Map') {
-      # data(coastlineWorldFine)
-      # lonlim <- c(mean(Lon,na.rm = TRUE)-3, mean(Lon,na.rm = TRUE)+3)
-      # latlim <- c(mean(Lat,na.rm = TRUE)-1, mean(Lat,na.rm = TRUE)+1)
-      # par(mar = marcm)
-      # mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
-      #         longitudelim=lonlim, latitudelim=latlim) 
-      # mapLines(coastlineWorldFine)
-      # mapLines(Lon,Lat,type='l',col='red',lwd=3)
-      # mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
-      # mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
-      # 
-      # } else if (input$SciVar=='Mapcloseup') {
-      # data(coastlineWorldFine)
-      # lonlim <- c(Lon[length(Lon)]-0.25, Lon[length(Lon)]+0.25)
-      # latlim <- c(Lat[length(Lat)]-0.10, Lat[length(Lat)]+0.10)
-      # #par(new=TRUE,fig=c(0.05,0.5,0.55,0.80))
-      # par(mar = marcm)
-      # mapPlot(coastlineWorldFine,  projection='+proj=wintri +lon_0=-68',
-      #         longitudelim=lonlim, latitudelim=latlim) 
-      # mapLines(coastlineWorldFine)
-      # mapLines(Lon,Lat,type='l',col='red',lwd=3)
-      # mapPoints(Lon[length(Lon)],Lat[length(Lat)],pch=19,cex = 1, col = "dark blue")
-      # mapPoints(-63.406418,44.520789,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-63.450000,44.400001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-63.317000,44.267001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.883000,43.883001,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.451000,43.479000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-62.098000,43.183000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-61.733000,42.850000,pch=18,cex = 1.5, col = "dark green")
-      # mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
-      # 
-      # } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
-      
         # CL's work for science plots
         # get science data, make color map
         data <- switch(input$SciVar,
@@ -557,7 +501,8 @@ server <- function(input, output) {
     }) # closes plot2
     
     # leaflet map plot
-    #map groups
+    
+    # map groups
     map_allposition <- "All Positions"
     map_track <- "Glider Track"
     map_lastlocation <- "Last received location"
@@ -634,7 +579,7 @@ server <- function(input, output) {
                          position = 'bottomright')
     }) #closes leafletplot
     
-    #try putting these inside of download observeEvent
+    # brush plots
     observeEvent(input$plot_brush, {
      
       df <- data.frame(x=glider$time, x=glider[[input$NavVar]])
@@ -644,6 +589,7 @@ server <- function(input, output) {
       
     })
 
+    # reset plots 
     observeEvent(input$resetNav, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
@@ -658,5 +604,4 @@ server <- function(input, output) {
 }
 
 # Create Shiny app ----
-shinyApp(ui = ui, server = server, options = list("display.mode" = "showcase")) #see code when app is ran
-#shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
