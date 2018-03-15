@@ -52,7 +52,7 @@ downloadData <- function(datadir, glider, mission){
   f <- filenames[grep(pattern = '*.sub.*.gz' , x = filenames)] #nav and pld
   # find which files to download
   files_to_get <- f[!(f %in% existing_files)]
-  # download files
+  # download nav and pld files
   if(length(files_to_get) != 0){
     for (file in files_to_get){
       download.file(url = paste(url,
@@ -66,4 +66,16 @@ downloadData <- function(datadir, glider, mission){
                                      sep=''))
     }
   }
+  
+  kml <- filenames[grep(pattern = '*.trk.kml', x = filenames)]
+  # download kml file, downloads everytime
+  download.file(url = paste(url,
+                            dirnames,
+                            glider,
+                            mission,
+                            kml,
+                            sep='/'),
+                destfile = paste(savedir,
+                                 kml,
+                                 sep=''))
 }

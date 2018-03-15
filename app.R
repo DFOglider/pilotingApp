@@ -6,8 +6,10 @@ library(measurements)
 library(leaflet)
 library(RCurl)
 library(geosphere)
+library(XML)
 
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
+source('readSeaExplorerKml.R') # gets lon lat from kml file
 source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of Hz to ml/l
 source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
@@ -160,6 +162,10 @@ server <- function(input, output) {
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
     PLD <- data$PLD
     glider <- data$NAV
+    kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    okkml <- !is.na(kmlcoord$lon)
+    kmlLon <- kmlcoord$lon[okkml]
+    kmlLat <- kmlcoord$lat[okkml]  
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
@@ -506,6 +512,7 @@ server <- function(input, output) {
     map_allposition <- "All Positions"
     map_track <- "Glider Track"
     map_lastlocation <- "Last received location"
+    map_kml <- "Positions from KML"
     okloc <- PLD$Lat > 0
     glon <- PLD$Lon[okloc]
     glat <- PLD$Lat[okloc]
@@ -561,6 +568,16 @@ server <- function(input, output) {
                                        paste0(as.character(round(glat,3)), ', ', as.character(round(glon,3)))),
                          label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
                          group = map_allposition)%>%
+        # positions from kml
+        addCircleMarkers(lng = kmlLon, lat = kmlLat, 
+                         radius = 5, fillOpacity = .4, stroke = F,
+                         color = 'red',
+                         popup = paste(sep = "<br/>",
+                                       "Glider position kml",
+                                       #as.character(PLD$timesci[okloc]),
+                                       paste0(as.character(round(kmlLat,3)), ', ', as.character(round(kmlLon,3)))),
+                         label = paste0('Glider position kml: ', 1:length(kmlLat)),
+                         group = map_kml)%>%
         # last received / current location
         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
                          radius = 4, fillOpacity = 1, stroke = F,
@@ -574,7 +591,8 @@ server <- function(input, output) {
         # layer control legend
         addLayersControl(overlayGroups = c(map_allposition,
                                            map_track,
-                                           map_lastlocation),
+                                           map_lastlocation,
+                                           map_kml),
                          options = layersControlOptions(collapsed = FALSE), 
                          position = 'bottomright')
     }) #closes leafletplot
