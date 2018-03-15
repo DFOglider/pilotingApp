@@ -1,20 +1,27 @@
 rm(list=ls())
 library(shiny)
-library(measurements)
 library(oce)
 library(ocedata)
+library(measurements)
 library(leaflet)
-data('coastlineWorldFine')
-#load("R:/Shared/Gliders/SEA0019/Data/M29/currentMission.RData")
+library(RCurl)
+library(geosphere)
 
-mardef <- c(5.1, 4.1, 4.1, 2.1) #default margins
-marcm <- c(5.1, 4.1, 4.1, 6.1) #color bar with zlab margins
+source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
+source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of Hz to ml/l
+source('swSatO2.R') # for use in sbeO2Hz2Sat.R
+source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
+source('downloadData.R') # obtain glidernames and missions from ftp and downloads
+data('coastlineWorldFine')
+
+mardef <- c(5.1, 4.1, 4.1, 2.1) # default margins
+marcm <- c(5.1, 4.1, 4.1, 6.1) # color bar with zlab margins
 
 #deployment/recovery location
 drlon <- -63.406418 
 drlat <- 44.520789
 
-# halifax line
+# halifax line stations
 hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945)
 hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138)
 
@@ -26,10 +33,16 @@ ui <- fluidPage(
   
   fluidRow(
     column(2, wellPanel(
-         selectInput(inputId="Glider", label="Glider:", choices=c('SEA019'='SEA019','SEA021'='SEA021','SEA022'='SEA022','SEA024'='SEA024','SEA032'='SEA032'), selected = 'Navigation'),
-         numericInput(inputId="Mission",label="Mission Number:",value='29', min = '10', max = NA),
-         actionButton("LoadData", "Load Data"),
-         selectInput(inputId="Var", label="Data Set:", choices=c('Navigation'='Navigation','Science'='Science'), selected = 'Navigation'),
+         selectInput(inputId = 'Glider', 
+                     label = 'Choose a glider', 
+                     choices = gliderdirnames), #gliderdirnames from downloadData.R
+         uiOutput(outputId = 'Missions'),
+         actionButton(inputId = 'download', 
+                      label = 'Download and load data'),
+         selectInput(inputId="Var", 
+                     label="Data Set:", 
+                     choices=c('Navigation'='Navigation','Science'='Science'), 
+                     selected = 'Navigation'),
         
         conditionalPanel(
           condition="input.Var=='Navigation'", 
@@ -101,13 +114,20 @@ ui <- fluidPage(
 # Define server 
 server <- function(input, output) {
   state <- reactiveValues()
+  
+  # select input for mission based on selected glider
+  output$Missions <- renderUI({
+    missions <- getMissions(glider = input$Glider)
+    selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions)
+  })
+  
   # Loading the data
   
-  # below is temporary to avoid merge conflicts
-  if(Sys.info()[['sysname']] != "Darwin"){
-    load("R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
-  } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
-  }
+  # # below is temporary to avoid merge conflicts
+  # if(Sys.info()[['sysname']] != "Darwin"){
+  #   load("R:/Shared/Gliders/SEA019/Data/M36/currentMission.RData")
+  # } else { load("~/Documents/gitHub/currentMission.Rdata") #CL working on mac 
+  # }
 
   #print(paste("R:/Shared/Gliders/",input$Glider,"/Data/M",input$Mission,"/currentMission.RData",sep=""))
   #load(paste("R:/Shared/Gliders/`,input$Glider,`/Data/M`,input$Mission,`/currentMission.RData",sep=""))
@@ -145,8 +165,42 @@ server <- function(input, output) {
     
   })
   
-  output$plot1 <- renderPlot({
- # if (input$Var == 'Navigation') {
+  # download data and load when actionButton clicked
+  # make plots too
+  observeEvent(input$download,{
+    #might have to put state in here
+    downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    PLD <- data$PLD
+    glider <- data$NAV
+    # scaleBar for science plots
+    output$sciScaleBar <- renderUI({
+      rng <- switch(input$SciVar,
+                    'Temp' = c(-5,45),
+                    'Sal' = c(15, 45),
+                    'Cond' = c(0,7),
+                    'Dens' = c(0, 35),
+                    'CHL_scaled' = c(-5,5),
+                    'CDOM_scaled' = c(-12,12),
+                    'BB_scaled' = c(-0.005, 0.005),
+                    'DOF' = c(2000, 5000),
+                    'OxySat' = c(0,10))
+      value <- switch(input$SciVar,
+                      'Temp' = range(PLD$Temp, na.rm = TRUE),
+                      'Sal' = range(PLD$Sal, na.rm = TRUE),
+                      'Cond' = range(PLD$Conduc, na.rm = TRUE),
+                      'Dens' = range(PLD$SigTheta, na.rm = TRUE),
+                      'CHL_scaled' = range(PLD$CHL_scaled, na.rm = TRUE),
+                      'CDOM_scaled' = range(PLD$CDOM_scaled, na.rm = TRUE),
+                      'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE),
+                      'DOF' = range(PLD$DOF, na.rm = TRUE),
+                      'OxySat' = range(PLD$OxySat, na.rm = TRUE))
+      sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
+                  value = value, animate = FALSE)  
+      
+    })
+    # plot1 - top plot
+    output$plot1 <- renderPlot({
       if (is.null(state$xlim)) {
         par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
@@ -162,11 +216,11 @@ server <- function(input, output) {
         points(glider$time, glider$depth, pch=19,cex = 1, col = "dark blue")
         grid()
       }
-    
- # } else if (input$Var == 'Science') {
-  
- # }
   })
+    # plot2 - bottom plot 
+    # TO-DO : use switch argument for navigation plots
+    #         to make code shorter
+    #         see how science plots are created below
     output$plot2 <- renderPlot({
     if (input$Var == 'Navigation') {
       if (input$NavVar=='Pitch') {
@@ -450,6 +504,7 @@ server <- function(input, output) {
       # mapPoints(-61.393945,42.531138,pch=18,cex = 1.5, col = "dark green")
       # 
       # } else if(input$SciVar != 'Map' & input$SciVar != 'Mapcloseup'){
+      
         # CL's work for science plots
         # get science data, make color map
         data <- switch(input$SciVar,
@@ -498,9 +553,88 @@ server <- function(input, output) {
         par(mar=mardef)
       
       
-    }  
-    })
-
+      } # closes else if sciVar = science  
+    }) # closes plot2
+    
+    # leaflet map plot
+    #map groups
+    map_allposition <- "All Positions"
+    map_track <- "Glider Track"
+    map_lastlocation <- "Last received location"
+    okloc <- PLD$Lat > 0
+    glon <- PLD$Lon[okloc]
+    glat <- PLD$Lat[okloc]
+    
+    output$map <- renderLeaflet({
+      leaflet(as.data.frame(cbind(glon, glat)))%>%
+        addProviderTiles(providers$Esri.OceanBasemap) %>%
+        fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
+                  lat1 = min(glat, na.rm = TRUE) + 0.2,
+                  lng2 = min(glon, na.rm = TRUE) + 0.2,
+                  lat2 = max(glat, na.rm = TRUE) - 0.2) %>%
+        # use NOAA graticules
+        # not sure if it does much, but it allows to zoom further in
+        # no bathy when zoomed less than 500m though.
+        addWMSTiles(
+          "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
+          layers = c("1-degree grid", "5-degree grid"),
+          options = WMSTileOptions(format = "image/png8", transparent = TRUE),
+          attribution = "NOAA") %>%
+        # add extra map features
+        addScaleBar(position = 'topright')%>%
+        addMeasure(primaryLengthUnit = "kilometers",
+                   secondaryLengthUnit = 'miles', 
+                   primaryAreaUnit = "hectares", 
+                   secondaryAreaUnit="acres", 
+                   position = 'bottomleft') %>%
+        #line track
+        addPolylines(lng = glon, lat = glat, 
+                     weight = 2,
+                     group = map_track) %>%
+        # deployment/recovery location
+        addCircleMarkers(lng = drlon, lat = drlat,
+                         radius = 5, fillOpacity = .4, stroke = F,
+                         color = 'black',
+                         popup = paste(sep = "<br/>",
+                                       "Deployment/Recovery Location",
+                                       paste0(as.character(round(drlat,3)), ',', as.character(round(drlon,3)))),
+                         label = paste0("Deployment/Recovery Location"))%>%
+        # halifax line
+        addCircleMarkers(lng = hfxlon, lat = hfxlat,
+                         radius = 5, fillOpacity = .4, stroke = F, 
+                         color = 'black',
+                         popup = paste(sep = "<br/>",
+                                       paste0("HL", as.character(1:7)),
+                                       paste0(as.character(round(hfxlat,3)), ',', as.character(round(hfxlon,3)))),
+                         label = paste0("HL", 1:7)) %>%
+        # glider positions
+        addCircleMarkers(lng = glon, lat = glat, 
+                         radius = 4, fillOpacity = .2, stroke = F,
+                         popup = paste(sep = "<br/>",
+                                       "Glider position",
+                                       as.character(PLD$timesci[okloc]),
+                                       paste0(as.character(round(glat,3)), ', ', as.character(round(glon,3)))),
+                         label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
+                         group = map_allposition)%>%
+        # last received / current location
+        addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
+                         radius = 4, fillOpacity = 1, stroke = F,
+                         popup = paste(sep = "br/>",
+                                       "Last location received",
+                                       as.character(PLD$timesci[okloc][length(glon)]),
+                                       paste0(as.character(round(glat[length(glon)],3)), ', ', as.character(round(glon[length(glon)],3)))),
+                         label = paste0("Last location received:", as.character(PLD$timesci[okloc][length(glon)])),
+                         color = 'green',
+                         group = map_lastlocation) %>%
+        # layer control legend
+        addLayersControl(overlayGroups = c(map_allposition,
+                                           map_track,
+                                           map_lastlocation),
+                         options = layersControlOptions(collapsed = FALSE), 
+                         position = 'bottomright')
+    }) #closes leafletplot
+    
+    #try putting these inside of download observeEvent
     observeEvent(input$plot_brush, {
      
       df <- data.frame(x=glider$time, x=glider[[input$NavVar]])
@@ -516,83 +650,11 @@ server <- function(input, output) {
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
-    #map groups
-    map_allposition <- "All Positions"
-    map_track <- "Glider Track"
-    map_lastlocation <- "Last received location"
-    okloc <- PLD$Lat > 0
-    glon <- PLD$Lon[okloc]
-    glat <- PLD$Lat[okloc]
     
-     output$map <- renderLeaflet({
-       leaflet(as.data.frame(cbind(glon, glat)))%>%
-       addProviderTiles(providers$Esri.OceanBasemap) %>%
-         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
-                   lat1 = min(glat, na.rm = TRUE) + 0.2,
-                   lng2 = min(glon, na.rm = TRUE) + 0.2,
-                   lat2 = max(glat, na.rm = TRUE) - 0.2) %>%
-         # use NOAA graticules
-         # not sure if it does much, but it allows to zoom further in
-         # no bathy when zoomed less than 500m though.
-         addWMSTiles(
-           "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
-           layers = c("1-degree grid", "5-degree grid"),
-           options = WMSTileOptions(format = "image/png8", transparent = TRUE),
-           attribution = "NOAA") %>%
-         # add extra map features
-         addScaleBar(position = 'topright')%>%
-         addMeasure(primaryLengthUnit = "kilometers",
-                    secondaryLengthUnit = 'miles', 
-                    primaryAreaUnit = "hectares", 
-                    secondaryAreaUnit="acres", 
-                    position = 'bottomleft') %>%
-         #line track
-         addPolylines(lng = glon, lat = glat, 
-                      weight = 2,
-                      group = map_track) %>%
-         # deployment/recovery location
-         addCircleMarkers(lng = drlon, lat = drlat,
-                         radius = 5, fillOpacity = .4, stroke = F,
-                         color = 'black',
-                         popup = paste(sep = "<br/>",
-                                       "Deployment/Recovery Location",
-                                       paste0(as.character(round(drlat,3)), ',', as.character(round(drlon,3)))),
-                         label = paste0("Deployment/Recovery Location"))%>%
-         # halifax line
-         addCircleMarkers(lng = hfxlon, lat = hfxlat,
-                         radius = 5, fillOpacity = .4, stroke = F, 
-                         color = 'black',
-                         popup = paste(sep = "<br/>",
-                                       paste0("HL", as.character(1:7)),
-                                       paste0(as.character(round(hfxlat,3)), ',', as.character(round(hfxlon,3)))),
-                         label = paste0("HL", 1:7)) %>%
-         # glider positions
-         addCircleMarkers(lng = glon, lat = glat, 
-                          radius = 4, fillOpacity = .2, stroke = F,
-                          popup = paste(sep = "<br/>",
-                                        "Glider position",
-                                        as.character(PLD$timesci[okloc]),
-                                        paste0(as.character(round(glat,3)), ', ', as.character(round(glon,3)))),
-                          label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
-                          group = map_allposition)%>%
-         # last received / current location
-         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
-                          radius = 4, fillOpacity = 1, stroke = F,
-                          popup = paste(sep = "br/>",
-                                        "Last location received",
-                                        as.character(PLD$timesci[okloc][length(glon)]),
-                                        paste0(as.character(round(glat[length(glon)],3)), ', ', as.character(round(glon[length(glon)],3)))),
-                          label = paste0("Last location received:", as.character(PLD$timesci[okloc][length(glon)])),
-                          color = 'green',
-                          group = map_lastlocation) %>%
-         # layer control legend
-         addLayersControl(overlayGroups = c(map_allposition,
-                                            map_track,
-                                            map_lastlocation),
-                          options = layersControlOptions(collapsed = FALSE), 
-                          position = 'bottomright')
-     })
-  
+    
+  }) #closes download observeEvent
+
+
 }
 
 # Create Shiny app ----
