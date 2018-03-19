@@ -4,7 +4,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
                mission,
                '',
                sep = '/')
-  files <- paste(dir, as.list(list.files(path = dir, pattern = '*.gli.sub.*.gz')), sep = '')
+  filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
+  okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
+  files <- paste(dir, as.list(filelist[okfiles]), sep = '')
   
   # to put the files in the right order
   strl <- nchar(files)
@@ -29,7 +31,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   #Yo num
   profileNum <- unlist(lapply(files, function(x) {
-    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[5]
+    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
     len <- dim(read.table(x, sep=';', header=TRUE))[1]
     rep(tmp, len)
   }))

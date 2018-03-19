@@ -2,7 +2,7 @@
 # it is suggested that data be saved locally in /data
 # data will be saved to /data/gliderName/mission
 # e.g /data/SEA019/M28
-datadir <- "/data"
+datadir <- "./data"
 
 # url for glider ftp site
 # directory structure as of 2018-03-14: /realData/gliderNames/MissionNumbers/dataFiles
