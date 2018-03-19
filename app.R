@@ -121,7 +121,8 @@ server <- function(input, output) {
   # select input for mission based on selected glider
   output$Missions <- renderUI({
     missions <- getMissions(glider = input$Glider)
-    selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions)
+    selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions,
+                selected=tail(missions, 1))
   })
   
   # CL enter output for sciScaleBar based on input$SciVar
