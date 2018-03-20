@@ -20,7 +20,7 @@ then displays plots of the various fields of interest.
    in a terminal.
 
    The latter is recommended, as then updating the app can be done
-   with a simple `git` command or by pulling changes in Github Desktop.
+   with a simple `git pull` command or by pulling changes in Github Desktop.
 
 3. Open the file `app.R` in Rstudio, and click the "Run App"
    button. You will need to install several packages (as listed at the
@@ -30,4 +30,7 @@ then displays plots of the various fields of interest.
    ```
    in the R terminal before clicking "Run App".
 
-
+4. Once the app is running, select the `glider` and `mission` from the
+   pull-down menu, and click "Download and load data" to fetch data
+   from the glider FTP site and load it into the app. The downloaded
+   data is stored in a local folder within the app directory.
