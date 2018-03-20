@@ -217,16 +217,18 @@ server <- function(input, output) {
     # plot1 - top plot
     output$plot1 <- renderPlot({
       if (is.null(state$xlim)) {
-        par(mar = marcm)
-        par(xaxs='i',yaxs='i')#tight
-        plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=(range(glider$time, na.rm = TRUE)),ylab='Depth (m)',xlab='Time')
+        #par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=(range(glider$time, na.rm = TRUE)),ylab='Depth (m)',xlab='Time', 
+                    mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
         grid()
       } else {
         par(mar = marcm)
-        par(xaxs='i',yaxs='i')#tight
-        plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=state$xlim,ylab='Depth (m)',xlab='Time')
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=state$xlim,ylab='Depth (m)',xlab='Time', 
+                    mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
         grid()
@@ -240,50 +242,54 @@ server <- function(input, output) {
     if (input$Var == 'Navigation') {
       if(input$NavVar == 'altimeter'){
         if (is.null(state$xlim)) {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider$depth, 
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
                ylim = rev(range(glider$altHit,na.rm = TRUE)), 
                xlim = range(glider$time, na.rm = TRUE), 
                ylab = 'Depth (m)', 
-               xlab = 'Time')
+               xlab = 'Time',
+               mar=marcm)
           points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
           points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         } else {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
-          par(mar = marcm)
+          #par(mar = marcm)
           par(xaxs='i', yaxs='i')#tight
-          plot(glider$time, glider$depth, 
+          oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
                ylim = rev(range(glider$altHit[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
                xlim = state$xlim, 
                ylab = 'Depth (m)', 
-               xlab = 'Time')
+               xlab = 'Time',
+               mar=marcm)
           points(glider$time, glider$altHit, pch=20,cex = 1, col = "red")
           points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         }
       } else if (input$NavVar=='Pitch') {
         if (is.null(state$xlim)) {
-          par(mar=marcm)
-           par(xaxs='i',yaxs='i')#tight
-           plot(glider$time, glider[[input$NavVar]],
+           #par(mar=marcm)
+           #par(xaxs='i',yaxs='i')#tight
+           oce.plot.ts(glider$time, glider[[input$NavVar]],
            ylim=c(-80,40),
            xlim=(range(glider$time, na.rm = TRUE)),
-           xlab='Time',ylab='',type='n')
+           xlab='Time',ylab='',type='n', 
+           mar=marcm)
            polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)  
            polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA) 
            lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
            grid()
         } else {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
-          ylim=c(-80,40),
-          xlim=state$xlim,
-          xlab='Time',ylab='',type='n')
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
+                      ylim=c(-80,40),
+                      xlim=state$xlim,
+                      xlab='Time',ylab='',type='n', 
+                      mar=marcm)
           polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)  
           polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA) 
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
@@ -291,23 +297,25 @@ server <- function(input, output) {
         }
       } else if (input$NavVar=='VertSpeed') {
         if (is.null(state$xlim)) {
-        par(xaxs='i',yaxs='i')#tight
-        par(mar = marcm)
-        plot(glider$time, glider[[input$NavVar]],
+        #par(xaxs='i',yaxs='i')#tight
+        #par(mar = marcm)
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(-30,30),
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)  
         polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA) 
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
         grid()
         } else {
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(-30,30),
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)  
           polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA) 
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
@@ -316,22 +324,24 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='BatterieVolt') {
         if (is.null(state$xlim)) {
-          par(mar = marcm)
-         par(xaxs='i',yaxs='i')#tight
-        plot(glider$time, glider[[input$NavVar]],
+         #par(mar = marcm)
+         #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(24,30),
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)  
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         grid()
         } else {
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(24,30),
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)  
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
@@ -339,83 +349,91 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='speedms') {
         if (is.null(state$xlim)) {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=(range(glider$time, na.rm = TRUE)),
-               xlab='Time',ylab='(m/s)')
+               xlab='Time',ylab='(m/s)',
+               mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         } else {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=state$xlim,
-               xlab='Time',ylab='(m/s)')
+               xlab='Time',ylab='(m/s)',
+               mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
         
       } else if (input$NavVar=='distkm') {
         if (is.null(state$xlim)) {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=(range(glider$time, na.rm = TRUE)),
-               xlab='Time',ylab='(km)')
+               xlab='Time',ylab='(km)',
+               mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         } else {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
                xlim=state$xlim,
-               xlab='Time',ylab='(km)')
+               xlab='Time',ylab='(km)',
+               mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
         
       } else if (input$NavVar=='Temperature') {
         if (is.null(state$xlim)) {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]])+3),
                xlim=(range(glider$time, na.rm = TRUE)),
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         } else {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]])+3),
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
            lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         }
         
       } else if (input$NavVar=='Heading') {
         if (is.null(state$xlim)) {
-        par(xaxs='i',yaxs='i')#tight
-        par(mar = marcm)
-        plot(glider$time, glider[[input$NavVar]],
+        #par(xaxs='i',yaxs='i')#tight
+        #par(mar = marcm)
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
         grid()
         } else {
-          par(mar = marcm)
-          par(xaxs='i',yaxs='i')#tight
-          plot(glider$time, glider[[input$NavVar]],
+          #par(mar = marcm)
+          #par(xaxs='i',yaxs='i')#tight
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
           grid()
@@ -423,20 +441,22 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='BallastPos') {
         if (is.null(state$xlim)) {
-        par(xaxs='i',yaxs='i')#tight
-        par(mar = marcm)
-        plot(glider$time, glider[[input$NavVar]],
+        #par(xaxs='i',yaxs='i')#tight
+        #par(mar = marcm)
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
         lines(glider$time, glider$BallastCmd,lwd = 2, col = "blue")
         grid()
         } else {
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
           lines(glider$time, glider$BallastCmd,lwd = 2, col = "blue")
           grid()
@@ -444,20 +464,22 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='LinPos') {
         if (is.null(state$xlim)) {
-        par(xaxs='i',yaxs='i')#tight
-        par(mar = marcm)
-        plot(glider$time, glider[[input$NavVar]],
+        #par(xaxs='i',yaxs='i')#tight
+        #par(mar = marcm)
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
         lines(glider$time, glider$LinCmd,lwd = 2, col = "blue")
         grid()
         } else {
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
           lines(glider$time, glider$LinCmd,lwd = 2, col = "blue")
           grid()
@@ -465,20 +487,22 @@ server <- function(input, output) {
         
       } else if (input$NavVar=='AngPos') {
         if (is.null(state$xlim)) {
-        par(mar = marcm)
-        par(xaxs='i',yaxs='i')#tight
-        plot(glider$time, glider[[input$NavVar]],
+        #par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
              xlim=(range(glider$time, na.rm = TRUE)),
-             xlab='Time',ylab='',type='n')
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
         lines(glider$time, glider$AngCmd,lwd = 2, col = "blue")
         grid()
         } else {
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
-               xlab='Time',ylab='',type='n')
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
           lines(glider$time, glider$AngCmd,lwd = 2, col = "blue")
           grid()
@@ -486,21 +510,23 @@ server <- function(input, output) {
         
       } else { #profileNumber
         if (is.null(state$xlim)) {  
-      par(xaxs='i',yaxs='i')#tight
-      par(mar = marcm)
-      plot(glider$time, glider[[input$NavVar]],
+      #par(xaxs='i',yaxs='i')#tight
+      #par(mar = marcm)
+      oce.plot.ts(glider$time, glider[[input$NavVar]],
            xlim=(range(glider$time, na.rm = TRUE)),
-           xlab='Time',ylab='',type="n")
+           xlab='Time',ylab='',type="n",
+           mar=marcm)
       lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
       grid()
         } else {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
-          par(xaxs='i',yaxs='i')#tight
-          par(mar = marcm)
-          plot(glider$time, glider[[input$NavVar]],
+          #par(xaxs='i',yaxs='i')#tight
+          #par(mar = marcm)
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
                ylim = range(glider[[input$NavVar]][okylim], na.rm = TRUE),
-               xlab='Time',ylab='',type="n")
+               xlab='Time',ylab='',type="n",
+               mar=marcm)
           lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
           grid()
         }   
@@ -531,24 +557,25 @@ server <- function(input, output) {
                        'OxySat' = resizableLabel('oxygen mL/L', axis = 'y'))
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
-        par(xaxs='i',yaxs='i', mar=mardef)
+        #par(xaxs='i',yaxs='i', mar=mardef)
+        par(mar=mardef)
         drawPalette(colormap = cm, zlab = zlab)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
         if (is.null(state$xlim)) {
-          plot(PLD$timesci, PLD$Press,
+          oce.plot.ts(PLD$timesci, PLD$Press, type='p',
               ylim = rev(range(glider$altHit,na.rm = TRUE)),
               xlim = (range(glider$time, na.rm = TRUE)),
               pch = 20, col = cm$zcol,
-              xlab = '', ylab = '')
+              xlab = '', ylab = '', mar=marcm)
 
         } else {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
-          plot(PLD$timesci, PLD$Press,
+          oce.plot.ts(PLD$timesci, PLD$Press, type='p',
                ylim = rev(range(glider$depth[okylim],na.rm = TRUE)),
                xlim=state$xlim,
                pch = 20, col = cm$zcol,
-               xlab = '', ylab = '')
+               xlab = '', ylab = '', mar=marcm)
         }
         grid()
         mtext(ylabp, side = 2, line = 2)
