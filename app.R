@@ -487,11 +487,11 @@ server <- function(input, output) {
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
         if (is.null(state$brushed)) {
-        plot(PLD$timesci, PLD$Press,
-             ylim = rev(range(glider$altHit,na.rm = TRUE)),
-             xlim = (range(glider$time, na.rm = TRUE)),
-             pch = 20, col = cm$zcol,
-             xlab = '', ylab = '')
+          plot(PLD$timesci, PLD$Press,
+              ylim = rev(range(glider$altHit,na.rm = TRUE)),
+              xlim = (range(glider$time, na.rm = TRUE)),
+              pch = 20, col = cm$zcol,
+              xlab = '', ylab = '')
 
         } else {
           plot(PLD$timesci, PLD$Press,
