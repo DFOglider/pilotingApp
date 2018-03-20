@@ -633,7 +633,7 @@ server <- function(input, output) {
         # last received / current location
         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
                          radius = 4, fillOpacity = 1, stroke = F,
-                         popup = paste(sep = "br/>",
+                         popup = paste(sep = "<br/>",
                                        "Last location received",
                                        as.character(PLD$timesci[okloc][length(glon)]),
                                        paste0(as.character(round(glat[length(glon)],3)), ', ', as.character(round(glon[length(glon)],3)))),
