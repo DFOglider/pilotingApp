@@ -104,7 +104,7 @@ ui <- fluidPage(
                plotOutput("plot2", height="310px")
       ),
       tabPanel("Map",
-        leafletOutput("map"))
+        leafletOutput("map", height = '620px'))
       ) #closes tabset
     ) #closes column
     ) #closes fluidRow
