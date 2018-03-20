@@ -257,7 +257,7 @@ server <- function(input, output) {
           par(xaxs='i', yaxs='i')#tight
           plot(glider$time, glider$depth, 
                type = "n", 
-               ylim = rev(range(glider$altHit[okylim],na.rm = TRUE)), 
+               ylim = rev(range(glider$altHit[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
                xlim = state$xlim, 
                ylab = 'Depth (m)', 
                xlab = 'Time')
