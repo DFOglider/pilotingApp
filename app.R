@@ -130,31 +130,40 @@ server <- function(input, output) {
   # c('Map'='Map','Map close up'='Mapcloseup','Temperature'='Temp','Conductivity'='Cond',
   #   'Salinity'='Sal','Density'='Dens','Dissolved Oxygen'='DOF','Chlorophyl'='CHL_scaled',
   #   'CDOM'='CDOM_scaled','BB_700nm'='BB_scaled'),
-  output$sciScaleBar <- renderUI({
-    rng <- switch(input$SciVar,
-                  'Temp' = c(-5,45),
-                  'Sal' = c(15, 45),
-                  'Cond' = c(0,7),
-                  'Dens' = c(0, 35),
-                  'CHL_scaled' = c(-5,5),
-                  'CDOM_scaled' = c(-12,12),
-                  'BB_scaled' = c(-0.005, 0.005),
-                  'DOF' = c(2000, 5000),
-                  'OxySat' = c(0,10))
-    value <- switch(input$SciVar,
-                    'Temp' = range(PLD$Temp, na.rm = TRUE),
-                    'Sal' = range(PLD$Sal, na.rm = TRUE),
-                    'Cond' = range(PLD$Conduc, na.rm = TRUE),
-                    'Dens' = range(PLD$SigTheta, na.rm = TRUE),
-                    'CHL_scaled' = range(PLD$CHL_scaled, na.rm = TRUE),
-                    'CDOM_scaled' = range(PLD$CDOM_scaled, na.rm = TRUE),
-                    'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE),
-                    'DOF' = range(PLD$DOF, na.rm = TRUE),
-                    'OxySat' = range(PLD$OxySat, na.rm = TRUE))
-    sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
-                value = value, animate = FALSE)  
-    
-  })
+  # output$sciScaleBar <- renderUI({
+  #   rng <- switch(input$SciVar,
+  #                 'Temp' = c(-2, 22),
+  #                 'Sal' = c(29, 35.5),
+  #                 'Cond' = c(0,7),
+  #                 'Dens' = c(20, 28),
+  #                 'CHL_scaled' = c(-.02,5),
+  #                 'CDOM_scaled' = c(-12,12),
+  #                 'BB_scaled' = c(-0.005, 0.005),
+  #                 'DOF' = c(2000, 5000),
+  #                 'OxySat' = c(0,10))
+  #   value <- switch(input$SciVar,
+  #                   'Temp' = range(PLD$Temp, na.rm = TRUE),
+  #                   'Sal' = range(PLD$Sal, na.rm = TRUE),
+  #                   'Cond' = range(PLD$Conduc, na.rm = TRUE),
+  #                   'Dens' = range(PLD$SigTheta, na.rm = TRUE),
+  #                   'CHL_scaled' = range(PLD$CHL_scaled, na.rm = TRUE),
+  #                   'CDOM_scaled' = range(PLD$CDOM_scaled, na.rm = TRUE),
+  #                   'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE),
+  #                   'DOF' = range(PLD$DOF, na.rm = TRUE),
+  #                   'OxySat' = range(PLD$OxySat, na.rm = TRUE))
+  #   step <- switch(input$SciVar,
+  #                  'Temp' = 0.5,
+  #                  'Sal' = 0.1,
+  #                  'Cond' = 0.01,
+  #                  'Dens' = 0.1,
+  #                  'CHL_scaled' = 1,
+  #                  'BB_scaled' = 0.0005,
+  #                  'DOF' = 100,
+  #                  'OxySat' = 0.5)
+  #   sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
+  #               value = value, step = step, animate = FALSE)  
+  #   
+  # })
   
   # download data and load when actionButton clicked
   # make plots too
@@ -171,12 +180,12 @@ server <- function(input, output) {
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
-                    'Temp' = c(-5,45),
-                    'Sal' = c(15, 45),
+                    'Temp' = c(-2, 22),
+                    'Sal' = c(29, 35.5),
                     'Cond' = c(0,7),
-                    'Dens' = c(0, 35),
-                    'CHL_scaled' = c(-5,5),
-                    'CDOM_scaled' = c(-12,12),
+                    'Dens' = c(20, 28),
+                    'CHL_scaled' = c(-.02,5),
+                    'CDOM_scaled' = c(-2,12),
                     'BB_scaled' = c(-0.005, 0.005),
                     'DOF' = c(2000, 5000),
                     'OxySat' = c(0,10))
@@ -190,8 +199,18 @@ server <- function(input, output) {
                       'BB_scaled' = range(PLD$BB_scaled, na.rm = TRUE),
                       'DOF' = range(PLD$DOF, na.rm = TRUE),
                       'OxySat' = range(PLD$OxySat, na.rm = TRUE))
+      step <- switch(input$SciVar,
+                     'Temp' = 0.5,
+                     'Sal' = 0.1,
+                     'Cond' = 0.01,
+                     'Dens' = 0.1,
+                     'CHL_scaled' = 0.1,
+                     'CDOM_scaled' = 0.1,
+                     'BB_scaled' = 0.0005,
+                     'DOF' = 100,
+                     'OxySat' = 0.5)
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
-                  value = value, animate = FALSE)  
+                  value = value, step = step, animate = FALSE)  
       
     })
     # plot1 - top plot
