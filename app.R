@@ -51,7 +51,8 @@ ui <- fluidPage(
           condition="input.Var=='Navigation'", 
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
-                  choices = c('Alarm'='alarm',
+                  choices = c('Altimeter' = 'altimeter',
+                              'Alarm'='alarm',
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
@@ -237,8 +238,35 @@ server <- function(input, output) {
     #         see how science plots are created below
     output$plot2 <- renderPlot({
     if (input$Var == 'Navigation') {
-      if (input$NavVar=='Pitch') {
-        if (is.null(state$brushed)) {
+      if(input$NavVar == 'altimeter'){
+        if (is.null(state$xlim)) {
+          par(mar = marcm)
+          par(xaxs='i',yaxs='i')#tight
+          plot(glider$time, glider$depth, 
+               type = "n", 
+               ylim = rev(range(glider$altHit,na.rm = TRUE)), 
+               xlim = range(glider$time, na.rm = TRUE), 
+               ylab = 'Depth (m)', 
+               xlab = 'Time')
+          points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+          points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+          grid()
+        } else {
+          okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
+          par(mar = marcm)
+          par(xaxs='i', yaxs='i')#tight
+          plot(glider$time, glider$depth, 
+               type = "n", 
+               ylim = rev(range(glider$altHit[okylim],na.rm = TRUE)), 
+               xlim = state$xlim, 
+               ylab = 'Depth (m)', 
+               xlab = 'Time')
+          points(glider$time, glider$altHit, pch=20,cex = 1, col = "red")
+          points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+          grid()
+        }
+      } else if (input$NavVar=='Pitch') {
+        if (is.null(state$xlim)) {
           par(mar=marcm)
            par(xaxs='i',yaxs='i')#tight
            plot(glider$time, glider[[input$NavVar]],
@@ -262,7 +290,7 @@ server <- function(input, output) {
           grid()
         }
       } else if (input$NavVar=='VertSpeed') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
         par(xaxs='i',yaxs='i')#tight
         par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
@@ -287,7 +315,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='BatterieVolt') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
           par(mar = marcm)
          par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider[[input$NavVar]],
@@ -310,7 +338,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='speedms') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
@@ -331,7 +359,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='distkm') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
@@ -352,7 +380,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='Temperature') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
           par(mar = marcm)
           par(xaxs='i',yaxs='i')#tight
           plot(glider$time, glider[[input$NavVar]],
@@ -373,7 +401,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='Heading') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
         par(xaxs='i',yaxs='i')#tight
         par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
@@ -394,7 +422,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='BallastPos') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
         par(xaxs='i',yaxs='i')#tight
         par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
@@ -415,7 +443,7 @@ server <- function(input, output) {
         }
         
       } else if (input$NavVar=='LinPos') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
         par(xaxs='i',yaxs='i')#tight
         par(mar = marcm)
         plot(glider$time, glider[[input$NavVar]],
@@ -436,7 +464,7 @@ server <- function(input, output) {
         } 
         
       } else if (input$NavVar=='AngPos') {
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
         par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider[[input$NavVar]],
@@ -456,8 +484,8 @@ server <- function(input, output) {
           grid()
         } 
         
-      } else {
-        if (is.null(state$brushed)) {  
+      } else { #profileNumber
+        if (is.null(state$xlim)) {  
       par(xaxs='i',yaxs='i')#tight
       par(mar = marcm)
       plot(glider$time, glider[[input$NavVar]],
@@ -466,10 +494,12 @@ server <- function(input, output) {
       lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
       grid()
         } else {
+          okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
           par(xaxs='i',yaxs='i')#tight
           par(mar = marcm)
           plot(glider$time, glider[[input$NavVar]],
                xlim=state$xlim,
+               ylim = range(glider[[input$NavVar]][okylim], na.rm = TRUE),
                xlab='Time',ylab='',type="n")
           lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
           grid()
@@ -505,7 +535,7 @@ server <- function(input, output) {
         drawPalette(colormap = cm, zlab = zlab)
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
-        if (is.null(state$brushed)) {
+        if (is.null(state$xlim)) {
           plot(PLD$timesci, PLD$Press,
               ylim = rev(range(glider$altHit,na.rm = TRUE)),
               xlim = (range(glider$time, na.rm = TRUE)),
@@ -513,8 +543,9 @@ server <- function(input, output) {
               xlab = '', ylab = '')
 
         } else {
+          okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
           plot(PLD$timesci, PLD$Press,
-               ylim = rev(range(glider$altHit,na.rm = TRUE)),
+               ylim = rev(range(glider$depth[okylim],na.rm = TRUE)),
                xlim=state$xlim,
                pch = 20, col = cm$zcol,
                xlab = '', ylab = '')
@@ -621,8 +652,8 @@ server <- function(input, output) {
     # brush plots
     observeEvent(input$plot_brush, {
      
-      df <- data.frame(x=glider$time, x=glider[[input$NavVar]])
-      state$brushed <- brushedPoints(df, input$plot_brush, "x", "y", allRows=TRUE)$selected_
+      #df <- data.frame(x=glider$time, x=glider[[input$NavVar]])
+      #state$brushed <- brushedPoints(df, input$plot_brush, "x", "y", allRows=TRUE)$selected_
       
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
       
