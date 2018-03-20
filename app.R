@@ -570,11 +570,11 @@ server <- function(input, output) {
               xlab = '', ylab = '', mar=marcm)
 
         } else {
-          okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
-          oce.plot.ts(PLD$timesci, PLD$Press, type='p',
+          okylim <- PLD$time > state$xlim[1] & PLD$time < state$xlim[2]
+          oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
                ylim = rev(range(glider$depth[okylim],na.rm = TRUE)),
                xlim=state$xlim,
-               pch = 20, col = cm$zcol,
+               pch = 20, col = cm$zcol[okylim],
                xlab = '', ylab = '', mar=marcm)
         }
         grid()
