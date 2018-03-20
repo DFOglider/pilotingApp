@@ -203,5 +203,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
   
+  bad <- is.na(PLD$timesci)
+  PLD <- PLD[!bad,]
+  bad <- is.na(NAV$time)
+  NAV <- NAV[!bad,]
+  
   invisible(list(PLD = PLD, NAV = NAV))
 }
