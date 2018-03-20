@@ -126,8 +126,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   Lond <- conv(LonT)
   LatT <- unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE))
   Latd <- conv(LatT)
-  # Identify each surfacing (Navstate=115) time and position for calculation
-  index115 <- which(NAV$NavState %in% 115)
+  # Identify each inflacting down (Navstate=110) time and position for calculation
+  index115 <- which(NAV$NavState %in% 110)
   NavTime115t <- NAV$time[index115]
   NavTime115 <- NavTime115t[!is.na(NavTime115t)]
   

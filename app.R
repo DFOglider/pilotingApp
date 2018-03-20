@@ -75,8 +75,8 @@ ui <- fluidPage(
                                   'Conductivity'='Cond',
                                   'Salinity'='Sal',
                                   'Density'='Dens',
-                                  'Dissolved Oxygen'='DOF',
-                                  'Oxygen Saturation' = 'OxySat',
+                                  'Oxygen Frequency'='DOF',
+                                  'Oxygen Concentration' = 'OxySat',
                                   'Chlorophyl'='CHL_scaled',
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
@@ -200,15 +200,15 @@ server <- function(input, output) {
         par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=(range(glider$time, na.rm = TRUE)),ylab='Depth (m)',xlab='Time')
-        points(glider$time,glider$altHit,pch=19,cex = 1, col = "red")
-        points(glider$time, glider$depth, pch=19,cex = 1, col = "dark blue")
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
         grid()
       } else {
         par(mar = marcm)
         par(xaxs='i',yaxs='i')#tight
         plot(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=state$xlim,ylab='Depth (m)',xlab='Time')
-        points(glider$time,glider$altHit,pch=19,cex = 1, col = "red")
-        points(glider$time, glider$depth, pch=19,cex = 1, col = "dark blue")
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
         grid()
       }
   })
