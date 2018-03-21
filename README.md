@@ -22,15 +22,15 @@ then displays plots of the various fields of interest.
    The latter is recommended, as then updating the app can be done
    with a simple `git pull` command or by pulling changes in Github Desktop.
 
-3. Open the file `app.R` in Rstudio, and click the "Run App"
-   button. You will need to install several packages (as listed at the
-   top of `app.R`). To do this run:
+3. Open the file `app.R` in Rstudio. You will need to install several packages (as listed at the
+   top of `app.R`). To do this run the following in the R console (copy/paste):
    ```r
    install.packages(c('shiny', 'oce', 'ocedata', 'measurements', 'leaflet', 'RCurl', 'geosphere', 'XML'))
    ```
-   in the R terminal before clicking "Run App".
+   
+4. After installing all the required packages, run the app by clicking "Run App" at the top of the code editor.
 
-4. Once the app is running, select the `glider` and `mission` from the
+5. Once the app is running, select the `glider` and `mission` from the
    pull-down menu, and click "Download and load data" to fetch data
    from the glider FTP site and load it into the app. The downloaded
    data is stored in a local folder within the app directory.
