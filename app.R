@@ -151,7 +151,7 @@ server <- function(input, output) {
                     'BB_scaled' = c(-0.005, 0.005),
                     'DOF' = c(2000, 5000),
                     'OxyConc' = c(0,10),
-                    'OxySat' = c(0,100))
+                    'OxySat' = c(0,120))
       value <- switch(input$SciVar,
                       'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.99),  na.rm = TRUE)),
