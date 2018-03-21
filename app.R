@@ -46,8 +46,16 @@ ui <- fluidPage(
                      label="Data Set:", 
                      choices=c('Navigation'='Navigation','Science'='Science'), 
                      selected = 'Navigation'),
-        
+
         conditionalPanel(
+          condition = "input.Var == 'Navigation'",
+          actionButton("resetNav", "Reset plot")),
+      
+        conditionalPanel(
+          condition = "input.Var == 'Science'",
+          actionButton("resetSci", "Reset plot")),
+
+         conditionalPanel(
           condition="input.Var=='Navigation'", 
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
@@ -82,16 +90,8 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar')),
-        
-        conditionalPanel(
-          condition = "input.Var == 'Navigation'",
-          actionButton("resetNav", "Reset plot")),
-      
-        conditionalPanel(
-          condition = "input.Var == 'Science'",
-          actionButton("resetSci", "Reset plot"))
-             )),
+            uiOutput('sciScaleBar'))
+        )),
     
     # Main panel for displaying outputs ----
     column(10,
