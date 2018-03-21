@@ -219,7 +219,11 @@ server <- function(input, output) {
       if (is.null(state$xlim)) {
         #par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
-        oce.plot.ts(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=(range(glider$time, na.rm = TRUE)),ylab='Depth (m)',xlab='Time', 
+        oce.plot.ts(glider$time, glider$depth, 
+                    type="n", 
+                    ylim=rev(range(glider$altHit,na.rm = TRUE)), 
+                    xlim=(range(glider$time, na.rm = TRUE)), 
+                    ylab='Depth (m)',xlab='Time', 
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
@@ -227,7 +231,11 @@ server <- function(input, output) {
       } else {
         par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
-        oce.plot.ts(glider$time, glider$depth,type="n",ylim=rev(range(glider$altHit,na.rm = TRUE)),xlim=state$xlim,ylab='Depth (m)',xlab='Time', 
+        oce.plot.ts(glider$time, glider$depth, 
+                    type = "n", 
+                    ylim = rev(range(glider$altHit,na.rm = TRUE)), 
+                    xlim = state$xlim, 
+                    ylab = 'Depth (m)',xlab='Time', 
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
@@ -257,7 +265,7 @@ server <- function(input, output) {
         } else {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
           #par(mar = marcm)
-          par(xaxs='i', yaxs='i')#tight
+          #par(xaxs='i', yaxs='i')#tight
           oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
                ylim = rev(range(glider$altHit[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
@@ -570,9 +578,10 @@ server <- function(input, output) {
               xlab = '', ylab = '', mar=marcm)
 
         } else {
-          okylim <- PLD$time > state$xlim[1] & PLD$time < state$xlim[2]
+          okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
+          okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
           oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
-               ylim = rev(range(glider$depth[okylim],na.rm = TRUE)),
+               ylim = rev(range(glider$depth[okylimg],na.rm = TRUE)),
                xlim=state$xlim,
                pch = 20, col = cm$zcol[okylim],
                xlab = '', ylab = '', mar=marcm)
