@@ -85,7 +85,8 @@ ui <- fluidPage(
                                   'Salinity'='Sal',
                                   'Density'='Dens',
                                   'Oxygen Frequency'='DOF',
-                                  'Oxygen Concentration' = 'OxySat',
+                                  'Oxygen Concentration' = 'OxyConc',
+                                  'Oxygen Saturation' = 'OxySat',
                                   'Chlorophyl'='CHL_scaled',
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
@@ -149,7 +150,8 @@ server <- function(input, output) {
                     'CDOM_scaled' = c(-2,12),
                     'BB_scaled' = c(-0.005, 0.005),
                     'DOF' = c(2000, 5000),
-                    'OxySat' = c(0,10))
+                    'OxyConc' = c(0,10),
+                    'OxySat' = c(0,100))
       value <- switch(input$SciVar,
                       'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.99),  na.rm = TRUE)),
@@ -159,6 +161,7 @@ server <- function(input, output) {
                       'CDOM_scaled' = unname(quantile(PLD$CDOM_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'DOF' = unname(quantile(PLD$DOF, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'OxyConc' = unname(quantile(PLD$OxyConc, probs = c(0.01, 0.97), na.rm = TRUE)),
                       'OxySat' = unname(quantile(PLD$OxySat, probs = c(0.01, 0.97), na.rm = TRUE)))
       step <- switch(input$SciVar,
                      'Temp' = 0.5,
@@ -169,7 +172,8 @@ server <- function(input, output) {
                      'CDOM_scaled' = 0.1,
                      'BB_scaled' = 0.0005,
                      'DOF' = 100,
-                     'OxySat' = 0.5)
+                     'OxyConc' = 0.5,
+                     'OxySat' = 1)
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
                   value = value, step = step, animate = FALSE)  
       
@@ -511,6 +515,7 @@ server <- function(input, output) {
                        'CDOM_scaled' = PLD$CDOM_scaled,
                        'BB_scaled' = PLD$BB_scaled,
                        'DOF' = PLD$DOF,
+                       'OxyConc' = PLD$OxyConc,
                        'OxySat' = PLD$OxySat)
         #use CL's file for resizable label for biological variables ?
         zlab <- switch(input$SciVar,
@@ -521,8 +526,9 @@ server <- function(input, output) {
                        'CHL_scaled' = 'Chlorophyll',
                        'CDOM_scaled' = 'CDOM',
                        'BB_scaled' = 'Backscatter',
-                       'DOF' = 'Dissolved Oxygen [Hz',
-                       'OxySat' = resizableLabel('oxygen mL/L', axis = 'y'))
+                       'DOF' = 'Dissolved Oxygen [Hz]',
+                       'OxyConc' = resizableLabel('oxygen mL/L', axis = 'y'),
+                       'OxySat' = 'Oxygen Saturation [%]')
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
         #par(xaxs='i',yaxs='i', mar=mardef)

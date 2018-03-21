@@ -197,11 +197,13 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   # use coefficients from calibration files
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
-  PLD$OxySat <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
+  PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                             pressure = PLD$Press, oxygenFrequency = PLD$DOF,
                             Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
+  
+  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
