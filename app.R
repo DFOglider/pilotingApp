@@ -17,8 +17,8 @@ source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrume
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
 data('coastlineWorldFine')
 
-mardef <- c(5.1, 4.1, 4.1, 2.1) # default margins
-marcm <- c(5.1, 4.1, 4.1, 6.1) # color bar with zlab margins
+mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
+marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
 
 #deployment/recovery location
 drlon <- -63.406418 
