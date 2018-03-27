@@ -4,6 +4,7 @@ library(oce)
 library(ocedata)
 library(measurements)
 library(leaflet)
+library(mapview)
 library(RCurl)
 library(geosphere)
 library(XML)
@@ -587,6 +588,7 @@ server <- function(input, output) {
           options = WMSTileOptions(format = "image/png8", transparent = TRUE),
           attribution = "NOAA") %>%
         # add extra map features
+        addMouseCoordinates(style = 'basic')%>%
         addScaleBar(position = 'topright')%>%
         addMeasure(primaryLengthUnit = "kilometers",
                    secondaryLengthUnit = 'miles', 
@@ -603,7 +605,7 @@ server <- function(input, output) {
                          color = 'black',
                          popup = paste(sep = "<br/>",
                                        "Deployment/Recovery Location",
-                                       paste0(as.character(round(drlat,3)), ',', as.character(round(drlon,3)))),
+                                       paste0(as.character(round(drlat,4)), ',', as.character(round(drlon,4)))),
                          label = paste0("Deployment/Recovery Location"))%>%
         # halifax line
         addCircleMarkers(lng = hfxlon, lat = hfxlat,
@@ -611,7 +613,7 @@ server <- function(input, output) {
                          color = 'black',
                          popup = paste(sep = "<br/>",
                                        paste0("HL", as.character(1:7)),
-                                       paste0(as.character(round(hfxlat,3)), ',', as.character(round(hfxlon,3)))),
+                                       paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
                          label = paste0("HL", 1:7)) %>%
         # glider positions
         addCircleMarkers(lng = glon, lat = glat, 
@@ -619,7 +621,7 @@ server <- function(input, output) {
                          popup = paste(sep = "<br/>",
                                        "Glider position",
                                        as.character(PLD$timesci[okloc]),
-                                       paste0(as.character(round(glat,3)), ', ', as.character(round(glon,3)))),
+                                       paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
                          label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
                          group = map_allposition)%>%
         # positions from kml
@@ -629,19 +631,29 @@ server <- function(input, output) {
                          popup = paste(sep = "<br/>",
                                        "Glider position kml",
                                        #as.character(PLD$timesci[okloc]),
-                                       paste0(as.character(round(kmlLat,3)), ', ', as.character(round(kmlLon,3)))),
+                                       paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
                          label = paste0('Glider position kml: ', 1:length(kmlLat)),
                          group = map_kml)%>%
         # last received / current location
         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
-                         radius = 4, fillOpacity = 1, stroke = F,
+                         radius = 6, fillOpacity = 1, stroke = F,
                          popup = paste(sep = "<br/>",
-                                       "Last location received",
+                                       "Lastest location received from nav file",
                                        as.character(PLD$timesci[okloc][length(glon)]),
-                                       paste0(as.character(round(glat[length(glon)],3)), ', ', as.character(round(glon[length(glon)],3)))),
-                         label = paste0("Last location received:", as.character(PLD$timesci[okloc][length(glon)])),
+                                       paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
+                         label = paste0("Last location received from nav file:", as.character(PLD$timesci[okloc][length(glon)])),
                          color = 'green',
                          group = map_lastlocation) %>%
+        # latest position from kml
+        addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)], 
+                         radius = 6, fillOpacity = 1, stroke = F,
+                         color = 'green',
+                         popup = paste(sep = "<br/>",
+                                       "Latest glider position from kml",
+                                       #as.character(PLD$timesci[okloc]),
+                                       paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
+                         label = paste0('Latest glider position from kml: ', length(kmlLat)),
+                         group = map_kml)%>%
         # layer control legend
         addLayersControl(overlayGroups = c(map_allposition,
                                            map_track,
