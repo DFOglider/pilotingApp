@@ -81,7 +81,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     alt=unlist(lapply(data_all, function(k) k$Altitude))
   )
   
-  filesci <- paste(dir, as.list(list.files(path = dir, pattern = '*.pld1.sub.*.gz')), sep = '')
+  filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
+  okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
+  filesci <- paste(dir, as.list(filelistsci[okfilesci]), sep = '')
   # to put the files in the right order
   strlsci<-nchar(filesci)
   catesci<-length(unique(strlsci))
@@ -102,6 +104,14 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     data_all3sci <- lapply(as.list(filesci[thirdsci]), read.table, sep=";",header=TRUE)
     data_allsci <- c(data_all1sci,data_all2sci,data_all3sci)
   }
+  
+  #sci profile Numbers
+  profileNumSci <- unlist(lapply(filesci, function(x) {
+    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
+    len <- dim(read.table(x, sep=';', header=TRUE))[1]
+    rep(tmp, len)
+  }))
+  profileNumSci <- sort(as.numeric(profileNumSci))
   
   # to read the time in the right format
   
@@ -169,6 +179,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   # to put everything in a dataframe where all the dive are together
   PLD <- data.frame(
+    profileNumSci = profileNumSci,
     timesci=timesci,
     Lat=Latd,
     Lon=Lond,
@@ -204,6 +215,26 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
                             C = cal[['C']], Enom = cal[['Enom']])
   
   PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+  
+  up <- unique(PLD$profileNumSci)
+  dnupidx <- NULL
+  for (i in 1:length(up)){
+    ok <- which(PLD$profileNumSci == up[i])
+    proind <- PLD$profileNumSci[ok]
+    # get profile indicies
+    # integer means part of profile
+    # non-integer associated with other portion of profile
+    idx <- findProfilesSOCIB(time = PLD$timesci[ok], pressure = PLD$Press[ok],
+                             stall_length = 12)
+    # find integers
+    idxok <- idx == as.integer(idx)
+    idxint <- (idx-1)/2 
+    idxint[!idxok] <- NA
+    dnupidx[ok] <- proind + idxint
+  }
+  # integer is downcast
+  # non integer is upcast
+  PLD$ProfileIndex <- dnupidx
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
