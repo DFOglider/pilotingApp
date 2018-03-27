@@ -16,6 +16,7 @@ source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of
 source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
+source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 data('coastlineWorldFine')
 
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
