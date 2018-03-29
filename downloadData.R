@@ -9,8 +9,11 @@ datadir <- "./data"
 # e.g /realData/SEA019/M28/sea019.28.gli.sub.2.gz
 url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
 dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
-dirnames <- strsplit(dirs, "\r*\n")[[1]]
+dirnamess <- strsplit(dirs, "\r*\n")[[1]]
 
+okdir <- which(dirnames == 'realData')
+
+dirnames <- dirnames[okdir]
 #get directories for gliders
 gliderdirs <- getURL(paste(url, 
                            dirnames,
