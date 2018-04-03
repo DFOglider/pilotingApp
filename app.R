@@ -105,8 +105,7 @@ ui <- fluidPage(
                                              direction="x",
                                              resetOnNew = TRUE),
                                             height="310px"),
-               plotOutput("plot2", height="310px")
-      ),
+               plotOutput("plot2", height="310px")),
       tabPanel("Map",
         leafletOutput("map", height = '620px'))
       ) #closes tabset
@@ -176,6 +175,8 @@ server <- function(input, output) {
                      'DOF' = 100,
                      'OxyConc' = 0.5,
                      'OxySat' = 1)
+      # deal with values that vary little during simulation
+      if(diff(value) < step){value[2] <- value[2] + step} 
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
                   value = value, step = step, animate = FALSE)  
       

@@ -11,9 +11,9 @@ url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
 dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
 dirnamess <- strsplit(dirs, "\r*\n")[[1]]
 
-okdir <- which(dirnames == 'realData')
+okdir <- which(dirnamess == 'realData')
 
-dirnames <- dirnames[okdir]
+dirnames <- dirnamess[okdir]
 #get directories for gliders
 gliderdirs <- getURL(paste(url, 
                            dirnames,
