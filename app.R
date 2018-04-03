@@ -176,7 +176,7 @@ server <- function(input, output) {
                      'OxyConc' = 0.5,
                      'OxySat' = 1)
       # deal with values that vary little during simulation
-      if(diff(value) < step){value[2] <- value[2] + step} 
+      if(diff(value) < 5*step){value[2] <- value[2] + 5*step} 
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
                   value = value, step = step, animate = FALSE)  
       
@@ -551,7 +551,7 @@ server <- function(input, output) {
           okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
           oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
                ylim = rev(range(glider$depth[okylimg],na.rm = TRUE)),
-               xlim=state$xlim,
+               xlim = state$xlim,
                pch = 20, col = cm$zcol[okylim],
                xlab = '', ylab = '', mar=marcm)
         }

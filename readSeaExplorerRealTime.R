@@ -216,12 +216,18 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   
+  bad <- is.na(PLD$timesci)
+  PLD <- PLD[!bad,]
+  bad <- is.na(NAV$time)
+  NAV <- NAV[!bad,]
+  
   # if less than 60% of pressure is greater than zero
   # find profiles
   # attempt to weed out simulation missions
   
+  dnctd <- upctd <- NA
   nPress <- length(which(PLD$Press < 0))
-  if(nPress / length(PLD$Press) < 0.6){ 
+  if((nPress / length(PLD$Press)) > 0.6){ 
   # profile indicies
   up <- unique(PLD$profileNumSci)
   dnupidx <- NULL
@@ -242,11 +248,6 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   # integer is downcast
   # non integer is upcast
   PLD$ProfileIndex <- dnupidx
-  
-  bad <- is.na(PLD$timesci)
-  PLD <- PLD[!bad,]
-  bad <- is.na(NAV$time)
-  NAV <- NAV[!bad,]
   
   # get downcasts and upcasts
   # find unique 
