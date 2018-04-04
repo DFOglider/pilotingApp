@@ -4,12 +4,13 @@ library(oce)
 library(ocedata)
 library(measurements)
 library(leaflet)
-library(mapview)
 library(RCurl)
 library(geosphere)
 library(XML)
+data(ctd) # for initial plotProfile tests, delete later
 options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc 
 
+source('addMouseCoordinates.R') # from mapview package, some had issues with mapview
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
 source('readSeaExplorerKml.R') # gets lon lat from kml file
 source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of Hz to ml/l
@@ -56,7 +57,35 @@ ui <- fluidPage(
         conditionalPanel(
           condition = "input.Var == 'Science'",
           actionButton("resetSci", "Reset plot")),
-
+        conditionalPanel(
+          condition = "input.tabs == 'Profiles'",
+          selectInput(inputId = 'profile1var',
+                      label = 'Variable for left Profile:',
+                      choices = c('Temperature'='Temp',
+                                  'Conductivity'='Cond',
+                                  'Salinity'='Sal',
+                                  'Density'='Dens',
+                                  'Oxygen Frequency'='DOF',
+                                  'Oxygen Concentration' = 'OxyConc',
+                                  'Oxygen Saturation' = 'OxySat',
+                                  'Chlorophyl'='CHL_scaled',
+                                  'CDOM'='CDOM_scaled',
+                                  'BB_700nm'='BB_scaled'),
+                      selected = 'Temp'),
+          selectInput(inputId = 'profile2var',
+                      label = 'Variable for right Profile :',
+                      choices = c('Temperature'='Temp',
+                                  'Conductivity'='Cond',
+                                  'Salinity'='Sal',
+                                  'Density'='Dens',
+                                  'Oxygen Frequency'='DOF',
+                                  'Oxygen Concentration' = 'OxyConc',
+                                  'Oxygen Saturation' = 'OxySat',
+                                  'Chlorophyl'='CHL_scaled',
+                                  'CDOM'='CDOM_scaled',
+                                  'BB_700nm'='BB_scaled'),
+                      selected = 'Temp')
+        ), #closes conditional panel for profile variable choices.
          conditionalPanel(
           condition="input.Var=='Navigation'", 
           radioButtons(inputId = "NavVar",
@@ -94,11 +123,12 @@ ui <- fluidPage(
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
             uiOutput('sciScaleBar'))
-        )),
+        )
+    ), #closes well panel
     
     # Main panel for displaying outputs ----
     column(10,
-      tabsetPanel(type = 'tabs',
+      tabsetPanel(id = 'tabs', type = 'tabs',
         tabPanel("Plots",
         #column(10, 
                plotOutput("plot1",brush = brushOpts(id="plot_brush",
@@ -107,7 +137,20 @@ ui <- fluidPage(
                                             height="310px"),
                plotOutput("plot2", height="310px")),
       tabPanel("Map",
-        leafletOutput("map", height = '620px'))
+        leafletOutput("map", height = '620px')),
+      # Q : Fixed width for profiles or fluid ?
+      tabPanel("Profiles",
+               fluidRow(
+                 column(6,
+                  plotOutput("profile1", 
+                             height = '620px' 
+                             #width = '450px'
+                             )),
+                 column(6,
+                  plotOutput("profile2", 
+                             height = '620px'
+                             #width = '450px'
+                             ))))
       ) #closes tabset
     ) #closes column
     ) #closes fluidRow
@@ -664,6 +707,14 @@ server <- function(input, output) {
                          options = layersControlOptions(collapsed = FALSE), 
                          position = 'bottomright')
     }) #closes leafletplot
+    
+    output$profile1 <- renderPlot(
+      plotProfile(ctd, xtype = 'temperature')
+    )
+    
+    output$profile2 <- renderPlot(
+      plotProfile(ctd, xtype = 'salinity')
+    )
     
     # brush plots
     observeEvent(input$plot_brush, {

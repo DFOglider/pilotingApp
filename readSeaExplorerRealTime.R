@@ -226,8 +226,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   # attempt to weed out simulation missions
   
   dnctd <- upctd <- NA
-  nPress <- length(which(PLD$Press < 0))
-  if((nPress / length(PLD$Press)) > 0.6){ 
+  nPress <- length(which(PLD$Press < 1))
+  if((nPress / length(PLD$Press)) < 0.6){ 
   # profile indicies
   up <- unique(PLD$profileNumSci)
   dnupidx <- NULL
