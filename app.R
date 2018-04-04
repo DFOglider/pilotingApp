@@ -264,13 +264,13 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
-               ylim = rev(range(glider$altHit,na.rm = TRUE)), 
+               ylim = range(glider$alt,na.rm = TRUE), 
                xlim = range(glider$time, na.rm = TRUE), 
                ylab = 'Depth (m)', 
                xlab = 'Time',
                mar=marcm)
-          points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
-          points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+          points(glider$time,glider$alt,pch=20,cex = 1, col = "red")
+          ## points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         } else {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
@@ -278,13 +278,13 @@ server <- function(input, output) {
           #par(xaxs='i', yaxs='i')#tight
           oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
-               ylim = rev(range(glider$altHit[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
+               ylim = range(glider$alt[okylim],na.rm = TRUE) + c(-0.5, 0.5 ), 
                xlim = state$xlim, 
                ylab = 'Depth (m)', 
                xlab = 'Time',
                mar=marcm)
-          points(glider$time, glider$altHit, pch=20,cex = 1, col = "red")
-          points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+          points(glider$time, glider$alt, pch=20,cex = 1, col = "red")
+          ## points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         }
       } else if (input$NavVar=='Pitch') {
