@@ -288,7 +288,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     # cdom
     dnctd[[i]] <- oceSetData(dnctd[[i]],
                              name = 'cdom',
-                             value = PLD$CHL_scaled[ok])
+                             value = PLD$CDOM_scaled[ok])
     # backscatter
     dnctd[[i]] <- oceSetData(dnctd[[i]],
                              name = 'backscatter',
@@ -324,7 +324,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     # cdom
     upctd[[i]] <- oceSetData(upctd[[i]],
                              name = 'cdom',
-                             value = PLD$CHL_scaled[ok])
+                             value = PLD$CDOM_scaled[ok])
     # backscatter
     upctd[[i]] <- oceSetData(upctd[[i]],
                              name = 'backscatter',
