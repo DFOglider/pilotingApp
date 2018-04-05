@@ -667,14 +667,6 @@ server <- function(input, output) {
                          position = 'bottomright')
     }) #closes leafletplot
     
-    output$profile1 <- renderPlot(
-      plotProfile(ctd, xtype = 'temperature')
-    )
-    
-    output$profile2 <- renderPlot(
-      plotProfile(ctd, xtype = 'salinity')
-    )
-    
     # brush plots
     observeEvent(input$plot_brush, {
       #df <- data.frame(x=glider$time, x=glider[[input$NavVar]])
