@@ -45,55 +45,22 @@ ui <- fluidPage(
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download', 
                       label = 'Download and load data'),
-         selectInput(inputId="Var", 
+         
+         # conditional panel for plots tab
+         conditionalPanel(
+           condition = "input.tabs == 'Plots'",
+            selectInput(inputId="Var", 
                      label="Data Set:", 
                      choices=c('Navigation'='Navigation','Science'='Science'), 
-                     selected = 'Navigation'),
-
+                     selected = 'Navigation')
+         ),
+        #conditional panels for navigation in plots tab
         conditionalPanel(
-          condition = "input.Var == 'Navigation'",
+          condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
-      
-        conditionalPanel(
-          condition = "input.Var == 'Science'",
-          actionButton("resetSci", "Reset plot")),
-        #conditionalPanel for profileplots
-        conditionalPanel(
-          condition = "input.tabs == 'Profiles'",
-          selectInput(inputId = 'profile1var',
-                      label = 'Variable for left Profile:',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'Temp'),
-          checkboxInput(inputId = 'dncstp1',
-                        label = 'Downcast',
-                        value = TRUE),
-          checkboxInput(inputId = 'upcstp1',
-                        label = 'Upcast',
-                        value = FALSE),
-          actionButton('resetp1', 'Reset left Profile'),
-          selectInput(inputId = 'profile2var',
-                      label = 'Variable for right Profile :',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'Temp')
-        ), #closes conditional panel for profile variable choices.
+
          conditionalPanel(
-          condition="input.Var=='Navigation'", 
+          condition="input.Var=='Navigation' & input.tabs == 'Plots'", 
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
                   choices = c('Altimeter' = 'altimeter',
@@ -112,9 +79,14 @@ ui <- fluidPage(
                               'Roll'='Roll',
                               'Yo Numbers'='profileNumber'),
                   selected = 'Pitch')),
-           
+        
+        #conditional panels for science in plots tab
         conditionalPanel(
-          condition="input.Var=='Science'", 
+          condition = "input.Var == 'Science' & input.tabs == 'Plots'",
+          actionButton("resetSci", "Reset plot")),
+        
+        conditionalPanel(
+          condition="input.Var=='Science' & input.tabs == 'Plots'", 
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
                       choices = c('Temperature'='Temp',
@@ -128,10 +100,54 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar'))
-        )
-    ), #closes well panel
-    
+            uiOutput('sciScaleBar')),
+        #conditionalPanels for profileplots
+        conditionalPanel(
+          condition = "input.tabs == 'Profiles'",
+          # left profile plot data selection
+          selectInput(inputId = 'profile1var',
+                      label = 'Variable for left Profile:',
+                      choices = c('Temperature'='temperature',
+                                  'Conductivity'='conductivity',
+                                  'Salinity'='salinity',
+                                  'Density'='sigmaTheta',
+                                  'Oxygen Concentration' = 'oxygenConcentration',
+                                  'Oxygen Saturation' = 'oxygenSaturation',
+                                  'Chlorophyll'='chlorophyll',
+                                  'CDOM'='cdom',
+                                  'Backscatter'='backscatter'),
+                      selected = 'temperature'),
+          # reset left profile plot button
+          actionButton('resetp1', 'Reset Profiles'),
+          # right profile plot data selection
+          selectInput(inputId = 'profile2var',
+                      label = 'Variable for right Profile :',
+                      choices = c('Temperature'='temperature',
+                                  'Conductivity'='conductivity',
+                                  'Salinity'='salinity',
+                                  'Density'='sigmaTheta',
+                                  'Oxygen Concentration' = 'oxygenConcentration',
+                                  'Oxygen Saturation' = 'oxygenSaturation',
+                                  'Chlorophyll'='chlorophyll',
+                                  'CDOM'='cdom',
+                                  'Backscatter'='backscatter'),
+                      selected = 'salinity'),
+          # reset right profile plot button
+          # NOTE : not currently needed
+          #actionButton('resetp2', 'Reset right Profile'),          
+          checkboxInput(inputId = 'dncstp1',
+                        label = 'Downcasts',
+                        value = TRUE),
+          checkboxInput(inputId = 'upcstp1',
+                        label = 'Upcasts',
+                        value = FALSE),
+          uiOutput(outputId = 'numProfiles'),
+          strong('Plot Profiles'),
+          uiOutput(outputId = 'rng1p1'),
+          uiOutput(outputId = 'rng2p1')
+          ) #closes conditional panel for profile variable choices.
+    ) #closes well panel
+    ), # closes fluidRow
     # Main panel for displaying outputs ----
     column(10,
       tabsetPanel(id = 'tabs', type = 'tabs',
@@ -193,7 +209,26 @@ server <- function(input, output) {
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
     okkml <- !is.na(kmlcoord$lon)
     kmlLon <- kmlcoord$lon[okkml]
-    kmlLat <- kmlcoord$lat[okkml]  
+    kmlLat <- kmlcoord$lat[okkml]
+    # profile numbers    
+    profiles <- unlist(lapply(dnctd, function(k) k@metadata[['station']]))    
+    output$numProfiles <- renderUI({
+      h5(paste0(length(profiles),' profiles detected'))
+    })
+    output$rng1p1 <- renderUI({
+      selectInput(inputId = 'profileRng1p1',
+                  label = '',
+                  choices = profiles,
+                  selected = profiles[1],
+                  width = '40%')
+    })
+    output$rng2p1 <- renderUI({
+      selectInput(inputId = 'profileRng2p1',
+                  label = 'to',
+                  choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+                  width = '40%',
+                  selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+    })
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
@@ -755,20 +790,96 @@ server <- function(input, output) {
            yaxs = 'r',
            xlim = xlim,
            ylim = ylim, 
-           axes = FALSE)
+           axes = FALSE,
+           col = 'white')
       axis(3)
       mtext(xlab, side = 3, line = axisNameLoc)
       axis(2)
       box()
       grid()
+      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
+      if(state$dnp1 == TRUE){
+        dnctdp <- dnctd[okprofiles]
+        for(i in 1:length(dnctdp)){
+          lines(dnctdp[[i]][[input$profile1var]], dnctdp[[i]][['pressure']],
+                type = 'b')
+        }
+      }
+      if(state$upp1 == TRUE){
+        upctdp <- upctd[okprofiles]
+        for(i in 1:length(upctdp)){
+          lines(upctdp[[i]][[input$profile1var]], upctdp[[i]][['pressure']],
+                type = 'b', col = 'red')
+        }
+      }
     })
     
     output$profile2 <- renderPlot({
-      plotProfile(ctd, xtype = 'salinity')
+      # nearly identical code to profile1
+      # but takes the chosen variable
+      # will also change ylim based on brush
+      # from profile1
+      mgp <- getOption('oceMgp')
+      mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
+      axisNameLoc <- mgp[1]
+      par(mgp = mgp, mar = mar)
+      ylab <- resizableLabel(item = 'p', axis = 'y')
+      xlab <- switch(input$profile2var,
+                     'temperature' = resizableLabel('T', axis = 'x'),
+                     'salinity' = resizableLabel('S', axis = 'x'),
+                     'conductivity' = resizableLabel('conductivity S/m', axis = 'x'),
+                     'sigmaTheta' = resizableLabel('sigmaTheta', axis = 'x'),
+                     'chlorophyll' = 'Chlorophyll',
+                     'cdom' = 'CDOM',
+                     'backscatter' = 'Backscatter',
+                     'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
+                     'oxygenSaturation' = 'Oxygen Saturation [%]')
+      ylim <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
+      xlim <- range(unlist(lapply(dnctd, function(k) k[[input$profile2var]])), na.rm=TRUE)
+      #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
+      
+      plot(dnctd[[1]][[input$profile2var]], dnctd[[1]][['pressure']],
+           xlab = '',
+           ylab = ylab,
+           type = 'b',
+           xaxs = 'r',
+           yaxs = 'r',
+           xlim = xlim,
+           ylim = ylim, 
+           axes = FALSE,
+           col = 'white')
+      axis(3)
+      mtext(xlab, side = 3, line = axisNameLoc)
+      axis(2)
+      box()
+      grid()
+      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
+      if(state$dnp1 == TRUE){
+        dnctdp <- dnctd[okprofiles]
+        for(i in 1:length(dnctdp)){
+          lines(dnctdp[[i]][[input$profile2var]], dnctdp[[i]][['pressure']],
+                type = 'b')
+        }
+      }
+      if(state$upp1 == TRUE){
+        upctdp <- upctd[okprofiles]
+        for(i in 1:length(upctdp)){
+          lines(upctdp[[i]][[input$profile2var]], upctdp[[i]][['pressure']],
+                type = 'b', col = 'red')
+        }
+      }
+    })
+    
+    observeEvent(input$dncstp1,{
+      state$dnp1 <- input$dncstp1
+    })
+    
+    observeEvent(input$upcstp1,{
+      state$upp1 <- input$upcstp1
     })
     
     # setting limits for brushed plots
-    
     # top section plot, set limits
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
@@ -788,12 +899,13 @@ server <- function(input, output) {
       state$xlimp1 <- c(input$profile1brush$xmin, input$profile1brush$xmax)
       state$ylimp1 <- c(input$profile1brush$ymax, input$profile1brush$ymin)
     })
-    # reset
+    # reset profile plots
     observeEvent(input$resetp1,{
-      state$ylimp1 <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
-      state$xlimp1 <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
+      state$ylimp1 <- NULL
+      state$xlimp1 <- NULL
+      #state$ylimp1 <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      #state$xlimp1 <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
     })
-    
     
   }) #closes download observeEvent
 
