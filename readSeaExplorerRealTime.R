@@ -231,7 +231,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   # profile indicies
   up <- unique(PLD$profileNumSci)
   dnupidx <- NULL
-  for (i in 1:length(up)){
+  for (i in 2:length(up)){ # skip the first profile (usually just a test anyway)
     ok <- which(PLD$profileNumSci == up[i])
     proind <- PLD$profileNumSci[ok]
     # get profile indicies
