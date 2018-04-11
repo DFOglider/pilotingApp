@@ -330,7 +330,7 @@ server <- function(input, output) {
                xlab = 'Time',
                mar=marcm)
           points(glider$time, glider$alt, pch=20,cex = 1, col = "red")
-          points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+          ## points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         }
       } else if (input$NavVar=='Pitch') {
