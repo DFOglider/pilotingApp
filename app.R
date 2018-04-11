@@ -324,12 +324,12 @@ server <- function(input, output) {
           #par(xaxs='i', yaxs='i')#tight
           oce.plot.ts(glider$time, glider$depth, 
                type = "n", 
-               ylim = rev(range(glider$altHit[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
+               ylim = rev(range(glider$alt[okylim],na.rm = TRUE) + c(-0.5, 0.5 )), 
                xlim = state$xlim, 
                ylab = 'Depth (m)', 
                xlab = 'Time',
                mar=marcm)
-          points(glider$time, glider$altHit, pch=20,cex = 1, col = "red")
+          points(glider$time, glider$alt, pch=20,cex = 1, col = "red")
           points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
           grid()
         }
