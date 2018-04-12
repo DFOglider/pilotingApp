@@ -225,7 +225,7 @@ server <- function(input, output) {
                type = "n", 
                ylim = range(glider$alt,na.rm = TRUE), 
                xlim = range(glider$time, na.rm = TRUE), 
-               ylab = 'Depth (m)', 
+               ylab = 'range (m)', 
                xlab = 'Time',
                mar=marcm)
           points(glider$time,glider$alt,pch=20,cex = 1, col = "red")
@@ -239,7 +239,7 @@ server <- function(input, output) {
                type = "n", 
                ylim = range(glider$alt[okylim],na.rm = TRUE) + c(-0.5, 0.5 ), 
                xlim = state$xlim, 
-               ylab = 'Depth (m)', 
+               ylab = 'range (m)', 
                xlab = 'Time',
                mar=marcm)
           points(glider$time, glider$alt, pch=20,cex = 1, col = "red")
