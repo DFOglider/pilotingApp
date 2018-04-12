@@ -237,13 +237,15 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     # get profile indicies
     # integer means part of profile
     # non-integer associated with other portion of profile
-    idx <- findProfilesSOCIB(time = PLD$timesci[ok], pressure = PLD$Press[ok],
-                             stall_length = 12)
-    # find integers
-    idxok <- idx == as.integer(idx)
-    idxint <- (idx-1)/2 
-    idxint[!idxok] <- NA
-    dnupidx[ok] <- proind + idxint
+    if (length(proind) > 10) {
+      idx <- findProfilesSOCIB(time = PLD$timesci[ok], pressure = PLD$Press[ok],
+                               stall_length = 12)
+      # find integers
+      idxok <- idx == as.integer(idx)
+      idxint <- (idx-1)/2 
+      idxint[!idxok] <- NA
+      dnupidx[ok] <- proind + idxint
+    }
   }
   # integer is downcast
   # non integer is upcast
