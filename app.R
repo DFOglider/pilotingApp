@@ -204,6 +204,12 @@ server <- function(input, output) {
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
     PLD <- data$PLD
     glider <- data$NAV
+    profileNumber <- unique(glider$profileNumber)
+    profileTimes <- NULL
+    for (pi in seq_along(profileNumber)) {
+        profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
+    }
+    profileTimes <- numberAsPOSIXct(profileTimes)
     dnctd <- data$dnctd
     upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
@@ -277,24 +283,26 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider$depth, 
                     type="n", 
-                    ylim=rev(range(glider$altHit,na.rm = TRUE)), 
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5), 
                     xlim=(range(glider$time, na.rm = TRUE)), 
                     ylab='Depth (m)',xlab='Time', 
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1) 
         grid()
       } else {
         par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider$depth, 
-                    type = "n", 
-                    ylim = rev(range(glider$altHit,na.rm = TRUE)), 
+                    type = "n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5), 
                     xlim = state$xlim, 
                     ylab = 'Depth (m)',xlab='Time', 
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1) 
         grid()
       }
   })
