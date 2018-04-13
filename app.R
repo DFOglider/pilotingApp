@@ -28,8 +28,8 @@ drlon <- -63.406418
 drlat <- 44.520789
 
 # halifax line stations
-hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945)
-hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138)
+hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527)
+hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635)
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -711,9 +711,11 @@ server <- function(input, output) {
                          radius = 5, fillOpacity = .4, stroke = F, 
                          color = 'black',
                          popup = paste(sep = "<br/>",
-                                       paste0("HL", as.character(1:7)),
+                                       #paste0("HL", as.character(1:7)),
+                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"),
                                        paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
-                         label = paste0("HL", 1:7)) %>%
+                        # label = paste0("HL", 1:7))
+                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
         # glider positions
         addCircleMarkers(lng = glon, lat = glat, 
                          radius = 4, fillOpacity = .2, stroke = F,
