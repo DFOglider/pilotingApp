@@ -58,6 +58,8 @@ ui <- fluidPage(
         conditionalPanel(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
+        
+        
 
          conditionalPanel(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'", 
@@ -153,7 +155,7 @@ ui <- fluidPage(
       tabsetPanel(id = 'tabs', type = 'tabs',
         tabPanel("Plots",
         #column(10, 
-               plotOutput("plot1",brush = brushOpts(id="plot_brush",
+               plotOutput("plot1",dblclick="plot_click",brush = brushOpts(id="plot_brush",
                                              direction="x",
                                              resetOnNew = TRUE),
                                             height="310px"),
@@ -164,7 +166,7 @@ ui <- fluidPage(
       tabPanel("Profiles",
                fluidRow(
                  column(6,
-                  plotOutput("profile1", 
+                  plotOutput("profile1",dblclick="plot_click", 
                              brush = brushOpts(id = 'profile1brush',
                                                direction = 'xy',
                                                resetOnNew = TRUE),
@@ -899,6 +901,9 @@ server <- function(input, output) {
     observeEvent(input$resetNav, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
+    observeEvent(input$plot_click, {
+      state$xlim <- range(glider$time,na.rm = TRUE)
+      })
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
@@ -915,6 +920,10 @@ server <- function(input, output) {
       state$xlimp1 <- NULL
       #state$ylimp1 <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
       #state$xlimp1 <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
+    })
+    observeEvent(input$plot_click, {
+      state$ylimp1 <- NULL
+      state$xlimp1 <- NULL
     })
     
   }) #closes download observeEvent
