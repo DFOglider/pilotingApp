@@ -673,8 +673,8 @@ server <- function(input, output) {
     glon <- PLD$Lon[okloc]
     glat <- PLD$Lat[okloc]
     
-    output$map <- renderLeaflet({
-      leaflet(as.data.frame(cbind(glon, glat)))%>%
+
+      map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
                   lat1 = min(glat, na.rm = TRUE) + 0.2,
@@ -763,8 +763,9 @@ server <- function(input, output) {
                                            map_lastlocation,
                                            map_kml),
                          options = layersControlOptions(collapsed = FALSE), 
-                         position = 'bottomright')
-    }) #closes leafletplot
+                         position = 'bottomright') %>%
+        setView(tail(glon, 1), tail(glat, 1), zoom=11)
+    output$map <- renderLeaflet(map) #closes leafletplot
     
     output$profile1 <- renderPlot({
       # can't use oce plotProfile due to its restrictions on
