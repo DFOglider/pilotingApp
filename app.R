@@ -120,7 +120,7 @@ ui <- fluidPage(
                                   'Backscatter'='backscatter'),
                       selected = 'temperature'),
           # reset left profile plot button
-          actionButton('resetp1', 'Reset Profiles'),
+          actionButton('resetp1', 'Reset profile axes'),
           # right profile plot data selection
           selectInput(inputId = 'profile2var',
                       label = 'Variable for right Profile :',
@@ -144,9 +144,11 @@ ui <- fluidPage(
                         label = 'Upcasts',
                         value = FALSE),
           uiOutput(outputId = 'numProfiles'),
-          strong('Plot Profiles'),
+          strong('Plot Profiles\n'),
           uiOutput(outputId = 'rng1p1'),
-          uiOutput(outputId = 'rng2p1')
+          uiOutput(outputId = 'rng2p1'),
+          actionButton("last10", "Last 10 profiles"),
+          actionButton("resetlast10", "Reset profiles")
           ) #closes conditional panel for profile variable choices.
     ) #closes well panel
     ), # closes fluidRow
@@ -224,18 +226,34 @@ server <- function(input, output) {
       h5(paste0(length(profiles),' profiles detected'))
     })
     output$rng1p1 <- renderUI({
-      selectInput(inputId = 'profileRng1p1',
-                  label = '',
-                  choices = profiles,
-                  selected = profiles[1],
-                  width = '40%')
+        if (is.null(state$prange)) {
+            selectInput(inputId = 'profileRng1p1',
+                        label = '',
+                        choices = profiles,
+                        selected = profiles[1],
+                        width = '40%')
+        } else {
+            selectInput(inputId = 'profileRng1p1',
+                        label = '',
+                        choices = profiles,
+                        selected = state$prange[1],
+                        width = '40%')
+        }
     })
     output$rng2p1 <- renderUI({
-      selectInput(inputId = 'profileRng2p1',
-                  label = 'to',
-                  choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-                  width = '40%',
-                  selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+        if (is.null(state$prange)) {
+            selectInput(inputId = 'profileRng2p1',
+                        label = 'to',
+                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+                        width = '40%',
+                        selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+        } else {
+            selectInput(inputId = 'profileRng2p1',
+                        label = 'to',
+                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+                        width = '40%',
+                        selected = state$prange[2])
+        }
     })
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
@@ -911,6 +929,12 @@ server <- function(input, output) {
     })
     
     # profile1 plot
+    observeEvent(input$last10, {
+      state$prange <- c(profiles[length(profiles) - 10], tail(profiles, 1))
+    })
+    observeEvent(input$resetlast10, {
+        state$prange <- NULL
+    })
     observeEvent(input$profile1brush,{
       state$xlimp1 <- c(input$profile1brush$xmin, input$profile1brush$xmax)
       state$ylimp1 <- c(input$profile1brush$ymax, input$profile1brush$ymin)
