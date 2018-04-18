@@ -8,7 +8,9 @@ gliders. The app downloads real-time data transmitted from the glider
 over Iridium, processes it into a format suitable for plotting, and
 then displays plots of the various fields of interest.
 
-## How to use:
+# How to use:
+
+## Standalone (i.e. local shiny server)
 
 1. Install [R](www.r-project.org) and [RStudio](www.rstudio.com)
 
@@ -34,3 +36,11 @@ then displays plots of the various fields of interest.
    pull-down menu, and click "Download and load data" to fetch data
    from the glider FTP site and load it into the app. The downloaded
    data is stored in a local folder within the app directory.
+   
+## On a shiny server
+
+1. Set up and configure a web accesible Shiny server (see e.g. https://www.digitalocean.com/community/tutorials/how-to-set-up-shiny-server-on-ubuntu-16-04)
+
+2. Copy `pilotingApp` code to the shiny server directory and install all required packages (see above).
+
+3. Go to the server URL, and follow step 5 above.
