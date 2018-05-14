@@ -4,6 +4,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
                mission,
                '',
                sep = '/')
+  
   filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
   okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
   files <- paste(dir, as.list(filelist[okfiles]), sep = '')
@@ -220,6 +221,12 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   PLD <- PLD[!bad,]
   bad <- is.na(NAV$time)
   NAV <- NAV[!bad,]
+  
+  ## approx pressure by using depth from navigation for simulation
+  if(diff(range(PLD$Press)) < 5){
+    newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
+    PLD$Press <- newPress$y
+  }
   
   # if less than 60% of pressure is greater than zero
   # find profiles
