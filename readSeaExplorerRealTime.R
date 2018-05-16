@@ -402,7 +402,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   }
   newnav <- exists('files')
   newsci <- exists('filesci')
-  if(newnav == TRUE | newsci == TRUE) { #save new rda only if there are new files
+  if(newnav == TRUE | newsci == TRUE & saveRda == TRUE) { #save new rda only if there are new files
     save(PLD, NAV, dnctd, upctd, navfilesold, scifilesold, file = paste(dir, 'data.rda', sep=""))
   }
   invisible(list(PLD = PLD, NAV = NAV, dnctd = dnctd, upctd = upctd))
