@@ -821,6 +821,10 @@ server <- function(input, output) {
           dpress <- dnctd[[1]][['pressure']]
           var <- dnctd[[1]][[input$profile1var]]
         }
+        else if (length(dnctd) != 0 & length(upctd) != 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
         else {
           dpress <- 1:10
           var <- 1:10
