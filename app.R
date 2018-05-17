@@ -227,32 +227,60 @@ server <- function(input, output) {
     })
     output$rng1p1 <- renderUI({
         if (is.null(state$prange)) {
-            selectInput(inputId = 'profileRng1p1',
-                        label = '',
-                        choices = profiles,
-                        selected = profiles[1],
-                        width = '40%')
+            # selectInput(inputId = 'profileRng1p1',
+            #             label = '',
+            #             choices = profiles,
+            #             selected = profiles[1],
+            #             width = '40%')
+            numericInput(inputId = 'profileRng1p1',
+                         label = '',
+                         value = min(profiles),
+                         min = min(profiles),
+                         max = max(profiles),
+                         step = 1,
+                         width = '40%')
         } else {
-            selectInput(inputId = 'profileRng1p1',
-                        label = '',
-                        choices = profiles,
-                        selected = state$prange[1],
-                        width = '40%')
+            # selectInput(inputId = 'profileRng1p1',
+            #             label = '',
+            #             choices = profiles,
+            #             selected = state$prange[1],
+            #             width = '40%')
+            numericInput(inputId = 'profileRng1p1',
+                         label = '',
+                         value = state$prange[1],
+                         min = min(profiles),
+                         max = max(profiles),
+                         step = 1,
+                         width = '40%')
         }
     })
     output$rng2p1 <- renderUI({
         if (is.null(state$prange)) {
-            selectInput(inputId = 'profileRng2p1',
-                        label = 'to',
-                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-                        width = '40%',
-                        selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+            # selectInput(inputId = 'profileRng2p1',
+            #             label = 'to',
+            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+            #             width = '40%',
+            #             selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+            numericInput(inputId = 'profileRng2p1',
+                       label = 'to',
+                       value = max(profiles),
+                       min = min(profiles),
+                       max = max(profiles),
+                       step = 1,
+                       width = '40%')
         } else {
-            selectInput(inputId = 'profileRng2p1',
-                        label = 'to',
-                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-                        width = '40%',
-                        selected = state$prange[2])
+            # selectInput(inputId = 'profileRng2p1',
+            #             label = 'to',
+            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+            #             width = '40%',
+            #             selected = state$prange[2])
+            numericInput(inputId = 'profileRng1p1',
+                       label = 'to',
+                       value = state$prange[2],
+                       min = min(profiles),
+                       max = max(profiles),
+                       step = 1,
+                       width = '40%')
         }
     })
     # scaleBar for science plots
