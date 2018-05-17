@@ -221,7 +221,7 @@ server <- function(input, output) {
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
     # profile numbers    
-    profiles <- unlist(lapply(dnctd, function(k) k@metadata[['station']]))    
+    profiles <- unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']]))))   
     output$numProfiles <- renderUI({
       h5(paste0(length(profiles),' profiles detected'))
     })
@@ -808,12 +808,27 @@ server <- function(input, output) {
                      'backscatter' = 'Backscatter',
                      'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
                      'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
+      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile1var]])), na.rm=TRUE)
       xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
       
-      plot(dnctd[[1]][[input$profile1var]], dnctd[[1]][['pressure']],
+      {if(length(dnctd) == 0 & length(upctd) != 0){
+        dpress <- upctd[[1]][['pressure']]
+        var <- upctd[[1]][[input$profile1var]]
+      }
+        else if (length(dnctd) != 0 & length(upctd) == 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
+        else {
+          dpress <- 1:10
+          var <- 1:10
+          xlim <- range(var)
+          ylim <- range(dpress)
+        }
+      }  
+      plot(var, dpress,
            xlab = '',
            ylab = ylab,
            type = 'b',
@@ -823,20 +838,23 @@ server <- function(input, output) {
            ylim = ylim, 
            axes = FALSE,
            col = 'white')
+      if(length(dnctd) == 0 & length(upctd) == 0){
+        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+      }
       axis(3)
       mtext(xlab, side = 3, line = axisNameLoc)
       axis(2)
       box()
       grid()
       okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
-      if(state$dnp1 == TRUE){
+      if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
           lines(dnctdp[[i]][[input$profile1var]], dnctdp[[i]][['pressure']],
                 type = 'b')
         }
       }
-      if(state$upp1 == TRUE){
+      if(state$upp1 == TRUE & length(upctd) != 0){
         upctdp <- upctd[okprofiles]
         for(i in 1:length(upctdp)){
           lines(upctdp[[i]][[input$profile1var]], upctdp[[i]][['pressure']],
@@ -865,12 +883,27 @@ server <- function(input, output) {
                      'backscatter' = 'Backscatter',
                      'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
                      'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(dnctd, function(k) k[[input$profile2var]])), na.rm=TRUE)
+      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile2var]])), na.rm=TRUE)
       #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
       
-      plot(dnctd[[1]][[input$profile2var]], dnctd[[1]][['pressure']],
+      {if(length(dnctd) == 0 & length(upctd) != 0){
+        dpress <- upctd[[1]][['pressure']]
+        var <- upctd[[1]][[input$profile2var]]
+      }
+        else if (length(dnctd) != 0 & length(upctd) == 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile2var]]
+        }
+        else {
+          dpress <- 1:10
+          var <- 1:10
+          xlim <- range(var)
+          ylim <- range(dpress)
+        }
+      } 
+      plot(var, dpress,
            xlab = '',
            ylab = ylab,
            type = 'b',
@@ -880,20 +913,23 @@ server <- function(input, output) {
            ylim = ylim, 
            axes = FALSE,
            col = 'white')
+      if(length(dnctd) == 0 & length(upctd) == 0){
+        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+      }
       axis(3)
       mtext(xlab, side = 3, line = axisNameLoc)
       axis(2)
       box()
       grid()
       okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
-      if(state$dnp1 == TRUE){
+      if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
           lines(dnctdp[[i]][[input$profile2var]], dnctdp[[i]][['pressure']],
                 type = 'b')
         }
       }
-      if(state$upp1 == TRUE){
+      if(state$upp1 == TRUE & length(upctd) != 0){
         upctdp <- upctd[okprofiles]
         for(i in 1:length(upctdp)){
           lines(upctdp[[i]][[input$profile2var]], upctdp[[i]][['pressure']],
