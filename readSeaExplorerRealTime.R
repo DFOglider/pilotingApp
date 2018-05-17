@@ -270,7 +270,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if((nPress / length(PLD$Press)) < 0.6){ 
   # profile indicies
   up <- unique(PLD$profileNumSci)
-  dnupidx <- NULL
+  dnupidx <- rep(NA, length = length(PLD$profileNumSci))
   for (i in 2:length(up)){ # skip the first profile (usually just a test anyway)
     ok <- which(PLD$profileNumSci == up[i])
     proind <- PLD$profileNumSci[ok]
