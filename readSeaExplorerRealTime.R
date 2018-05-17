@@ -269,77 +269,80 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   upidx <- upi[uup]
   
   dnctd <- vector(mode = 'list')
-  for (i in 1:length(dnidx)){
-    ok <- which(PLD$ProfileIndex == dnidx[i])
-    dnctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
-                         temperature = PLD$Temp[ok],
-                         pressure = PLD$Press[ok],
-                         conductivity = PLD$Conduc[ok],
-                         time = PLD$timesci[ok],
-                         longitude = PLD$Lon[ok],
-                         latitude = PLD$Lat[ok],
-                         station = dnidx[i])
-    # add other variables
-    # oxygen concentration
-    dnctd[[i]] <- oceSetData(dnctd[[i]], 
-                             name = 'oxygenConcentration',
-                             value = PLD$OxyConc[ok],
-                             unit = expression('ml/l'))
-    # oxygen saturation
-    dnctd[[i]] <- oceSetData(dnctd[[i]],
-                             name = 'oxygenSaturation',
-                             value = PLD$OxySat[ok],
-                             unit = expression('%'))
-    # chlorophyll
-    dnctd[[i]] <- oceSetData(dnctd[[i]],
-                             name = 'chlorophyll',
-                             value = PLD$CHL_scaled[ok])
-    # cdom
-    dnctd[[i]] <- oceSetData(dnctd[[i]],
-                             name = 'cdom',
-                             value = PLD$CDOM_scaled[ok])
-    # backscatter
-    dnctd[[i]] <- oceSetData(dnctd[[i]],
-                             name = 'backscatter',
-                             value = PLD$BB_scaled[ok])
+  if(length(dnidx) != 0){
+    for (i in 1:length(dnidx)){
+      ok <- which(PLD$ProfileIndex == dnidx[i])
+      dnctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
+                           temperature = PLD$Temp[ok],
+                           pressure = PLD$Press[ok],
+                           conductivity = PLD$Conduc[ok],
+                           time = PLD$timesci[ok],
+                           longitude = PLD$Lon[ok],
+                           latitude = PLD$Lat[ok],
+                           station = dnidx[i])
+      # add other variables
+      # oxygen concentration
+      dnctd[[i]] <- oceSetData(dnctd[[i]], 
+                               name = 'oxygenConcentration',
+                               value = PLD$OxyConc[ok],
+                               unit = expression('ml/l'))
+      # oxygen saturation
+      dnctd[[i]] <- oceSetData(dnctd[[i]],
+                               name = 'oxygenSaturation',
+                               value = PLD$OxySat[ok],
+                               unit = expression('%'))
+      # chlorophyll
+      dnctd[[i]] <- oceSetData(dnctd[[i]],
+                               name = 'chlorophyll',
+                               value = PLD$CHL_scaled[ok])
+      # cdom  
+      dnctd[[i]] <- oceSetData(dnctd[[i]],
+                               name = 'cdom',
+                               value = PLD$CDOM_scaled[ok])
+      # backscatter
+      dnctd[[i]] <- oceSetData(dnctd[[i]],
+                               name = 'backscatter',
+                               value = PLD$BB_scaled[ok])
+    }
   }
   
   upctd <- vector(mode = 'list')
-  for (i in 1:length(upidx)){
-    ok <- which(PLD$ProfileIndex == upidx[i])
-    upctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
-                         temperature = PLD$Temp[ok],
-                         pressure = PLD$Press[ok],
-                         conductivity = PLD$Conduc[ok],
-                         time = PLD$timesci[ok],
-                         longitude = PLD$Lon[ok],
-                         latitude = PLD$Lat[ok],
-                         station = upidx[i])
-    # add other variables
-    # oxygen concentration
-    upctd[[i]] <- oceSetData(upctd[[i]], 
+  if(length(upidx) != 0){
+    for (i in 1:length(upidx)){
+      ok <- which(PLD$ProfileIndex == upidx[i])
+      upctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
+                           temperature = PLD$Temp[ok],
+                           pressure = PLD$Press[ok],
+                           conductivity = PLD$Conduc[ok],
+                           time = PLD$timesci[ok],
+                           longitude = PLD$Lon[ok],
+                           latitude = PLD$Lat[ok],
+                           station = upidx[i])
+      # add other variables
+      # oxygen concentration
+      upctd[[i]] <- oceSetData(upctd[[i]], 
                              name = 'oxygenConcentration',
                              value = PLD$OxyConc[ok],
                              unit = expression('ml/l'))
-    # oxygen saturation
-    upctd[[i]] <- oceSetData(upctd[[i]],
-                             name = 'oxygenSaturation',
-                             value = PLD$OxySat[ok],
-                             unit = expression('%'))
-    # chlorophyll
-    upctd[[i]] <- oceSetData(upctd[[i]],
-                             name = 'chlorophyll',
-                             value = PLD$CHL_scaled[ok])
-    # cdom
-    upctd[[i]] <- oceSetData(upctd[[i]],
-                             name = 'cdom',
-                             value = PLD$CDOM_scaled[ok])
-    # backscatter
-    upctd[[i]] <- oceSetData(upctd[[i]],
-                             name = 'backscatter',
-                             value = PLD$BB_scaled[ok])
-    }
+      # oxygen saturation
+      upctd[[i]] <- oceSetData(upctd[[i]],
+                               name = 'oxygenSaturation',
+                               value = PLD$OxySat[ok],
+                               unit = expression('%'))
+      # chlorophyll
+      upctd[[i]] <- oceSetData(upctd[[i]],
+                               name = 'chlorophyll',
+                               value = PLD$CHL_scaled[ok])
+      # cdom
+      upctd[[i]] <- oceSetData(upctd[[i]],
+                               name = 'cdom',
+                               value = PLD$CDOM_scaled[ok])
+      # backscatter
+      upctd[[i]] <- oceSetData(upctd[[i]],
+                               name = 'backscatter',
+                               value = PLD$BB_scaled[ok])
+      }
   } #closes pressure greater than zero criterion
-  
+  }
   invisible(list(PLD = PLD, NAV = NAV, dnctd = dnctd, upctd = upctd))
 }
