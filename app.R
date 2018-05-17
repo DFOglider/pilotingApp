@@ -143,7 +143,8 @@ ui <- fluidPage(
           checkboxInput(inputId = 'upcstp1',
                         label = 'Upcasts',
                         value = FALSE),
-          uiOutput(outputId = 'numProfiles'),
+          uiOutput(outputId = 'numDncst'),
+          uiOutput(outputId = 'numUpcst'),
           strong('Plot Profiles\n'),
           uiOutput(outputId = 'rng1p1'),
           uiOutput(outputId = 'rng2p1'),
@@ -221,9 +222,12 @@ server <- function(input, output) {
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
     # profile numbers    
-    profiles <- unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']]))))   
-    output$numProfiles <- renderUI({
-      h5(paste0(length(profiles),' profiles detected'))
+    profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))   
+    output$numDncst <- renderUI({
+      h5(paste0(length(dnctd),' downcasts detected'))
+    })
+    output$numUpcst <- renderUI({
+      h5(paste0(length(upctd),' upcasts detected'))
     })
     output$rng1p1 <- renderUI({
         if (is.null(state$prange)) {
@@ -900,6 +904,10 @@ server <- function(input, output) {
           dpress <- dnctd[[1]][['pressure']]
           var <- dnctd[[1]][[input$profile2var]]
         }
+        else if (length(dnctd) != 0 & length(upctd) != 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
         else {
           dpress <- 1:10
           var <- 1:10
@@ -970,7 +978,9 @@ server <- function(input, output) {
     
     # profile1 plot
     observeEvent(input$last10, {
-      state$prange <- c(profiles[length(profiles) - 10], tail(profiles, 1))
+      state$prange <- c(ifelse(length(profiles) <= 10, profiles[1], 
+                               profiles[length(profiles) - 10]), 
+                        tail(profiles, 1))
     })
     observeEvent(input$resetlast10, {
         state$prange <- NULL
