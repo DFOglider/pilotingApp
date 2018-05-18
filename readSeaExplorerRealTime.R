@@ -1,14 +1,32 @@
-readSeaExplorerRealTime <- function(datadir, glider, mission){
+readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   dir <- paste(datadir,
                glider,
                mission,
                '',
                sep = '/')
+  #load rda of all data and get list of new nav files to read in
+  #files <- NA
+  {if('data.rda' %in% list.files(path = dir)){
+    # assign old NAV, PLD and profiles
+    load(paste0(dir,'data.rda'))
+    NAVold <- NAV
+    PLDold <- PLD
+    dnctdold <- dnctd
+    upctdold <- upctd
+    navfilesall <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
+    oknewfiles <- navfilesall %in% navfilesold & !grepl(pattern = '*Copy.gz', x = navfilesall)
+    if(length(navfilesall[!oknewfiles] != 0)) {
+      files <- paste(dir, as.list(navfilesall[!oknewfiles]), sep = '')
+    }
+  }
+    else{ # no data.rda
+      filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
+      okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
+      files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
+    }
+  }
   
-  filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
-  okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
-  files <- paste(dir, as.list(filelist[okfiles]), sep = '')
-  
+  if(exists('files')){
   # to put the files in the right order
   strl <- nchar(files)
   cate <- length(unique(strl))
@@ -81,10 +99,26 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     BatterieVolt=unlist(lapply(data_all, function(k) k$Voltage)),
     alt=unlist(lapply(data_all, function(k) k$Altitude))
   )
+  }
   
-  filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
-  okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
-  filesci <- paste(dir, as.list(filelistsci[okfilesci]), sep = '')
+  ### READ PLD FILES
+  
+  # data.rda already loaded, so look for new science files
+  {if('data.rda' %in% list.files(path = dir)){
+    scifilesall <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
+    oknewfiles <- scifilesall %in% scifilesold & !grepl(pattern = '*Copy.gz', x = scifilesall)
+    #filesci <- paste(dir, as.list(scifilesall[oknewfiles]), sep = '')
+    if(length(scifilesall[!oknewfiles] != 0)) {
+      filesci <- paste(dir, as.list(scifilesall[!oknewfiles]), sep = '')
+    }
+  }
+    else{
+      filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
+      okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
+      filesci <- paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
+    }
+  }
+  if(exists('filesci')){
   # to put the files in the right order
   strlsci<-nchar(filesci)
   catesci<-length(unique(strlsci))
@@ -237,7 +271,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   if((nPress / length(PLD$Press)) < 0.6){ 
   # profile indicies
   up <- unique(PLD$profileNumSci)
-  dnupidx <- NULL
+  dnupidx <- rep(NA, length = length(PLD$profileNumSci))
   for (i in 2:length(up)){ # skip the first profile (usually just a test anyway)
     ok <- which(PLD$profileNumSci == up[i])
     proind <- PLD$profileNumSci[ok]
@@ -343,6 +377,39 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
                                value = PLD$BB_scaled[ok])
       }
   } #closes pressure greater than zero criterion
+  } 
+  #closes if there are new files
+  }
+  {if('data.rda' %in% list.files(path = dir)){
+    {if(exists('files')){
+      navfilesold <- navfilesall
+      NAV <- rbind(NAVold, NAV)}
+      else{ # no new nav files
+        NAV <- NAVold
+      }
+    }
+    {if(exists('filesci')){
+      scifilesold <- scifilesall
+      PLD <- rbind(PLDold, PLD)
+      dnctd <- c(dnctdold, dnctd)
+      upctd <- c(upctdold, upctd)}
+      else{ # no new science files
+        PLD <- PLDold
+        dnctd <- dnctdold
+        upctd <- upctdold
+      }
+    }
+  }
+    else{
+      navfilesold <- filelist[okfiles]
+      scifilesold <- filelistsci[okfilesci]
+    }
+  }
+  newnav <- exists('files')
+  newsci <- exists('filesci')
+  if(newnav == TRUE | newsci == TRUE & saveRda == TRUE) { #save new rda only if there are new files
+    save(PLD, NAV, dnctd, upctd, navfilesold, scifilesold, file = paste(dir, 'data.rda', sep=""))
   }
   invisible(list(PLD = PLD, NAV = NAV, dnctd = dnctd, upctd = upctd))
-}
+  }
+
