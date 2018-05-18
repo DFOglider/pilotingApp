@@ -143,7 +143,8 @@ ui <- fluidPage(
           checkboxInput(inputId = 'upcstp1',
                         label = 'Upcasts',
                         value = FALSE),
-          uiOutput(outputId = 'numProfiles'),
+          uiOutput(outputId = 'numDncst'),
+          uiOutput(outputId = 'numUpcst'),
           strong('Plot Profiles\n'),
           uiOutput(outputId = 'rng1p1'),
           uiOutput(outputId = 'rng2p1'),
@@ -221,38 +222,69 @@ server <- function(input, output) {
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
     # profile numbers    
-    profiles <- unlist(lapply(dnctd, function(k) k@metadata[['station']]))    
-    output$numProfiles <- renderUI({
-      h5(paste0(length(profiles),' profiles detected'))
+    profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))   
+    output$numDncst <- renderUI({
+      h5(paste0(length(dnctd),' downcasts detected'))
+    })
+    output$numUpcst <- renderUI({
+      h5(paste0(length(upctd),' upcasts detected'))
     })
     output$rng1p1 <- renderUI({
         if (is.null(state$prange)) {
-            selectInput(inputId = 'profileRng1p1',
-                        label = '',
-                        choices = profiles,
-                        selected = profiles[1],
-                        width = '40%')
+            # selectInput(inputId = 'profileRng1p1',
+            #             label = '',
+            #             choices = profiles,
+            #             selected = profiles[1],
+            #             width = '40%')
+            numericInput(inputId = 'profileRng1p1',
+                         label = '',
+                         value = min(profiles),
+                         min = min(profiles),
+                         max = max(profiles),
+                         step = 1,
+                         width = '40%')
         } else {
-            selectInput(inputId = 'profileRng1p1',
-                        label = '',
-                        choices = profiles,
-                        selected = state$prange[1],
-                        width = '40%')
+            # selectInput(inputId = 'profileRng1p1',
+            #             label = '',
+            #             choices = profiles,
+            #             selected = state$prange[1],
+            #             width = '40%')
+            numericInput(inputId = 'profileRng1p1',
+                         label = '',
+                         value = state$prange[1],
+                         min = min(profiles),
+                         max = max(profiles),
+                         step = 1,
+                         width = '40%')
         }
     })
     output$rng2p1 <- renderUI({
         if (is.null(state$prange)) {
-            selectInput(inputId = 'profileRng2p1',
-                        label = 'to',
-                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-                        width = '40%',
-                        selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+            # selectInput(inputId = 'profileRng2p1',
+            #             label = 'to',
+            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+            #             width = '40%',
+            #             selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+            numericInput(inputId = 'profileRng2p1',
+                       label = 'to',
+                       value = max(profiles),
+                       min = min(profiles),
+                       max = max(profiles),
+                       step = 1,
+                       width = '40%')
         } else {
-            selectInput(inputId = 'profileRng2p1',
-                        label = 'to',
-                        choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-                        width = '40%',
-                        selected = state$prange[2])
+            # selectInput(inputId = 'profileRng2p1',
+            #             label = 'to',
+            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+            #             width = '40%',
+            #             selected = state$prange[2])
+            numericInput(inputId = 'profileRng1p1',
+                       label = 'to',
+                       value = state$prange[2],
+                       min = min(profiles),
+                       max = max(profiles),
+                       step = 1,
+                       width = '40%')
         }
     })
     # scaleBar for science plots
@@ -808,12 +840,31 @@ server <- function(input, output) {
                      'backscatter' = 'Backscatter',
                      'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
                      'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
+      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile1var]])), na.rm=TRUE)
       xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
       
-      plot(dnctd[[1]][[input$profile1var]], dnctd[[1]][['pressure']],
+      {if(length(dnctd) == 0 & length(upctd) != 0){
+        dpress <- upctd[[1]][['pressure']]
+        var <- upctd[[1]][[input$profile1var]]
+      }
+        else if (length(dnctd) != 0 & length(upctd) == 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
+        else if (length(dnctd) != 0 & length(upctd) != 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
+        else {
+          dpress <- 1:10
+          var <- 1:10
+          xlim <- range(var)
+          ylim <- range(dpress)
+        }
+      }  
+      plot(var, dpress,
            xlab = '',
            ylab = ylab,
            type = 'b',
@@ -823,20 +874,23 @@ server <- function(input, output) {
            ylim = ylim, 
            axes = FALSE,
            col = 'white')
+      if(length(dnctd) == 0 & length(upctd) == 0){
+        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+      }
       axis(3)
       mtext(xlab, side = 3, line = axisNameLoc)
       axis(2)
       box()
       grid()
       okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
-      if(state$dnp1 == TRUE){
+      if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
           lines(dnctdp[[i]][[input$profile1var]], dnctdp[[i]][['pressure']],
                 type = 'b')
         }
       }
-      if(state$upp1 == TRUE){
+      if(state$upp1 == TRUE & length(upctd) != 0){
         upctdp <- upctd[okprofiles]
         for(i in 1:length(upctdp)){
           lines(upctdp[[i]][[input$profile1var]], upctdp[[i]][['pressure']],
@@ -865,12 +919,31 @@ server <- function(input, output) {
                      'backscatter' = 'Backscatter',
                      'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
                      'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(dnctd, function(k) k[[input$profile2var]])), na.rm=TRUE)
+      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile2var]])), na.rm=TRUE)
       #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
       
-      plot(dnctd[[1]][[input$profile2var]], dnctd[[1]][['pressure']],
+      {if(length(dnctd) == 0 & length(upctd) != 0){
+        dpress <- upctd[[1]][['pressure']]
+        var <- upctd[[1]][[input$profile2var]]
+      }
+        else if (length(dnctd) != 0 & length(upctd) == 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile2var]]
+        }
+        else if (length(dnctd) != 0 & length(upctd) != 0){
+          dpress <- dnctd[[1]][['pressure']]
+          var <- dnctd[[1]][[input$profile1var]]
+        }
+        else {
+          dpress <- 1:10
+          var <- 1:10
+          xlim <- range(var)
+          ylim <- range(dpress)
+        }
+      } 
+      plot(var, dpress,
            xlab = '',
            ylab = ylab,
            type = 'b',
@@ -880,20 +953,23 @@ server <- function(input, output) {
            ylim = ylim, 
            axes = FALSE,
            col = 'white')
+      if(length(dnctd) == 0 & length(upctd) == 0){
+        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+      }
       axis(3)
       mtext(xlab, side = 3, line = axisNameLoc)
       axis(2)
       box()
       grid()
       okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
-      if(state$dnp1 == TRUE){
+      if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
           lines(dnctdp[[i]][[input$profile2var]], dnctdp[[i]][['pressure']],
                 type = 'b')
         }
       }
-      if(state$upp1 == TRUE){
+      if(state$upp1 == TRUE & length(upctd) != 0){
         upctdp <- upctd[okprofiles]
         for(i in 1:length(upctdp)){
           lines(upctdp[[i]][[input$profile2var]], upctdp[[i]][['pressure']],
@@ -930,7 +1006,9 @@ server <- function(input, output) {
     
     # profile1 plot
     observeEvent(input$last10, {
-      state$prange <- c(profiles[length(profiles) - 10], tail(profiles, 1))
+      state$prange <- c(ifelse(length(profiles) <= 10, profiles[1], 
+                               profiles[length(profiles) - 10]), 
+                        tail(profiles, 1))
     })
     observeEvent(input$resetlast10, {
         state$prange <- NULL
