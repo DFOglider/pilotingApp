@@ -101,6 +101,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   )
   }
   
+  bad <- is.na(NAV$VertSpeed)
+  NAV <- NAV[!bad,]
+  
   ### READ PLD FILES
   
   # data.rda already loaded, so look for new science files
