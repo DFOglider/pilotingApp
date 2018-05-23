@@ -9,10 +9,15 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   {if('data.rda' %in% list.files(path = dir)){
     # assign old NAV, PLD and profiles
     load(paste0(dir,'data.rda'))
-    NAVold <- NAV
-    PLDold <- PLD
-    dnctdold <- dnctd
-    upctdold <- upctd
+    if(exists('NAV') & exists('PLD')){ #for previously saved rda files
+      NAVold <- NAV
+      rm(NAV)
+      PLDold <- PLD
+      rm(PLD)
+      dnctdold <- dnctd
+      rm(dnctd)
+      upctdold <- upctd
+      rm(upctd)}
     navfilesall <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
     oknewfiles <- navfilesall %in% navfilesold & !grepl(pattern = '*Copy.gz', x = navfilesall)
     if(length(navfilesall[!oknewfiles] != 0)) {
@@ -99,10 +104,12 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     BatterieVolt=unlist(lapply(data_all, function(k) k$Voltage)),
     alt=unlist(lapply(data_all, function(k) k$Altitude))
   )
+    bad <- is.na(NAV$VertSpeed)
+    NAV <- NAV[!bad,]  
+  
   }
   
-  bad <- is.na(NAV$VertSpeed)
-  NAV <- NAV[!bad,]
+
   
   ### READ PLD FILES
   
@@ -390,6 +397,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
       else{ # no new nav files
         NAV <- NAVold
       }
+      bad <- is.na(NAV$VertSpeed)
+      NAV <- NAV[!bad,]
+      bad <- is.na(NAV$time) 
+      NAV <- NAV[!bad,]
     }
     {if(exists('filesci')){
       scifilesold <- scifilesall
@@ -401,6 +412,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
         dnctd <- dnctdold
         upctd <- upctdold
       }
+      bad <- is.na(PLD$timesci)
+      PLD <- PLD[!bad,]
     }
   }
     else{
@@ -411,7 +424,14 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   newnav <- exists('files')
   newsci <- exists('filesci')
   if(newnav == TRUE | newsci == TRUE & saveRda == TRUE) { #save new rda only if there are new files
-    save(PLD, NAV, dnctd, upctd, navfilesold, scifilesold, file = paste(dir, 'data.rda', sep=""))
+    PLDold <- PLD
+    NAVold <- NAV
+    dnctdold <- dnctd
+    upctdold <- upctd
+    save(PLDold, NAVold, 
+         dnctdold, upctdold,
+         navfilesold, scifilesold, 
+         file = paste(dir, 'data.rda', sep=""))
   }
   invisible(list(PLD = PLD, NAV = NAV, dnctd = dnctd, upctd = upctd))
   }
