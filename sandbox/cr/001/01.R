@@ -78,8 +78,24 @@ abline(v=0, lwd=1)
 
 plot(AngPos, depth, pch='.', xlim=c(-45, 45), ylim=rev(range(depth, na.rm=TRUE)))
 grid()
+bm <- binMean1D(depth, AngPos, seq(0, max(depth, na.rm=TRUE), length.out=50))
+bs <- binApply1D(depth, AngPos, seq(0, max(depth, na.rm=TRUE), length.out=50), sd, na.rm=TRUE)
+lines(bm$result, bm$xmids, col=2, lwd=3)
+lines(bm$result - bs$result, bm$xmids, col=2, lwd=2, lty=2)
+lines(bm$result + bs$result, bm$xmids, col=2, lwd=2, lty=2)
+abline(v=0, lwd=3, col='white')
+abline(v=0, lwd=1)
 
-## This doesn't really work because density is sampled a lot less than
+b <- binCount2D(AngPos, depth,
+                seq(-40, 40, length.out=50),
+                seq(0, max(depth, na.rm=TRUE), length.out=50))
+imagep(b$xmids, b$ymids, b$number, flipy=TRUE, xlab='AngPos', ylab='depth',
+       col=col)
+abline(v=0, lwd=3, col='white')
+abline(v=0, lwd=1)
+lines(bm$result, bm$xmids, col=1, lwd=3)
+
+### This doesn't really work because density is sampled a lot less than
 ## density <- approx(PLDold$timesci, PLDold$SigTheta, NAVold$time)$y
 ## density[density < 20] <- NA
 ## plot(dH, density, pch='.', xlim=c(-100, 100), xlab='Heading-DesiredHeading')
