@@ -195,8 +195,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   dist <- distGeo(matrix(c(Lond[index115sci], Latd[index115sci]),nrow=length(PLDTime115),ncol=2))
   distsum<- rep(NA, length(dist))
   speed<- rep(NA, length(dist))
+  maxdist <- ifelse(exists('NAVold'), max(NAVold$distkm, na.rm = TRUE), 0)
   for (j in c(1:length(dist))){
-    distsum[j] <- sum(dist[1:j])/1000
+    distsum[j] <- sum(dist[1:j])/1000 + maxdist
     speed[j] <- dist[j]/as.numeric(PLDTime115[j+1]-PLDTime115[j],units='secs')
   }
   timedist <- PLDTime115[2:length(PLDTime115)]
