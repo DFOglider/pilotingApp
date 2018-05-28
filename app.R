@@ -95,7 +95,7 @@ ui <- fluidPage(
                                   'Conductivity'='Cond',
                                   'Salinity'='Sal',
                                   'Density'='Dens',
-                                  'Oxygen Frequency'='DOF',
+                                  #'Oxygen Frequency'='DOF',
                                   'Oxygen Concentration' = 'OxyConc',
                                   'Oxygen Saturation' = 'OxySat',
                                   'Chlorophyl'='CHL_scaled',

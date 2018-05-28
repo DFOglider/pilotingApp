@@ -238,7 +238,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     CDOM_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CDOM_SCALED)),
     Temp=unlist(lapply(data_allsci, function(k) k$GPCTD_TEMPERATURE)),
     Press=unlist(lapply(data_allsci, function(k) k$GPCTD_PRESSURE)),
-    DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
+    #DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
     Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
   )
   # calculate salinity, sigTheta, and oxygen saturation
@@ -251,14 +251,22 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
                                pressure = PLD$Press)
   # calculate oxygen saturation
   # TO-DO implement new oxygen sensor for SEA032
-  # use coefficients from calibration files
+  # use coefficients from calibration files for SBE 43 DO sensor
+  if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
-                            pressure = PLD$Press, oxygenFrequency = PLD$DOF,
+                            pressure = PLD$Press, oxygenFrequency = DOF,
                             Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
+  }
+  
+  if(glider == 'SEA032'){
+    # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
+    PLD$OxyConc <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO)) / 44.661
+  }
   
   PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   
