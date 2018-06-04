@@ -8,7 +8,7 @@ library(RCurl)
 library(geosphere)
 library(XML)
 data(ctd) # for initial plotProfile tests, delete later
-options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc 
+options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc
 
 source('addMouseCoordinates.R') # from mapview package, some had issues with mapview
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
@@ -24,7 +24,7 @@ mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
 
 #deployment/recovery location
-drlon <- -63.406418 
+drlon <- -63.406418
 drlat <- 44.520789
 
 # halifax line stations
@@ -33,36 +33,36 @@ hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
-  
+
   # App title ----
   titlePanel("Glider Data"),
-  
+
   fluidRow(
     column(2, wellPanel(
-         selectInput(inputId = 'Glider', 
-                     label = 'Choose a glider', 
+         selectInput(inputId = 'Glider',
+                     label = 'Choose a glider',
                      choices = gliderdirnames), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
-         actionButton(inputId = 'download', 
+         actionButton(inputId = 'download',
                       label = 'Download and load data'),
-         
+
          # conditional panel for plots tab
          conditionalPanel(
            condition = "input.tabs == 'Plots'",
-            selectInput(inputId="Var", 
-                     label="Data Set:", 
-                     choices=c('Navigation'='Navigation','Science'='Science'), 
+            selectInput(inputId="Var",
+                     label="Data Set:",
+                     choices=c('Navigation'='Navigation','Science'='Science'),
                      selected = 'Navigation')
          ),
         #conditional panels for navigation in plots tab
         conditionalPanel(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
-        
-        
+
+
 
          conditionalPanel(
-          condition="input.Var=='Navigation' & input.tabs == 'Plots'", 
+          condition="input.Var=='Navigation' & input.tabs == 'Plots'",
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
                   choices = c('Altimeter' = 'altimeter',
@@ -81,14 +81,14 @@ ui <- fluidPage(
                               'Roll'='Roll',
                               'Yo Numbers'='profileNumber'),
                   selected = 'Pitch')),
-        
+
         #conditional panels for science in plots tab
         conditionalPanel(
           condition = "input.Var == 'Science' & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
-        
+
         conditionalPanel(
-          condition="input.Var=='Science' & input.tabs == 'Plots'", 
+          condition="input.Var=='Science' & input.tabs == 'Plots'",
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
                       choices = c('Temperature'='Temp',
@@ -136,7 +136,7 @@ ui <- fluidPage(
                       selected = 'salinity'),
           # reset right profile plot button
           # NOTE : not currently needed
-          #actionButton('resetp2', 'Reset right Profile'),          
+          #actionButton('resetp2', 'Reset right Profile'),
           checkboxInput(inputId = 'dncstp1',
                         label = 'Downcasts',
                         value = TRUE),
@@ -157,7 +157,7 @@ ui <- fluidPage(
     column(10,
       tabsetPanel(id = 'tabs', type = 'tabs',
         tabPanel("Plots",
-        #column(10, 
+        #column(10,
                plotOutput("plot1",dblclick="plot_click",brush = brushOpts(id="plot_brush",
                                              direction="x",
                                              resetOnNew = TRUE),
@@ -169,15 +169,15 @@ ui <- fluidPage(
       tabPanel("Profiles",
                fluidRow(
                  column(6,
-                  plotOutput("profile1",dblclick="plot_click", 
+                  plotOutput("profile1",dblclick="plot_click",
                              brush = brushOpts(id = 'profile1brush',
                                                direction = 'xy',
                                                resetOnNew = TRUE),
-                             height = '620px' 
+                             height = '620px'
                              #width = '450px'
                              )),
                  column(6,
-                  plotOutput("profile2", 
+                  plotOutput("profile2",
                              height = '620px'
                              #width = '450px'
                              ))))
@@ -187,20 +187,20 @@ ui <- fluidPage(
 ) #closes ui
 
 
-               
-           
 
-# Define server 
+
+
+# Define server
 server <- function(input, output) {
   state <- reactiveValues()
-  
+
   # select input for mission based on selected glider
   output$Missions <- renderUI({
     missions <- getMissions(glider = input$Glider)
     selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions,
                 selected=tail(missions, 1))
   })
-  
+
   # download data and load when actionButton clicked
   # make plots too
   observeEvent(input$download,{
@@ -221,8 +221,9 @@ server <- function(input, output) {
     okkml <- !is.na(kmlcoord$lon)
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
-    # profile numbers    
-    profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))   
+    # profile numbers
+    ## profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))
+    profiles <- profileNumber
     output$numDncst <- renderUI({
       h5(paste0(length(dnctd),' downcasts detected'))
     })
@@ -323,42 +324,42 @@ server <- function(input, output) {
                      'OxyConc' = 0.5,
                      'OxySat' = 1)
       # deal with values that vary little during simulation
-      if(diff(value) < 5*step){value[2] <- value[2] + 5*step} 
+      if(diff(value) < 5*step){value[2] <- value[2] + 5*step}
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
-                  value = value, step = step, animate = FALSE)  
-      
+                  value = value, step = step, animate = FALSE)
+
     })
     # plot1 - top plot
     output$plot1 <- renderPlot({
       if (is.null(state$xlim)) {
         #par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
-        oce.plot.ts(glider$time, glider$depth, 
-                    type="n", 
-                    ylim=c(max(glider$altHit,na.rm = TRUE), -5), 
-                    xlim=(range(glider$time, na.rm = TRUE)), 
-                    ylab='Depth (m)',xlab='Time', 
+        oce.plot.ts(glider$time, glider$depth,
+                    type="n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim=(range(glider$time, na.rm = TRUE)),
+                    ylab='Depth (m)',xlab='Time',
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
-        text(profileTimes, -2, as.character(profileNumber), cex=1) 
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
         grid()
       } else {
         par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
-        oce.plot.ts(glider$time, glider$depth, 
+        oce.plot.ts(glider$time, glider$depth,
                     type = "n",
-                    ylim=c(max(glider$altHit,na.rm = TRUE), -5), 
-                    xlim = state$xlim, 
-                    ylab = 'Depth (m)',xlab='Time', 
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim = state$xlim,
+                    ylab = 'Depth (m)',xlab='Time',
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
         points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
-        text(profileTimes, -2, as.character(profileNumber), cex=1) 
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
         grid()
       }
   })
-    # plot2 - bottom plot 
+    # plot2 - bottom plot
     # TO-DO : use switch argument for navigation plots
     #         to make code shorter
     #         see how science plots are created below
@@ -368,11 +369,11 @@ server <- function(input, output) {
         if (is.null(state$xlim)) {
           #par(mar = marcm)
           #par(xaxs='i',yaxs='i')#tight
-          oce.plot.ts(glider$time, glider$depth, 
-               type = "n", 
-               ylim = range(glider$alt,na.rm = TRUE), 
-               xlim = range(glider$time, na.rm = TRUE), 
-               ylab = 'range (m)', 
+          oce.plot.ts(glider$time, glider$depth,
+               type = "n",
+               ylim = range(glider$alt,na.rm = TRUE),
+               xlim = range(glider$time, na.rm = TRUE),
+               ylab = 'range (m)',
                xlab = 'Time',
                mar=marcm)
           points(glider$time,glider$alt,pch=20,cex = 1, col = "red")
@@ -382,11 +383,11 @@ server <- function(input, output) {
           okylim <- glider$time > state$xlim[1] & glider$time < state$xlim[2]
           #par(mar = marcm)
           #par(xaxs='i', yaxs='i')#tight
-          oce.plot.ts(glider$time, glider$depth, 
-               type = "n", 
-               ylim = range(glider$alt[okylim],na.rm = TRUE) + c(-0.5, 0.5 ), 
-               xlim = state$xlim, 
-               ylab = 'range (m)', 
+          oce.plot.ts(glider$time, glider$depth,
+               type = "n",
+               ylim = range(glider$alt[okylim],na.rm = TRUE) + c(-0.5, 0.5 ),
+               xlim = state$xlim,
+               ylab = 'range (m)',
                xlab = 'Time',
                mar=marcm)
           points(glider$time, glider$alt, pch=20,cex = 1, col = "red")
@@ -400,10 +401,10 @@ server <- function(input, output) {
            oce.plot.ts(glider$time, glider[[input$NavVar]],
            ylim=c(-80,40),
            xlim=(range(glider$time, na.rm = TRUE)),
-           xlab='Time',ylab='',type='n', 
+           xlab='Time',ylab='',type='n',
            mar=marcm)
-           polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)  
-           polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA) 
+           polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)
+           polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA)
            lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
            grid()
         } else {
@@ -412,10 +413,10 @@ server <- function(input, output) {
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                       ylim=c(-80,40),
                       xlim=state$xlim,
-                      xlab='Time',ylab='',type='n', 
+                      xlab='Time',ylab='',type='n',
                       mar=marcm)
-          polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)  
-          polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA) 
+          polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)
+          polygon(c(glider$time,rev(glider$time)),c(rep(-15,length(glider$time)),rep(-25,length(glider$time))),col=gray(0.8),border=NA)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
           grid()
         }
@@ -428,8 +429,8 @@ server <- function(input, output) {
              xlim=(range(glider$time, na.rm = TRUE)),
              xlab='Time',ylab='',type='n',
              mar=marcm)
-        polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)  
-        polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA) 
+        polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)
+        polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
         grid()
         } else {
@@ -440,12 +441,12 @@ server <- function(input, output) {
                xlim=state$xlim,
                xlab='Time',ylab='',type='n',
                mar=marcm)
-          polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)  
-          polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA) 
+          polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)
+          polygon(c(glider$time,rev(glider$time)),c(rep(13,length(glider$time)),rep(17,length(glider$time))),col=gray(0.8),border=NA)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "black")
           grid()
         }
-        
+
       } else if (input$NavVar=='BatterieVolt') {
         if (is.null(state$xlim)) {
          #par(mar = marcm)
@@ -455,7 +456,7 @@ server <- function(input, output) {
              xlim=(range(glider$time, na.rm = TRUE)),
              xlab='Time',ylab='',type='n',
              mar=marcm)
-        polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)  
+        polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         grid()
         } else {
@@ -466,11 +467,11 @@ server <- function(input, output) {
                xlim=state$xlim,
                xlab='Time',ylab='',type='n',
                mar=marcm)
-          polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)  
+          polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         }
-        
+
       } else if (input$NavVar=='speedms') {
         if (is.null(state$xlim)) {
           #par(mar = marcm)
@@ -493,7 +494,7 @@ server <- function(input, output) {
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
-        
+
       } else if (input$NavVar=='distkm') {
         if (is.null(state$xlim)) {
           #par(mar = marcm)
@@ -516,7 +517,7 @@ server <- function(input, output) {
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
           grid()
         }
-        
+
       } else if (input$NavVar=='Temperature') {
         if (is.null(state$xlim)) {
           #par(mar = marcm)
@@ -539,7 +540,7 @@ server <- function(input, output) {
            lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         }
-        
+
       } else if (input$NavVar=='Heading') {
         if (is.null(state$xlim)) {
         #par(xaxs='i',yaxs='i')#tight
@@ -562,7 +563,7 @@ server <- function(input, output) {
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
           grid()
         }
-        
+
       } else if (input$NavVar=='BallastPos') {
         if (is.null(state$xlim)) {
         #par(xaxs='i',yaxs='i')#tight
@@ -585,7 +586,7 @@ server <- function(input, output) {
           lines(glider$time, glider$BallastCmd,lwd = 2, col = "blue")
           grid()
         }
-        
+
       } else if (input$NavVar=='LinPos') {
         if (is.null(state$xlim)) {
         #par(xaxs='i',yaxs='i')#tight
@@ -607,8 +608,8 @@ server <- function(input, output) {
           lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
           lines(glider$time, glider$LinCmd,lwd = 2, col = "blue")
           grid()
-        } 
-        
+        }
+
       } else if (input$NavVar=='AngPos') {
         if (is.null(state$xlim)) {
         #par(mar = marcm)
@@ -630,10 +631,10 @@ server <- function(input, output) {
           lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
           lines(glider$time, glider$AngCmd,lwd = 2, col = "blue")
           grid()
-        } 
-        
+        }
+
       } else { #profileNumber
-        if (is.null(state$xlim)) {  
+        if (is.null(state$xlim)) {
       #par(xaxs='i',yaxs='i')#tight
       #par(mar = marcm)
       oce.plot.ts(glider$time, glider[[input$NavVar]],
@@ -653,7 +654,7 @@ server <- function(input, output) {
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
           grid()
-        }   
+        }
       }
     } else if (input$Var == 'Science') {
         # CL's work for science plots
@@ -707,13 +708,13 @@ server <- function(input, output) {
         grid()
         mtext(ylabp, side = 2, line = 2)
         par(mar=mardef)
-      
-      
-      } # closes else if sciVar = science  
+
+
+      } # closes else if sciVar = science
     }) # closes plot2
-    
+
     # leaflet map plot
-    
+
     # map groups
     map_allposition <- "All Positions"
     map_track <- "Glider Track"
@@ -722,7 +723,7 @@ server <- function(input, output) {
     okloc <- PLD$Lat > 0
     glon <- PLD$Lon[okloc]
     glat <- PLD$Lat[okloc]
-    
+
 
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
@@ -742,12 +743,12 @@ server <- function(input, output) {
         addMouseCoordinates(style = 'basic')%>%
         addScaleBar(position = 'topright')%>%
         addMeasure(primaryLengthUnit = "kilometers",
-                   secondaryLengthUnit = 'miles', 
-                   primaryAreaUnit = "hectares", 
-                   secondaryAreaUnit="acres", 
+                   secondaryLengthUnit = 'miles',
+                   primaryAreaUnit = "hectares",
+                   secondaryAreaUnit="acres",
                    position = 'bottomleft') %>%
         #line track
-        addPolylines(lng = glon, lat = glat, 
+        addPolylines(lng = glon, lat = glat,
                      weight = 2,
                      group = map_track) %>%
         # deployment/recovery location
@@ -760,7 +761,7 @@ server <- function(input, output) {
                          label = paste0("Deployment/Recovery Location"))%>%
         # halifax line
         addCircleMarkers(lng = hfxlon, lat = hfxlat,
-                         radius = 5, fillOpacity = .4, stroke = F, 
+                         radius = 5, fillOpacity = .4, stroke = F,
                          color = 'black',
                          popup = paste(sep = "<br/>",
                                        #paste0("HL", as.character(1:7)),
@@ -769,7 +770,7 @@ server <- function(input, output) {
                         # label = paste0("HL", 1:7))
                           label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
         # glider positions
-        addCircleMarkers(lng = glon, lat = glat, 
+        addCircleMarkers(lng = glon, lat = glat,
                          radius = 4, fillOpacity = .2, stroke = F,
                          popup = paste(sep = "<br/>",
                                        "Glider position",
@@ -778,7 +779,7 @@ server <- function(input, output) {
                          label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
                          group = map_allposition)%>%
         # positions from kml
-        addCircleMarkers(lng = kmlLon, lat = kmlLat, 
+        addCircleMarkers(lng = kmlLon, lat = kmlLat,
                          radius = 5, fillOpacity = .4, stroke = F,
                          color = 'red',
                          popup = paste(sep = "<br/>",
@@ -798,7 +799,7 @@ server <- function(input, output) {
                          color = 'green',
                          group = map_lastlocation) %>%
         # latest position from kml
-        addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)], 
+        addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)],
                          radius = 6, fillOpacity = 1, stroke = F,
                          color = 'green',
                          popup = paste(sep = "<br/>",
@@ -812,18 +813,18 @@ server <- function(input, output) {
                                            map_track,
                                            map_lastlocation,
                                            map_kml),
-                         options = layersControlOptions(collapsed = FALSE), 
+                         options = layersControlOptions(collapsed = FALSE),
                          position = 'bottomright') %>%
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
-    
+
     output$profile1 <- renderPlot({
       # can't use oce plotProfile due to its restrictions on
       # providing limits for variables, i.e, cannot supply
       # xlim and Tlim when the xtype is temperature
-      # not a problem though when xtype is not one of the 
+      # not a problem though when xtype is not one of the
       # default variables make plot look like plotProfile
-      
+
       # use same margins, etc as plotProfile
       mgp <- getOption('oceMgp')
       mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
@@ -844,7 +845,7 @@ server <- function(input, output) {
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
       xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile1var]])), na.rm=TRUE)
       xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
-      
+
       {if(length(dnctd) == 0 & length(upctd) != 0){
         dpress <- upctd[[1]][['pressure']]
         var <- upctd[[1]][[input$profile1var]]
@@ -863,7 +864,7 @@ server <- function(input, output) {
           xlim <- range(var)
           ylim <- range(dpress)
         }
-      }  
+      }
       plot(var, dpress,
            xlab = '',
            ylab = ylab,
@@ -871,7 +872,7 @@ server <- function(input, output) {
            xaxs = 'r',
            yaxs = 'r',
            xlim = xlim,
-           ylim = ylim, 
+           ylim = ylim,
            axes = FALSE,
            col = 'white')
       if(length(dnctd) == 0 & length(upctd) == 0){
@@ -882,7 +883,7 @@ server <- function(input, output) {
       axis(2)
       box()
       grid()
-      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
+      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
       if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
@@ -898,7 +899,7 @@ server <- function(input, output) {
         }
       }
     })
-    
+
     output$profile2 <- renderPlot({
       # nearly identical code to profile1
       # but takes the chosen variable
@@ -923,7 +924,7 @@ server <- function(input, output) {
       ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
       xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile2var]])), na.rm=TRUE)
       #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
-      
+
       {if(length(dnctd) == 0 & length(upctd) != 0){
         dpress <- upctd[[1]][['pressure']]
         var <- upctd[[1]][[input$profile2var]]
@@ -942,7 +943,7 @@ server <- function(input, output) {
           xlim <- range(var)
           ylim <- range(dpress)
         }
-      } 
+      }
       plot(var, dpress,
            xlab = '',
            ylab = ylab,
@@ -950,7 +951,7 @@ server <- function(input, output) {
            xaxs = 'r',
            yaxs = 'r',
            xlim = xlim,
-           ylim = ylim, 
+           ylim = ylim,
            axes = FALSE,
            col = 'white')
       if(length(dnctd) == 0 & length(upctd) == 0){
@@ -961,7 +962,7 @@ server <- function(input, output) {
       axis(2)
       box()
       grid()
-      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1) 
+      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
       if(state$dnp1 == TRUE & length(dnctd) != 0){
         dnctdp <- dnctd[okprofiles]
         for(i in 1:length(dnctdp)){
@@ -977,21 +978,21 @@ server <- function(input, output) {
         }
       }
     })
-    
+
     observeEvent(input$dncstp1,{
       state$dnp1 <- input$dncstp1
     })
-    
+
     observeEvent(input$upcstp1,{
       state$upp1 <- input$upcstp1
     })
-    
+
     # setting limits for brushed plots
     # top section plot, set limits
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
-    # reset plots 
+    # reset plots
     # navigation section
     observeEvent(input$resetNav, {
       state$xlim <- range(glider$time,na.rm = TRUE)
@@ -1003,11 +1004,11 @@ server <- function(input, output) {
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
-    
+
     # profile1 plot
     observeEvent(input$last10, {
-      state$prange <- c(ifelse(length(profiles) <= 10, profiles[1], 
-                               profiles[length(profiles) - 10]), 
+      state$prange <- c(ifelse(length(profiles) <= 10, profiles[1],
+                               profiles[length(profiles) - 10]),
                         tail(profiles, 1))
     })
     observeEvent(input$resetlast10, {
@@ -1028,7 +1029,7 @@ server <- function(input, output) {
       state$ylimp1 <- NULL
       state$xlimp1 <- NULL
     })
-    
+
   }) #closes download observeEvent
 
 
