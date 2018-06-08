@@ -164,23 +164,23 @@ ui <- fluidPage(
                                             height="310px"),
                plotOutput("plot2", height="310px")),
       tabPanel("Map",
-        leafletOutput("map", height = '620px')),
+        leafletOutput("map", height = '620px'))
       # Q : Fixed width for profiles or fluid ?
-      tabPanel("Profiles",
-               fluidRow(
-                 column(6,
-                  plotOutput("profile1",dblclick="plot_click",
-                             brush = brushOpts(id = 'profile1brush',
-                                               direction = 'xy',
-                                               resetOnNew = TRUE),
-                             height = '620px'
-                             #width = '450px'
-                             )),
-                 column(6,
-                  plotOutput("profile2",
-                             height = '620px'
-                             #width = '450px'
-                             ))))
+      # tabPanel("Profiles",
+      #          fluidRow(
+      #            column(6,
+      #             plotOutput("profile1",dblclick="plot_click",
+      #                        brush = brushOpts(id = 'profile1brush',
+      #                                          direction = 'xy',
+      #                                          resetOnNew = TRUE),
+      #                        height = '620px'
+      #                        #width = '450px'
+      #                        )),
+      #            column(6,
+      #             plotOutput("profile2",
+      #                        height = '620px'
+      #                        #width = '450px'
+      #                        ))))
       ) #closes tabset
     ) #closes column
     ) #closes fluidRow
@@ -215,8 +215,8 @@ server <- function(input, output) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
     }
     profileTimes <- numberAsPOSIXct(profileTimes)
-    dnctd <- data$dnctd
-    upctd <- data$upctd
+    #dnctd <- data$dnctd
+    #upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
     okkml <- !is.na(kmlcoord$lon)
     kmlLon <- kmlcoord$lon[okkml]
@@ -230,64 +230,65 @@ server <- function(input, output) {
     output$numUpcst <- renderUI({
       h5(paste0(length(upctd),' upcasts detected'))
     })
-    output$rng1p1 <- renderUI({
-        if (is.null(state$prange)) {
-            # selectInput(inputId = 'profileRng1p1',
-            #             label = '',
-            #             choices = profiles,
-            #             selected = profiles[1],
-            #             width = '40%')
-            numericInput(inputId = 'profileRng1p1',
-                         label = '',
-                         value = min(profiles),
-                         min = min(profiles),
-                         max = max(profiles),
-                         step = 1,
-                         width = '40%')
-        } else {
-            # selectInput(inputId = 'profileRng1p1',
-            #             label = '',
-            #             choices = profiles,
-            #             selected = state$prange[1],
-            #             width = '40%')
-            numericInput(inputId = 'profileRng1p1',
-                         label = '',
-                         value = state$prange[1],
-                         min = min(profiles),
-                         max = max(profiles),
-                         step = 1,
-                         width = '40%')
-        }
-    })
-    output$rng2p1 <- renderUI({
-        if (is.null(state$prange)) {
-            # selectInput(inputId = 'profileRng2p1',
-            #             label = 'to',
-            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-            #             width = '40%',
-            #             selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
-            numericInput(inputId = 'profileRng2p1',
-                       label = 'to',
-                       value = max(profiles),
-                       min = min(profiles),
-                       max = max(profiles),
-                       step = 1,
-                       width = '40%')
-        } else {
-            # selectInput(inputId = 'profileRng2p1',
-            #             label = 'to',
-            #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
-            #             width = '40%',
-            #             selected = state$prange[2])
-            numericInput(inputId = 'profileRng1p1',
-                       label = 'to',
-                       value = state$prange[2],
-                       min = min(profiles),
-                       max = max(profiles),
-                       step = 1,
-                       width = '40%')
-        }
-    })
+    # # ranges for profile tabs
+    # output$rng1p1 <- renderUI({
+    #     if (is.null(state$prange)) {
+    #         # selectInput(inputId = 'profileRng1p1',
+    #         #             label = '',
+    #         #             choices = profiles,
+    #         #             selected = profiles[1],
+    #         #             width = '40%')
+    #         numericInput(inputId = 'profileRng1p1',
+    #                      label = '',
+    #                      value = min(profiles),
+    #                      min = min(profiles),
+    #                      max = max(profiles),
+    #                      step = 1,
+    #                      width = '40%')
+    #     } else {
+    #         # selectInput(inputId = 'profileRng1p1',
+    #         #             label = '',
+    #         #             choices = profiles,
+    #         #             selected = state$prange[1],
+    #         #             width = '40%')
+    #         numericInput(inputId = 'profileRng1p1',
+    #                      label = '',
+    #                      value = state$prange[1],
+    #                      min = min(profiles),
+    #                      max = max(profiles),
+    #                      step = 1,
+    #                      width = '40%')
+    #     }
+    # })
+    # output$rng2p1 <- renderUI({
+    #     if (is.null(state$prange)) {
+    #         # selectInput(inputId = 'profileRng2p1',
+    #         #             label = 'to',
+    #         #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+    #         #             width = '40%',
+    #         #             selected = profiles[length(profiles >= as.numeric(input$profileRng1p1))])
+    #         numericInput(inputId = 'profileRng2p1',
+    #                    label = 'to',
+    #                    value = max(profiles),
+    #                    min = min(profiles),
+    #                    max = max(profiles),
+    #                    step = 1,
+    #                    width = '40%')
+    #     } else {
+    #         # selectInput(inputId = 'profileRng2p1',
+    #         #             label = 'to',
+    #         #             choices = profiles[profiles >= as.numeric(input$profileRng1p1)],
+    #         #             width = '40%',
+    #         #             selected = state$prange[2])
+    #         numericInput(inputId = 'profileRng1p1',
+    #                    label = 'to',
+    #                    value = state$prange[2],
+    #                    min = min(profiles),
+    #                    max = max(profiles),
+    #                    step = 1,
+    #                    width = '40%')
+    #     }
+    # })
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
@@ -818,166 +819,166 @@ server <- function(input, output) {
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
-    output$profile1 <- renderPlot({
-      # can't use oce plotProfile due to its restrictions on
-      # providing limits for variables, i.e, cannot supply
-      # xlim and Tlim when the xtype is temperature
-      # not a problem though when xtype is not one of the
-      # default variables make plot look like plotProfile
-
-      # use same margins, etc as plotProfile
-      mgp <- getOption('oceMgp')
-      mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
-      axisNameLoc <- mgp[1]
-      par(mgp = mgp, mar = mar)
-      ylab <- resizableLabel(item = 'p', axis = 'y')
-      xlab <- switch(input$profile1var,
-                     'temperature' = resizableLabel('T', axis = 'x'),
-                     'salinity' = resizableLabel('S', axis = 'x'),
-                     'conductivity' = resizableLabel('conductivity S/m', axis = 'x'),
-                     'sigmaTheta' = resizableLabel('sigmaTheta', axis = 'x'),
-                     'chlorophyll' = 'Chlorophyll',
-                     'cdom' = 'CDOM',
-                     'backscatter' = 'Backscatter',
-                     'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
-                     'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
-      ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile1var]])), na.rm=TRUE)
-      xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
-
-      {if(length(dnctd) == 0 & length(upctd) != 0){
-        dpress <- upctd[[1]][['pressure']]
-        var <- upctd[[1]][[input$profile1var]]
-      }
-        else if (length(dnctd) != 0 & length(upctd) == 0){
-          dpress <- dnctd[[1]][['pressure']]
-          var <- dnctd[[1]][[input$profile1var]]
-        }
-        else if (length(dnctd) != 0 & length(upctd) != 0){
-          dpress <- dnctd[[1]][['pressure']]
-          var <- dnctd[[1]][[input$profile1var]]
-        }
-        else {
-          dpress <- 1:10
-          var <- 1:10
-          xlim <- range(var)
-          ylim <- range(dpress)
-        }
-      }
-      plot(var, dpress,
-           xlab = '',
-           ylab = ylab,
-           type = 'b',
-           xaxs = 'r',
-           yaxs = 'r',
-           xlim = xlim,
-           ylim = ylim,
-           axes = FALSE,
-           col = 'white')
-      if(length(dnctd) == 0 & length(upctd) == 0){
-        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
-      }
-      axis(3)
-      mtext(xlab, side = 3, line = axisNameLoc)
-      axis(2)
-      box()
-      grid()
-      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
-      if(state$dnp1 == TRUE & length(dnctd) != 0){
-        dnctdp <- dnctd[okprofiles]
-        for(i in 1:length(dnctdp)){
-          lines(dnctdp[[i]][[input$profile1var]], dnctdp[[i]][['pressure']],
-                type = 'b')
-        }
-      }
-      if(state$upp1 == TRUE & length(upctd) != 0){
-        upctdp <- upctd[okprofiles]
-        for(i in 1:length(upctdp)){
-          lines(upctdp[[i]][[input$profile1var]], upctdp[[i]][['pressure']],
-                type = 'b', col = 'red')
-        }
-      }
-    })
-
-    output$profile2 <- renderPlot({
-      # nearly identical code to profile1
-      # but takes the chosen variable
-      # will also change ylim based on brush
-      # from profile1
-      mgp <- getOption('oceMgp')
-      mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
-      axisNameLoc <- mgp[1]
-      par(mgp = mgp, mar = mar)
-      ylab <- resizableLabel(item = 'p', axis = 'y')
-      xlab <- switch(input$profile2var,
-                     'temperature' = resizableLabel('T', axis = 'x'),
-                     'salinity' = resizableLabel('S', axis = 'x'),
-                     'conductivity' = resizableLabel('conductivity S/m', axis = 'x'),
-                     'sigmaTheta' = resizableLabel('sigmaTheta', axis = 'x'),
-                     'chlorophyll' = 'Chlorophyll',
-                     'cdom' = 'CDOM',
-                     'backscatter' = 'Backscatter',
-                     'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
-                     'oxygenSaturation' = 'Oxygen Saturation [%]')
-      ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
-      ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
-      xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile2var]])), na.rm=TRUE)
-      #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
-
-      {if(length(dnctd) == 0 & length(upctd) != 0){
-        dpress <- upctd[[1]][['pressure']]
-        var <- upctd[[1]][[input$profile2var]]
-      }
-        else if (length(dnctd) != 0 & length(upctd) == 0){
-          dpress <- dnctd[[1]][['pressure']]
-          var <- dnctd[[1]][[input$profile2var]]
-        }
-        else if (length(dnctd) != 0 & length(upctd) != 0){
-          dpress <- dnctd[[1]][['pressure']]
-          var <- dnctd[[1]][[input$profile1var]]
-        }
-        else {
-          dpress <- 1:10
-          var <- 1:10
-          xlim <- range(var)
-          ylim <- range(dpress)
-        }
-      }
-      plot(var, dpress,
-           xlab = '',
-           ylab = ylab,
-           type = 'b',
-           xaxs = 'r',
-           yaxs = 'r',
-           xlim = xlim,
-           ylim = ylim,
-           axes = FALSE,
-           col = 'white')
-      if(length(dnctd) == 0 & length(upctd) == 0){
-        text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
-      }
-      axis(3)
-      mtext(xlab, side = 3, line = axisNameLoc)
-      axis(2)
-      box()
-      grid()
-      okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
-      if(state$dnp1 == TRUE & length(dnctd) != 0){
-        dnctdp <- dnctd[okprofiles]
-        for(i in 1:length(dnctdp)){
-          lines(dnctdp[[i]][[input$profile2var]], dnctdp[[i]][['pressure']],
-                type = 'b')
-        }
-      }
-      if(state$upp1 == TRUE & length(upctd) != 0){
-        upctdp <- upctd[okprofiles]
-        for(i in 1:length(upctdp)){
-          lines(upctdp[[i]][[input$profile2var]], upctdp[[i]][['pressure']],
-                type = 'b', col = 'red')
-        }
-      }
-    })
+    # output$profile1 <- renderPlot({
+    #   # can't use oce plotProfile due to its restrictions on
+    #   # providing limits for variables, i.e, cannot supply
+    #   # xlim and Tlim when the xtype is temperature
+    #   # not a problem though when xtype is not one of the
+    #   # default variables make plot look like plotProfile
+    # 
+    #   # use same margins, etc as plotProfile
+    #   mgp <- getOption('oceMgp')
+    #   mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
+    #   axisNameLoc <- mgp[1]
+    #   par(mgp = mgp, mar = mar)
+    #   ylab <- resizableLabel(item = 'p', axis = 'y')
+    #   xlab <- switch(input$profile1var,
+    #                  'temperature' = resizableLabel('T', axis = 'x'),
+    #                  'salinity' = resizableLabel('S', axis = 'x'),
+    #                  'conductivity' = resizableLabel('conductivity S/m', axis = 'x'),
+    #                  'sigmaTheta' = resizableLabel('sigmaTheta', axis = 'x'),
+    #                  'chlorophyll' = 'Chlorophyll',
+    #                  'cdom' = 'CDOM',
+    #                  'backscatter' = 'Backscatter',
+    #                  'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
+    #                  'oxygenSaturation' = 'Oxygen Saturation [%]')
+    #   ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
+    #   ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
+    #   xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile1var]])), na.rm=TRUE)
+    #   xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
+    # 
+    #   {if(length(dnctd) == 0 & length(upctd) != 0){
+    #     dpress <- upctd[[1]][['pressure']]
+    #     var <- upctd[[1]][[input$profile1var]]
+    #   }
+    #     else if (length(dnctd) != 0 & length(upctd) == 0){
+    #       dpress <- dnctd[[1]][['pressure']]
+    #       var <- dnctd[[1]][[input$profile1var]]
+    #     }
+    #     else if (length(dnctd) != 0 & length(upctd) != 0){
+    #       dpress <- dnctd[[1]][['pressure']]
+    #       var <- dnctd[[1]][[input$profile1var]]
+    #     }
+    #     else {
+    #       dpress <- 1:10
+    #       var <- 1:10
+    #       xlim <- range(var)
+    #       ylim <- range(dpress)
+    #     }
+    #   }
+    #   plot(var, dpress,
+    #        xlab = '',
+    #        ylab = ylab,
+    #        type = 'b',
+    #        xaxs = 'r',
+    #        yaxs = 'r',
+    #        xlim = xlim,
+    #        ylim = ylim,
+    #        axes = FALSE,
+    #        col = 'white')
+    #   if(length(dnctd) == 0 & length(upctd) == 0){
+    #     text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+    #   }
+    #   axis(3)
+    #   mtext(xlab, side = 3, line = axisNameLoc)
+    #   axis(2)
+    #   box()
+    #   grid()
+    #   okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
+    #   if(state$dnp1 == TRUE & length(dnctd) != 0){
+    #     dnctdp <- dnctd[okprofiles]
+    #     for(i in 1:length(dnctdp)){
+    #       lines(dnctdp[[i]][[input$profile1var]], dnctdp[[i]][['pressure']],
+    #             type = 'b')
+    #     }
+    #   }
+    #   if(state$upp1 == TRUE & length(upctd) != 0){
+    #     upctdp <- upctd[okprofiles]
+    #     for(i in 1:length(upctdp)){
+    #       lines(upctdp[[i]][[input$profile1var]], upctdp[[i]][['pressure']],
+    #             type = 'b', col = 'red')
+    #     }
+    #   }
+    # })
+    # 
+    # output$profile2 <- renderPlot({
+    #   # nearly identical code to profile1
+    #   # but takes the chosen variable
+    #   # will also change ylim based on brush
+    #   # from profile1
+    #   mgp <- getOption('oceMgp')
+    #   mar <- c(1, mgp[1]+1.5, mgp[1]+1.5, mgp[1])
+    #   axisNameLoc <- mgp[1]
+    #   par(mgp = mgp, mar = mar)
+    #   ylab <- resizableLabel(item = 'p', axis = 'y')
+    #   xlab <- switch(input$profile2var,
+    #                  'temperature' = resizableLabel('T', axis = 'x'),
+    #                  'salinity' = resizableLabel('S', axis = 'x'),
+    #                  'conductivity' = resizableLabel('conductivity S/m', axis = 'x'),
+    #                  'sigmaTheta' = resizableLabel('sigmaTheta', axis = 'x'),
+    #                  'chlorophyll' = 'Chlorophyll',
+    #                  'cdom' = 'CDOM',
+    #                  'backscatter' = 'Backscatter',
+    #                  'oxygenConcentration' = resizableLabel('oxygen mL/L', axis = 'y'),
+    #                  'oxygenSaturation' = 'Oxygen Saturation [%]')
+    #   ylim <- rev(range(unlist(lapply(c(dnctd,upctd), function(k) k[['pressure']]))))
+    #   ylim <- if(is.null(state$ylimp1)) ylim else state$ylimp1
+    #   xlim <- range(unlist(lapply(c(dnctd,upctd), function(k) k[[input$profile2var]])), na.rm=TRUE)
+    #   #xlim <- if(is.null(state$xlimp1)) xlim else state$xlimp1
+    # 
+    #   {if(length(dnctd) == 0 & length(upctd) != 0){
+    #     dpress <- upctd[[1]][['pressure']]
+    #     var <- upctd[[1]][[input$profile2var]]
+    #   }
+    #     else if (length(dnctd) != 0 & length(upctd) == 0){
+    #       dpress <- dnctd[[1]][['pressure']]
+    #       var <- dnctd[[1]][[input$profile2var]]
+    #     }
+    #     else if (length(dnctd) != 0 & length(upctd) != 0){
+    #       dpress <- dnctd[[1]][['pressure']]
+    #       var <- dnctd[[1]][[input$profile1var]]
+    #     }
+    #     else {
+    #       dpress <- 1:10
+    #       var <- 1:10
+    #       xlim <- range(var)
+    #       ylim <- range(dpress)
+    #     }
+    #   }
+    #   plot(var, dpress,
+    #        xlab = '',
+    #        ylab = ylab,
+    #        type = 'b',
+    #        xaxs = 'r',
+    #        yaxs = 'r',
+    #        xlim = xlim,
+    #        ylim = ylim,
+    #        axes = FALSE,
+    #        col = 'white')
+    #   if(length(dnctd) == 0 & length(upctd) == 0){
+    #     text(x = 5, y = 5, labels = 'No downcasts or upcasts detected')
+    #   }
+    #   axis(3)
+    #   mtext(xlab, side = 3, line = axisNameLoc)
+    #   axis(2)
+    #   box()
+    #   grid()
+    #   okprofiles <- profiles >= as.numeric(input$profileRng1p1) & profiles <= as.numeric(input$profileRng2p1)
+    #   if(state$dnp1 == TRUE & length(dnctd) != 0){
+    #     dnctdp <- dnctd[okprofiles]
+    #     for(i in 1:length(dnctdp)){
+    #       lines(dnctdp[[i]][[input$profile2var]], dnctdp[[i]][['pressure']],
+    #             type = 'b')
+    #     }
+    #   }
+    #   if(state$upp1 == TRUE & length(upctd) != 0){
+    #     upctdp <- upctd[okprofiles]
+    #     for(i in 1:length(upctdp)){
+    #       lines(upctdp[[i]][[input$profile2var]], upctdp[[i]][['pressure']],
+    #             type = 'b', col = 'red')
+    #     }
+    #   }
+    # })
 
     observeEvent(input$dncstp1,{
       state$dnp1 <- input$dncstp1
@@ -1005,30 +1006,30 @@ server <- function(input, output) {
       state$xlim <- range(glider$time,na.rm = TRUE)
     })
 
-    # profile1 plot
-    observeEvent(input$last10, {
-      state$prange <- c(ifelse(length(profiles) <= 10, profiles[1],
-                               profiles[length(profiles) - 10]),
-                        tail(profiles, 1))
-    })
-    observeEvent(input$resetlast10, {
-        state$prange <- NULL
-    })
-    observeEvent(input$profile1brush,{
-      state$xlimp1 <- c(input$profile1brush$xmin, input$profile1brush$xmax)
-      state$ylimp1 <- c(input$profile1brush$ymax, input$profile1brush$ymin)
-    })
-    # reset profile plots
-    observeEvent(input$resetp1,{
-      state$ylimp1 <- NULL
-      state$xlimp1 <- NULL
-      #state$ylimp1 <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
-      #state$xlimp1 <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
-    })
-    observeEvent(input$plot_click, {
-      state$ylimp1 <- NULL
-      state$xlimp1 <- NULL
-    })
+    # # profile1 plot
+    # observeEvent(input$last10, {
+    #   state$prange <- c(ifelse(length(profiles) <= 10, profiles[1],
+    #                            profiles[length(profiles) - 10]),
+    #                     tail(profiles, 1))
+    # })
+    # observeEvent(input$resetlast10, {
+    #     state$prange <- NULL
+    # })
+    # observeEvent(input$profile1brush,{
+    #   state$xlimp1 <- c(input$profile1brush$xmin, input$profile1brush$xmax)
+    #   state$ylimp1 <- c(input$profile1brush$ymax, input$profile1brush$ymin)
+    # })
+    # # reset profile plots
+    # observeEvent(input$resetp1,{
+    #   state$ylimp1 <- NULL
+    #   state$xlimp1 <- NULL
+    #   #state$ylimp1 <- rev(range(unlist(lapply(dnctd, function(k) k[['pressure']]))))
+    #   #state$xlimp1 <- range(unlist(lapply(dnctd, function(k) k[[input$profile1var]])), na.rm=TRUE)
+    # })
+    # observeEvent(input$plot_click, {
+    #   state$ylimp1 <- NULL
+    #   state$xlimp1 <- NULL
+    # })
 
   }) #closes download observeEvent
 

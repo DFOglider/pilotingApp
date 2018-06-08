@@ -6,7 +6,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
                sep = '/')
   #load rda of all data and get list of new nav files to read in
   #files <- NA
-  {if('data.rda' %in% list.files(path = dir)){
+  {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     # assign old NAV, PLD and profiles
     load(paste0(dir,'data.rda'))
     if(exists('NAV') & exists('PLD')){ #for previously saved rda files
@@ -114,7 +114,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   ### READ PLD FILES
   
   # data.rda already loaded, so look for new science files
-  {if('data.rda' %in% list.files(path = dir)){
+  {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     scifilesall <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
     oknewfiles <- scifilesall %in% scifilesold & !grepl(pattern = '*Copy.gz', x = scifilesall)
     #filesci <- paste(dir, as.list(scifilesall[oknewfiles]), sep = '')
@@ -285,121 +285,121 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   # find profiles
   # attempt to weed out simulation missions
   
-  dnctd <- upctd <- NA
-  nPress <- length(which(PLD$Press < 1))
-  if((nPress / length(PLD$Press)) < 0.6){ 
-  # profile indicies
-  up <- unique(PLD$profileNumSci)
-  dnupidx <- rep(NA, length = length(PLD$profileNumSci))
-  for (i in 2:length(up)){ # skip the first profile (usually just a test anyway)
-    ok <- which(PLD$profileNumSci == up[i])
-    proind <- PLD$profileNumSci[ok]
-    # get profile indicies
-    # integer means part of profile
-    # non-integer associated with other portion of profile
-    if (length(proind) > 10) {
-      idx <- findProfilesSOCIB(time = PLD$timesci[ok], pressure = PLD$Press[ok],
-                               stall_length = 12)
-      # find integers
-      idxok <- idx == as.integer(idx)
-      idxint <- (idx-1)/2 
-      idxint[!idxok] <- NA
-      dnupidx[ok] <- proind + idxint
-    }
-  }
-  # integer is downcast
-  # non integer is upcast
-  PLD$ProfileIndex <- dnupidx
+  # dnctd <- upctd <- NA
+  # nPress <- length(which(PLD$Press < 1))
+  # if((nPress / length(PLD$Press)) < 0.6){ 
+  # # profile indicies
+  # up <- unique(PLD$profileNumSci)
+  # dnupidx <- rep(NA, length = length(PLD$profileNumSci))
+  # for (i in 2:length(up)){ # skip the first profile (usually just a test anyway)
+  #   ok <- which(PLD$profileNumSci == up[i])
+  #   proind <- PLD$profileNumSci[ok]
+  #   # get profile indicies
+  #   # integer means part of profile
+  #   # non-integer associated with other portion of profile
+  #   if (length(proind) > 10) {
+  #     idx <- findProfilesSOCIB(time = PLD$timesci[ok], pressure = PLD$Press[ok],
+  #                              stall_length = 12)
+  #     # find integers
+  #     idxok <- idx == as.integer(idx)
+  #     idxint <- (idx-1)/2 
+  #     idxint[!idxok] <- NA
+  #     dnupidx[ok] <- proind + idxint
+  #   }
+  # }
+  # # integer is downcast
+  # # non integer is upcast
+  # PLD$ProfileIndex <- dnupidx
+  # 
+  # # get downcasts and upcasts
+  # # find unique 
+  # upi <- unique(PLD$ProfileIndex[!is.na(PLD$ProfileIndex)])
+  # 
+  # udn <- upi == as.integer(upi)
+  # uup <- upi != as.integer(upi)
+  # 
+  # dnidx <- upi[udn]
+  # upidx <- upi[uup]
+  # 
+  # dnctd <- vector(mode = 'list')
+  # if(length(dnidx) != 0){
+  #   for (i in 1:length(dnidx)){
+  #     ok <- which(PLD$ProfileIndex == dnidx[i])
+  #     dnctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
+  #                          temperature = PLD$Temp[ok],
+  #                          pressure = PLD$Press[ok],
+  #                          conductivity = PLD$Conduc[ok],
+  #                          time = PLD$timesci[ok],
+  #                          longitude = PLD$Lon[ok],
+  #                          latitude = PLD$Lat[ok],
+  #                          station = dnidx[i])
+  #     # add other variables
+  #     # oxygen concentration
+  #     dnctd[[i]] <- oceSetData(dnctd[[i]], 
+  #                              name = 'oxygenConcentration',
+  #                              value = PLD$OxyConc[ok],
+  #                              unit = expression('ml/l'))
+  #     # oxygen saturation
+  #     dnctd[[i]] <- oceSetData(dnctd[[i]],
+  #                              name = 'oxygenSaturation',
+  #                              value = PLD$OxySat[ok],
+  #                              unit = expression('%'))
+  #     # chlorophyll
+  #     dnctd[[i]] <- oceSetData(dnctd[[i]],
+  #                              name = 'chlorophyll',
+  #                              value = PLD$CHL_scaled[ok])
+  #     # cdom  
+  #     dnctd[[i]] <- oceSetData(dnctd[[i]],
+  #                              name = 'cdom',
+  #                              value = PLD$CDOM_scaled[ok])
+  #     # backscatter
+  #     dnctd[[i]] <- oceSetData(dnctd[[i]],
+  #                              name = 'backscatter',
+  #                              value = PLD$BB_scaled[ok])
+  #   }
+  # }
   
-  # get downcasts and upcasts
-  # find unique 
-  upi <- unique(PLD$ProfileIndex[!is.na(PLD$ProfileIndex)])
-  
-  udn <- upi == as.integer(upi)
-  uup <- upi != as.integer(upi)
-  
-  dnidx <- upi[udn]
-  upidx <- upi[uup]
-  
-  dnctd <- vector(mode = 'list')
-  if(length(dnidx) != 0){
-    for (i in 1:length(dnidx)){
-      ok <- which(PLD$ProfileIndex == dnidx[i])
-      dnctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
-                           temperature = PLD$Temp[ok],
-                           pressure = PLD$Press[ok],
-                           conductivity = PLD$Conduc[ok],
-                           time = PLD$timesci[ok],
-                           longitude = PLD$Lon[ok],
-                           latitude = PLD$Lat[ok],
-                           station = dnidx[i])
-      # add other variables
-      # oxygen concentration
-      dnctd[[i]] <- oceSetData(dnctd[[i]], 
-                               name = 'oxygenConcentration',
-                               value = PLD$OxyConc[ok],
-                               unit = expression('ml/l'))
-      # oxygen saturation
-      dnctd[[i]] <- oceSetData(dnctd[[i]],
-                               name = 'oxygenSaturation',
-                               value = PLD$OxySat[ok],
-                               unit = expression('%'))
-      # chlorophyll
-      dnctd[[i]] <- oceSetData(dnctd[[i]],
-                               name = 'chlorophyll',
-                               value = PLD$CHL_scaled[ok])
-      # cdom  
-      dnctd[[i]] <- oceSetData(dnctd[[i]],
-                               name = 'cdom',
-                               value = PLD$CDOM_scaled[ok])
-      # backscatter
-      dnctd[[i]] <- oceSetData(dnctd[[i]],
-                               name = 'backscatter',
-                               value = PLD$BB_scaled[ok])
-    }
-  }
-  
-  upctd <- vector(mode = 'list')
-  if(length(upidx) != 0){
-    for (i in 1:length(upidx)){
-      ok <- which(PLD$ProfileIndex == upidx[i])
-      upctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
-                           temperature = PLD$Temp[ok],
-                           pressure = PLD$Press[ok],
-                           conductivity = PLD$Conduc[ok],
-                           time = PLD$timesci[ok],
-                           longitude = PLD$Lon[ok],
-                           latitude = PLD$Lat[ok],
-                           station = upidx[i])
-      # add other variables
-      # oxygen concentration
-      upctd[[i]] <- oceSetData(upctd[[i]], 
-                             name = 'oxygenConcentration',
-                             value = PLD$OxyConc[ok],
-                             unit = expression('ml/l'))
-      # oxygen saturation
-      upctd[[i]] <- oceSetData(upctd[[i]],
-                               name = 'oxygenSaturation',
-                               value = PLD$OxySat[ok],
-                               unit = expression('%'))
-      # chlorophyll
-      upctd[[i]] <- oceSetData(upctd[[i]],
-                               name = 'chlorophyll',
-                               value = PLD$CHL_scaled[ok])
-      # cdom
-      upctd[[i]] <- oceSetData(upctd[[i]],
-                               name = 'cdom',
-                               value = PLD$CDOM_scaled[ok])
-      # backscatter
-      upctd[[i]] <- oceSetData(upctd[[i]],
-                               name = 'backscatter',
-                               value = PLD$BB_scaled[ok])
-      }
-  } #closes pressure greater than zero criterion
-  } 
+  # upctd <- vector(mode = 'list')
+  # if(length(upidx) != 0){
+  #   for (i in 1:length(upidx)){
+  #     ok <- which(PLD$ProfileIndex == upidx[i])
+  #     upctd[[i]] <- as.ctd(salinity = PLD$Sal[ok],
+  #                          temperature = PLD$Temp[ok],
+  #                          pressure = PLD$Press[ok],
+  #                          conductivity = PLD$Conduc[ok],
+  #                          time = PLD$timesci[ok],
+  #                          longitude = PLD$Lon[ok],
+  #                          latitude = PLD$Lat[ok],
+  #                          station = upidx[i])
+  #     # add other variables
+  #     # oxygen concentration
+  #     upctd[[i]] <- oceSetData(upctd[[i]], 
+  #                            name = 'oxygenConcentration',
+  #                            value = PLD$OxyConc[ok],
+  #                            unit = expression('ml/l'))
+  #     # oxygen saturation
+  #     upctd[[i]] <- oceSetData(upctd[[i]],
+  #                              name = 'oxygenSaturation',
+  #                              value = PLD$OxySat[ok],
+  #                              unit = expression('%'))
+  #     # chlorophyll
+  #     upctd[[i]] <- oceSetData(upctd[[i]],
+  #                              name = 'chlorophyll',
+  #                              value = PLD$CHL_scaled[ok])
+  #     # cdom
+  #     upctd[[i]] <- oceSetData(upctd[[i]],
+  #                              name = 'cdom',
+  #                              value = PLD$CDOM_scaled[ok])
+  #     # backscatter
+  #     upctd[[i]] <- oceSetData(upctd[[i]],
+  #                              name = 'backscatter',
+  #                              value = PLD$BB_scaled[ok])
+  #     }
+  # } #closes pressure greater than zero criterion
+  #} 
   #closes if there are new files
   }
-  {if('data.rda' %in% list.files(path = dir)){
+  {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     {if(exists('files')){
       navfilesold <- navfilesall
       NAV <- rbind(NAVold, NAV)}
@@ -414,12 +414,13 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     {if(exists('filesci')){
       scifilesold <- scifilesall
       PLD <- rbind(PLDold, PLD)
-      dnctd <- c(dnctdold, dnctd)
-      upctd <- c(upctdold, upctd)}
+      #dnctd <- c(dnctdold, dnctd)
+      #upctd <- c(upctdold, upctd)
+      }
       else{ # no new science files
         PLD <- PLDold
-        dnctd <- dnctdold
-        upctd <- upctdold
+        #dnctd <- dnctdold
+        #upctd <- upctdold
       }
       bad <- is.na(PLD$timesci)
       PLD <- PLD[!bad,]
@@ -432,16 +433,16 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   }
   newnav <- exists('files')
   newsci <- exists('filesci')
-  if(newnav == TRUE | newsci == TRUE & saveRda == TRUE) { #save new rda only if there are new files
+  if((newnav == TRUE | newsci == TRUE) & saveRda == TRUE) { #save new rda only if there are new files
     PLDold <- PLD
     NAVold <- NAV
-    dnctdold <- dnctd
-    upctdold <- upctd
+    #dnctdold <- dnctd
+    #upctdold <- upctd
     save(PLDold, NAVold, 
-         dnctdold, upctdold,
+         #dnctdold, upctdold,
          navfilesold, scifilesold, 
          file = paste(dir, 'data.rda', sep=""))
   }
-  invisible(list(PLD = PLD, NAV = NAV, dnctd = dnctd, upctd = upctd))
+  invisible(list(PLD = PLD, NAV = NAV))
+                 #, dnctd = dnctd, upctd = upctd))
   }
-
