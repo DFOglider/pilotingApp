@@ -1,4 +1,4 @@
-all: 01.out
+all: 01.out 02.out 03.out
 
 %.out: %.R
 	R --no-save < $< >$@
