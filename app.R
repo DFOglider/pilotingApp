@@ -721,9 +721,12 @@ server <- function(input, output) {
     map_track <- "Glider Track"
     map_lastlocation <- "Last received location"
     map_kml <- "Positions from KML"
-    okloc <- PLD$Lat > 0
-    glon <- PLD$Lon[okloc]
-    glat <- PLD$Lat[okloc]
+    ## okloc <- PLD$Lat > 0
+    ## glon <- PLD$Lon[okloc]
+    ## glat <- PLD$Lat[okloc]
+    okloc <- glider$Lat > 0
+    glon <- glider$Lon[okloc]
+    glat <- glider$Lat[okloc]
 
 
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
@@ -775,9 +778,9 @@ server <- function(input, output) {
                          radius = 4, fillOpacity = .2, stroke = F,
                          popup = paste(sep = "<br/>",
                                        "Glider position",
-                                       as.character(PLD$timesci[okloc]),
+                                       as.character(glider$time[okloc]),
                                        paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
-                         label = paste0('Glider position: ', as.character(PLD$timesci[okloc])),
+                         label = paste0('Glider position: ', as.character(glider$time[okloc])),
                          group = map_allposition)%>%
         # positions from kml
         addCircleMarkers(lng = kmlLon, lat = kmlLat,
@@ -796,7 +799,7 @@ server <- function(input, output) {
                                        "Lastest location received from nav file",
                                        as.character(PLD$timesci[okloc][length(glon)]),
                                        paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
-                         label = paste0("Last location received from nav file:", as.character(PLD$timesci[okloc][length(glon)])),
+                         label = paste0("Last location received from nav file:", as.character(glider$time[okloc][length(glon)])),
                          color = 'green',
                          group = map_lastlocation) %>%
         # latest position from kml

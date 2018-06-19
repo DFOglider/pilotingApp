@@ -4,7 +4,22 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
                mission,
                '',
                sep = '/')
-  #load rda of all data and get list of new nav files to read in
+
+
+  # convert lat long to decimal
+  conv <- function(x) {
+    res <- rep(NA, length(x))
+    zeros <- x == "0"
+    nas <- is.na(x)
+    good <- !(zeros | nas)
+    res[good] <- ifelse(substr(x[good], 1, 1) == "-", -1, 1)*
+      ((abs(as.numeric(x[good])/100) - floor(abs(as.numeric(x[good])/100)))*100/60 
+       + floor(abs(as.numeric(x[good])/100)))
+    res[zeros] <- 0
+    return(res)
+  }
+  
+  ##load rda of all data and get list of new nav files to read in
   #files <- NA
   {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     # assign old NAV, PLD and profiles
@@ -102,7 +117,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     AngCmd=unlist(lapply(data_all, function(k) k$AngCmd)),
     AngPos=unlist(lapply(data_all, function(k) k$AngPos)),
     BatterieVolt=unlist(lapply(data_all, function(k) k$Voltage)),
-    alt=unlist(lapply(data_all, function(k) k$Altitude))
+    alt=unlist(lapply(data_all, function(k) k$Altitude)),
+    Lat=conv(unlist(lapply(data_all, function(k) k$Lat))),
+    Lon=conv(unlist(lapply(data_all, function(k) k$Lon)))
   )
     bad <- is.na(NAV$VertSpeed)
     NAV <- NAV[!bad,]  
@@ -165,18 +182,6 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   timesci[timesci < as.POSIXct('2010-01-01')] <- NA
   
   #calculate distance traveled and glider speed
-  # convert lat long to decimal
-  conv <- function(x) {
-    res <- rep(NA, length(x))
-    zeros <- x == "0"
-    nas <- is.na(x)
-    good <- !(zeros | nas)
-    res[good] <- ifelse(substr(x[good], 1, 1) == "-", -1, 1)*
-      ((abs(as.numeric(x[good])/100) - floor(abs(as.numeric(x[good])/100)))*100/60 
-       + floor(abs(as.numeric(x[good])/100)))
-    res[zeros] <- 0
-    return(res)
-  }
   LonT <- unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE))
   Lond <- conv(LonT)
   LatT <- unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE))
