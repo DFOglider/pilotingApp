@@ -126,7 +126,47 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   
   }
   
-
+  #############################
+  
+  #calculate distance traveled and glider speed
+  # Identify each inflacting down (Navstate=110) time and position for calculation
+  index110 <- which(NAV$NavState %in% 110)
+  NavTime110t <- NAV$time[index110]
+  NavTime110 <- NavTime110t[!is.na(NavTime110t)]
+  
+  dist <- distGeo(matrix(c(NAV$Lon[index110], NAV$Lat[index110]),nrow=length(NavTime110),ncol=2))
+  distsum<- rep(NA, length(dist))
+  speed<- rep(NA, length(dist))
+  maxdist <- ifelse(exists('NAVold'), max(NAVold$distkm, na.rm = TRUE), 0)
+  for (j in c(1:length(dist))){
+    distsum[j] <- sum(dist[1:j])/1000 + maxdist
+    speed[j] <- dist[j]/as.numeric(NavTime110[j+1]-NavTime110[j],units='secs')
+  }
+  
+  timedist <- NavTime110[2:length(NavTime110)]
+  speed_goodi <- which(speed!=0)
+  speed_good <- speed[speed_goodi]
+  timespeed <- timedist[speed_goodi]
+  
+  indexspeed <- rep(NA, length(timespeed))
+  indexdist <- rep(NA, length(timedist))
+  for (j in c(1:length(timespeed))){
+    indexspeed[j] <- which.min(abs(NAV$time - timespeed[j]))
+  }
+  for (j in c(1:length(timedist))){
+    indexdist[j] <- which.min(abs(NAV$time - timedist[j]))
+  }
+  
+  
+  # put 2 new variables in glider data frame
+  NAV$speedms <- rep(NA, length(NAV$time))
+  NAV$distkm <-  rep(NA, length(NAV$time))
+  NAV$speedms[indexspeed] <- speed_good
+  NAV$distkm[indexdist] <- distsum
+  
+  
+  
+  #############################
   
   ### READ PLD FILES
   
@@ -186,48 +226,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   Lond <- conv(LonT)
   LatT <- unlist(lapply(data_allsci, function(k) k$NAV_LATITUDE))
   Latd <- conv(LatT)
-  # Identify each inflacting down (Navstate=110) time and position for calculation
-  index115 <- which(NAV$NavState %in% 110)
-  NavTime115t <- NAV$time[index115]
-  NavTime115 <- NavTime115t[!is.na(NavTime115t)]
-  
-  index115sci <- rep(NA, length(NavTime115))
-  for (j in c(1:length(NavTime115))){
-    index115sci[j] <- which.min(abs(timesci - NavTime115[j]))
-  }
-  PLDTime115 <- timesci[index115sci]
-  
-  dist <- distGeo(matrix(c(Lond[index115sci], Latd[index115sci]),nrow=length(PLDTime115),ncol=2))
-  distsum<- rep(NA, length(dist))
-  speed<- rep(NA, length(dist))
-  maxdist <- ifelse(exists('NAVold'), max(NAVold$distkm, na.rm = TRUE), 0)
-  for (j in c(1:length(dist))){
-    distsum[j] <- sum(dist[1:j])/1000 + maxdist
-    speed[j] <- dist[j]/as.numeric(PLDTime115[j+1]-PLDTime115[j],units='secs')
-  }
-  timedist <- PLDTime115[2:length(PLDTime115)]
-  speed_goodi <- which(speed!=0)
-  speed_good <- speed[speed_goodi]
-  timespeed <- timedist[speed_goodi]
-  #put speed and dist back on NAV$time ref
-  indexspeed <- rep(NA, length(timespeed))
-  indexdist <- rep(NA, length(timedist))
-  for (j in c(1:length(timespeed))){
-    indexspeed[j] <- which.min(abs(NAV$time - timespeed[j]))
-  }
-  for (j in c(1:length(timedist))){
-    indexdist[j] <- which.min(abs(NAV$time - timedist[j]))
-  }
-  ####
-  ##
-  ##
-  ###
-  # put 2 new variables in glider data frame
-  NAV$speedms <- rep(NA, length(NAV$time))
-  NAV$distkm <-  rep(NA, length(NAV$time)) 
-  NAV$speedms[indexspeed] <- speed_good
-  NAV$distkm[indexdist] <- distsum
-  
+ 
   # to put everything in a dataframe where all the dive are together
   PLD <- data.frame(
     profileNumSci = profileNumSci,
