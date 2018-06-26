@@ -31,6 +31,10 @@ drlat <- 44.520789
 hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527)
 hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635)
 
+# halifax shipping lane boundaries
+load('shippingBoundaries.rda')
+
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
 
@@ -751,10 +755,38 @@ server <- function(input, output) {
                    primaryAreaUnit = "hectares",
                    secondaryAreaUnit="acres",
                    position = 'bottomleft') %>%
-        #line track
-        addPolylines(lng = glon, lat = glat,
-                     weight = 2,
-                     group = map_track) %>%
+        # shipping lanes
+        addPolylines(lng = d1A$lon, lat = d1A$lat,
+                    col = 'purple',
+                    weight = 3)%>%
+        addPolylines(lng = d1C1B$lon, lat = d1C1B$lat,
+                     col = 'purple',
+                     weight = 3)%>%
+        addPolylines(lng = d1E$lon, lat = d1E$lat,
+                     col = 'purple',
+                     weight = 3)%>%
+        addPolylines(lng = d1F$lon, lat = d1F$lat,
+                     col = 'purple',
+                     weight = 3)%>%
+        # shipping lane zones
+        addPolygons(lng = d1A1Bzone$lon, lat = d1A1Bzone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7)%>%
+        addPolygons(lng = d1B1Czone$lon, lat = d1B1Czone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7)%>%
+        addPolygons(lng = d2C2Dzone$lon, lat = d2C2Dzone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7)%>%
+        addPolygons(lng = d1E1Fzone$lon, lat = d1E1Fzone$lat,
+                    col = 'pink',
+                    fillOpacity = 0.7)%>%
+        addPolygons(lng = d3C3Dzone$lon, lat = d3C3Dzone$lat,
+                    col = 'pink',
+                    fillOpacity = 0.7)%>%
         # deployment/recovery location
         addCircleMarkers(lng = drlon, lat = drlat,
                          radius = 5, fillOpacity = .4, stroke = F,
@@ -773,6 +805,10 @@ server <- function(input, output) {
                                        paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
                         # label = paste0("HL", 1:7))
                           label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
+        #line track
+        addPolylines(lng = glon, lat = glat,
+                     weight = 2,
+                     group = map_track) %>%        
         # glider positions
         addCircleMarkers(lng = glon, lat = glat,
                          radius = 4, fillOpacity = .2, stroke = F,
