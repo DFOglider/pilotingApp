@@ -44,7 +44,7 @@ ui <- fluidPage(
                      choices = gliderdirnames), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
-                      label = 'Download and load data'),
+                      label = 'Load data'),
 
          # conditional panel for plots tab
          conditionalPanel(
