@@ -45,7 +45,7 @@ ui <- fluidPage(
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
                       label = 'Load data'),
-
+         uiOutput(outputId = 'nprofiles'),
          # conditional panel for plots tab
          conditionalPanel(
            condition = "input.tabs == 'Plots'",
@@ -191,7 +191,7 @@ ui <- fluidPage(
 
 
 # Define server
-server <- function(input, output) {
+server <- function(input, output, session) {
   state <- reactiveValues()
 
   # select input for mission based on selected glider
@@ -215,6 +215,15 @@ server <- function(input, output) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
     }
     profileTimes <- numberAsPOSIXct(profileTimes)
+    # Recent 'x' yos widget for mobile viewing
+    output$nprofiles <- renderUI({
+      numericInput(inputId = 'nprofile', 
+                   label = "Show recent 'x' yos",
+                   value = length(profileNumber),
+                   min = 1,
+                   max = length(profileNumber),
+                   step = 1)
+    })
     #dnctd <- data$dnctd
     #upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
@@ -338,7 +347,8 @@ server <- function(input, output) {
         oce.plot.ts(glider$time, glider$depth,
                     type="n",
                     ylim=c(max(glider$altHit,na.rm = TRUE), -5),
-                    xlim=(range(glider$time, na.rm = TRUE)),
+        #            xlim=(range(glider$time, na.rm = TRUE)),
+                    xlim = state$xlim2,
                     ylab='Depth (m)',xlab='Time',
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
@@ -373,7 +383,7 @@ server <- function(input, output) {
           oce.plot.ts(glider$time, glider$depth,
                type = "n",
                ylim = range(glider$alt,na.rm = TRUE),
-               xlim = range(glider$time, na.rm = TRUE),
+               xlim = state$xlim2,
                ylab = 'range (m)',
                xlab = 'Time',
                mar=marcm)
@@ -401,7 +411,7 @@ server <- function(input, output) {
            #par(xaxs='i',yaxs='i')#tight
            oce.plot.ts(glider$time, glider[[input$NavVar]],
            ylim=c(-80,40),
-           xlim=(range(glider$time, na.rm = TRUE)),
+           xlim= state$xlim2,
            xlab='Time',ylab='',type='n',
            mar=marcm)
            polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)
@@ -427,7 +437,7 @@ server <- function(input, output) {
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(-30,30),
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)
@@ -454,7 +464,7 @@ server <- function(input, output) {
          #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(24,30),
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)
@@ -479,7 +489,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim= state$xlim2,
                xlab='Time',ylab='(m/s)',
                mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
@@ -502,7 +512,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim= state$xlim2,
                xlab='Time',ylab='(km)',
                mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
@@ -525,7 +535,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]])+3),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim= state$xlim2,
                xlab='Time',ylab='',type='n',
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
@@ -547,7 +557,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
@@ -570,7 +580,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -593,7 +603,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -616,7 +626,7 @@ server <- function(input, output) {
         #par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim= state$xlim2,
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -639,7 +649,7 @@ server <- function(input, output) {
       #par(xaxs='i',yaxs='i')#tight
       #par(mar = marcm)
       oce.plot.ts(glider$time, glider[[input$NavVar]],
-           xlim=(range(glider$time, na.rm = TRUE)),
+           xlim= state$xlim2,
            xlab='Time',ylab='',type="n",
            mar=marcm)
       lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
@@ -693,7 +703,7 @@ server <- function(input, output) {
         if (is.null(state$xlim)) {
           oce.plot.ts(PLD$timesci, PLD$Depthsci, type='p',
               ylim = rev(range(glider$altHit,na.rm = TRUE)),
-              xlim = (range(glider$time, na.rm = TRUE)),
+              xlim = state$xlim2,
               pch = 20, col = cm$zcol,
               xlab = '', ylab = '', mar=marcm)
 
@@ -996,10 +1006,16 @@ server <- function(input, output) {
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
+    #profile last number of profile selection
+    observeEvent(input$nprofile,{
+      state$xlim2 <- range(profileTimes[(length(profileTimes) - input$nprofile):length(profileTimes)]) + c(0, 2.5*60*60)
+    })
     # reset plots
     # navigation section
     observeEvent(input$resetNav, {
-      state$xlim <- range(glider$time,na.rm = TRUE)
+      #state$xlim <- range(glider$time,na.rm = TRUE)
+      state$xlim <- NULL
+      updateNumericInput(session, inputId = 'nprofile', value = length(profileTimes))
     })
     observeEvent(input$plot_click, {
       state$xlim <- range(glider$time,na.rm = TRUE)
@@ -1007,6 +1023,7 @@ server <- function(input, output) {
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(glider$time,na.rm = TRUE)
+      updateNumericInput(session, inputId = 'nprofile', value = length(profileTimes))
     })
 
     # # profile1 plot
