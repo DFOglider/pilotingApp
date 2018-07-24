@@ -58,7 +58,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     data_all1 <- lapply(as.list(files[first]), read.table, sep=";",header=TRUE)
     data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
     data_all <- c(data_all1,data_all2)
-  } else {
+  } else if (cate==3) {
     first <- which(strl == min(strl), arr.ind = TRUE)
     seco <- which(strl == min(strl)+1, arr.ind = TRUE)
     third <- which(strl == min(strl)+2, arr.ind = TRUE)
@@ -66,6 +66,16 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
     data_all3 <- lapply(as.list(files[third]), read.table, sep=";",header=TRUE)
     data_all <- c(data_all1,data_all2,data_all3)
+  } else {
+    first <- which(strl == min(strl), arr.ind = TRUE)
+    seco <- which(strl == min(strl)+1, arr.ind = TRUE)
+    third <- which(strl == min(strl)+2, arr.ind = TRUE)
+    fourth <- which(strl == min(strl)+3, arr.ind = TRUE)
+    data_all1 <- lapply(as.list(files[first]), read.table, sep=";",header=TRUE)
+    data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
+    data_all3 <- lapply(as.list(files[third]), read.table, sep=";",header=TRUE)
+    data_all4 <- lapply(as.list(files[fourth]), read.table, sep=";",header=TRUE)
+    data_all <- c(data_all1,data_all2,data_all3,data_all4)
   }
   
   #Yo num
@@ -197,7 +207,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     data_all1sci <- lapply(as.list(filesci[firstsci]), read.table, sep=";",header=TRUE)
     data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
     data_allsci <- c(data_all1sci,data_all2sci)
-  } else {
+  } else if (catesci==3){
     firstsci<-which(strlsci == min(strlsci), arr.ind = TRUE)
     secosci<-which(strlsci == min(strlsci)+1, arr.ind = TRUE)
     thirdsci<-which(strlsci == min(strlsci)+2, arr.ind = TRUE)
@@ -205,6 +215,16 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
     data_all3sci <- lapply(as.list(filesci[thirdsci]), read.table, sep=";",header=TRUE)
     data_allsci <- c(data_all1sci,data_all2sci,data_all3sci)
+  } else {
+    firstsci<-which(strlsci == min(strlsci), arr.ind = TRUE)
+    secosci<-which(strlsci == min(strlsci)+1, arr.ind = TRUE)
+    thirdsci<-which(strlsci == min(strlsci)+2, arr.ind = TRUE)
+    fourthsci<-which(strlsci == min(strlsci)+3, arr.ind = TRUE)
+    data_all1sci <- lapply(as.list(filesci[firstsci]), read.table, sep=";",header=TRUE)
+    data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
+    data_all3sci <- lapply(as.list(filesci[thirdsci]), read.table, sep=";",header=TRUE)
+    data_all4sci <- lapply(as.list(filesci[fourthsci]), read.table, sep=";",header=TRUE)
+    data_allsci <- c(data_all1sci,data_all2sci,data_all3sci,data_all4sci)
   }
   
   #sci profile Numbers

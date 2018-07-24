@@ -707,7 +707,7 @@ server <- function(input, output, session) {
         # match top panel, so use range of altHits for ylim
         #                  and nav time for xlim
         if (is.null(state$xlim)) {
-          oce.plot.ts(PLD$timesci, PLD$Depthsci, type='p',
+          oce.plot.ts(PLD$timesci, PLD$Press, type='p',
               ylim = rev(range(glider$altHit,na.rm = TRUE)),
               xlim = state$xlim2,
               pch = 20, col = cm$zcol,
@@ -716,7 +716,7 @@ server <- function(input, output, session) {
         } else {
           okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
           okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
-          oce.plot.ts(PLD$timesci[okylim], PLD$Depthsci[okylim], type='p',
+          oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
                ylim = rev(range(glider$depth[okylimg],na.rm = TRUE)),
                xlim = state$xlim,
                pch = 20, col = cm$zcol[okylim],
