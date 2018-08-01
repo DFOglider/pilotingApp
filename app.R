@@ -20,6 +20,20 @@ source('downloadData.R') # obtain glidernames and missions from ftp and download
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 data('coastlineWorldFine')
 
+# convert lat long to decimal
+# from readSeaExplorerRealTime.R
+conv <- function(x) {
+  res <- rep(NA, length(x))
+  zeros <- x == "0"
+  nas <- is.na(x)
+  good <- !(zeros | nas)
+  res[good] <- ifelse(substr(x[good], 1, 1) == "-", -1, 1)*
+    ((abs(as.numeric(x[good])/100) - floor(abs(as.numeric(x[good])/100)))*100/60 
+     + floor(abs(as.numeric(x[good])/100)))
+  res[zeros] <- 0
+  return(res)
+}
+
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
 
@@ -30,6 +44,13 @@ drlat <- 44.520789
 # halifax line stations
 hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527)
 hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635)
+
+# piloting waypoints
+gllondmm <- c(-6305.5912, -6241.3334, -6153.4760, -6317.2030)
+gllatdmm <- c(4403.3124, 4341.1479, 4258.6090, 4421.3538)
+
+gllon <- conv(gllondmm)
+gllat <- conv(gllatdmm)
 
 # halifax shipping lane boundaries
 load('shippingBoundaries.rda')
@@ -723,11 +744,12 @@ server <- function(input, output) {
     # leaflet map plot
 
     # map groups
-    map_allposition <- "All Positions"
+    map_allposition <- "Glider Positions"
     map_track <- "Glider Track"
-    map_lastlocation <- "Last received location"
-    map_kml <- "Positions from KML"
-    map_track_kml <- "Glider Track KML"
+    #map_lastlocation <- "Last received location"
+    map_kml <- "KML track and positions"
+    map_piloting <- "Piloting waypoints"
+    #map_track_kml <- "Glider Track KML"
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
     ## glat <- PLD$Lat[okloc]
@@ -758,63 +780,9 @@ server <- function(input, output) {
                    primaryAreaUnit = "hectares",
                    secondaryAreaUnit="acres",
                    position = 'bottomleft') %>%
-
-        # shipping lanes
-        addPolylines(lng = d1A$lon, lat = d1A$lat,
-                    col = 'purple',
-                    weight = 3)%>%
-        addPolylines(lng = d1C1B$lon, lat = d1C1B$lat,
-                     col = 'purple',
-                     weight = 3)%>%
-        addPolylines(lng = d1E$lon, lat = d1E$lat,
-                     col = 'purple',
-                     weight = 3)%>%
-        addPolylines(lng = d1F$lon, lat = d1F$lat,
-                     col = 'purple',
-                     weight = 3)%>%
-        # shipping lane zones
-        addPolygons(lng = d1A1Bzone$lon, lat = d1A1Bzone$lat,
-                    col = 'pink',
-                    stroke = FALSE,
-                    fillOpacity = 0.7)%>%
-        addPolygons(lng = d1B1Czone$lon, lat = d1B1Czone$lat,
-                    col = 'pink',
-                    stroke = FALSE,
-                    fillOpacity = 0.7)%>%
-        addPolygons(lng = d2C2Dzone$lon, lat = d2C2Dzone$lat,
-                    col = 'pink',
-                    stroke = FALSE,
-                    fillOpacity = 0.7)%>%
-        addPolygons(lng = d1E1Fzone$lon, lat = d1E1Fzone$lat,
-                    col = 'pink',
-                    fillOpacity = 0.7)%>%
-        addPolygons(lng = d3C3Dzone$lon, lat = d3C3Dzone$lat,
-                    col = 'pink',
-                    fillOpacity = 0.7)%>%
-
-        # deployment/recovery location
-        addCircleMarkers(lng = drlon, lat = drlat,
-                         radius = 5, fillOpacity = .4, stroke = F,
-                         color = 'black',
-                         popup = paste(sep = "<br/>",
-                                       "Deployment/Recovery Location",
-                                       paste0(as.character(round(drlat,4)), ',', as.character(round(drlon,4)))),
-                         label = paste0("Deployment/Recovery Location"))%>%
-        # halifax line
-        addCircleMarkers(lng = hfxlon, lat = hfxlat,
-                         radius = 5, fillOpacity = .4, stroke = F,
-                         color = 'black',
-                         popup = paste(sep = "<br/>",
-                                       #paste0("HL", as.character(1:7)),
-                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"),
-                                       paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
-                        # label = paste0("HL", 1:7))
-                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
-        #line track
-        addPolylines(lng = glon, lat = glat,
-                     weight = 2,
-                     group = map_track) %>%        
-        # glider positions
+        
+        # map_allposition
+          # glider positions
         addCircleMarkers(lng = glon, lat = glat,
                          radius = 6, fillOpacity = .6, stroke = F,
                          popup = paste(sep = "<br/>",
@@ -823,7 +791,13 @@ server <- function(input, output) {
                                        paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
                          label = paste0('Glider position: ', as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC'))),
                          group = map_allposition)%>%
-        # positions from kml
+        # map_track
+          #line track
+        addPolylines(lng = glon, lat = glat,
+                     weight = 2,
+                     group = map_track) %>%
+        #map_kml
+          # positions from kml
         addCircleMarkers(lng = kmlLon, lat = kmlLat,
                          radius = 4, fillOpacity = .4, stroke = F,
                          color = 'red',
@@ -833,22 +807,12 @@ server <- function(input, output) {
                                        paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
                          label = paste0('Glider position kml: ', 1:length(kmlLat)),
                          group = map_kml)%>%
-        #line track for kml
+          # line track for kml
         addPolylines(lng = kmlLon, lat = kmlLat,
                      col = 'red',
                      weight = 2,
-                     group = map_track_kml) %>%
-        # last received / current location
-        addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
-                         radius = 6, fillOpacity = 1, stroke = F,
-                         popup = paste(sep = "<br/>",
-                                       "Lastest location received from nav file",
-                                       as.character(PLD$timesci[okloc][length(glon)]),
-                                       paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
-                         label = paste0("Last location received from nav file:", as.character(glider$time[okloc][length(glon)])),
-                         color = 'green',
-                         group = map_lastlocation) %>%
-        # latest position from kml
+                     group = map_kml) %>%
+          # latest position from kml
         addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)],
                          radius = 6, fillOpacity = 1, stroke = F,
                          color = 'green',
@@ -858,12 +822,96 @@ server <- function(input, output) {
                                        paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
                          label = paste0('Latest glider position from kml: ', length(kmlLat)),
                          group = map_kml)%>%
+        # map_piloting
+          # shipping lanes
+        addPolylines(lng = d1A$lon, lat = d1A$lat,
+                    col = 'purple',
+                    weight = 3,
+                    group = map_piloting)%>%
+        addPolylines(lng = d1C1B$lon, lat = d1C1B$lat,
+                     col = 'purple',
+                     weight = 3,
+                     group = map_piloting)%>%
+        addPolylines(lng = d1E$lon, lat = d1E$lat,
+                     col = 'purple',
+                     weight = 3,
+                     group = map_piloting)%>%
+        addPolylines(lng = d1F$lon, lat = d1F$lat,
+                     col = 'purple',
+                     weight = 3,
+                     group = map_piloting)%>%
+          # shipping lane zones
+        addPolygons(lng = d1A1Bzone$lon, lat = d1A1Bzone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
+        addPolygons(lng = d1B1Czone$lon, lat = d1B1Czone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
+        addPolygons(lng = d2C2Dzone$lon, lat = d2C2Dzone$lat,
+                    col = 'pink',
+                    stroke = FALSE,
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
+        addPolygons(lng = d1E1Fzone$lon, lat = d1E1Fzone$lat,
+                    col = 'pink',
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
+        addPolygons(lng = d3C3Dzone$lon, lat = d3C3Dzone$lat,
+                    col = 'pink',
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
+
+          # deployment/recovery location
+        addCircleMarkers(lng = drlon, lat = drlat,
+                         radius = 7, fillOpacity = .4, stroke = F,
+                         color = 'purple',
+                         popup = paste(sep = "<br/>",
+                                       "Deployment/Recovery Location",
+                                       paste0(as.character(round(drlat,4)), ',', as.character(round(drlon,4)))),
+                         label = paste0("Deployment/Recovery Location"),
+                         group = map_piloting)%>%
+          # piloting waypoints
+        addCircleMarkers(lng = gllon, lat = gllat,
+                         radius = 7, fillOpacity = .4, stroke = F,
+                         color = 'purple',
+                         popup = paste(sep = "<br/>",
+                                       paste0('GL', c(1,2,3,4)),
+                                       paste0(as.character(round(gllat,4)), ',', as.character(round(gllon,3)))),
+                         label = paste0('GL', c(1,2,3,4)),
+                         group = map_piloting) %>%
+        # group-less map items
+          # halifax line
+        addCircleMarkers(lng = hfxlon, lat = hfxlat,
+                         radius = 7, fillOpacity = .4, stroke = F,
+                         color = 'black',
+                         popup = paste(sep = "<br/>",
+                                       #paste0("HL", as.character(1:7)),
+                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"),
+                                       paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
+                        # label = paste0("HL", 1:7))
+                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
+          # last received / current location
+        addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
+                         radius = 6, fillOpacity = 1, stroke = F,
+                         popup = paste(sep = "<br/>",
+                                       "Lastest location received from nav file",
+                                       as.character(profileTimes[length(glon)]),
+                                       paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
+                         label = paste0("Last location received from nav file:", as.character(profileTimes[length(glon)])),
+                         color = 'green') %>%
+                         #group = map_lastlocation) %>%
+
         # layer control legend
         addLayersControl(overlayGroups = c(map_allposition,
                                            map_track,
-                                           map_lastlocation,
+                                           #map_lastlocation,
                                            map_kml,
-                                           map_track_kml),
+                                           map_piloting),
+                                           #map_track_kml),
                          options = layersControlOptions(collapsed = FALSE),
                          position = 'bottomright') %>%
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
