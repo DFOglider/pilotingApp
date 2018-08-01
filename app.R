@@ -756,7 +756,9 @@ server <- function(input, output) {
     okloc <- glider$Lat > 0
     #glon <- unique(glider$Lon[okloc])
     #glat <- unique(glider$Lat[okloc])
-
+    returnIcon <- makeIcon(iconUrl = 'icon1.png',
+                           iconWidth = 20,
+                           iconHeight = 20)
 
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
@@ -780,49 +782,7 @@ server <- function(input, output) {
                    primaryAreaUnit = "hectares",
                    secondaryAreaUnit="acres",
                    position = 'bottomleft') %>%
-        
-        # map_allposition
-          # glider positions
-        addCircleMarkers(lng = glon, lat = glat,
-                         radius = 6, fillOpacity = .6, stroke = F,
-                         popup = paste(sep = "<br/>",
-                                       "Glider position",
-                                       as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC')),
-                                       paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
-                         label = paste0('Glider position: ', as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC'))),
-                         group = map_allposition)%>%
-        # map_track
-          #line track
-        addPolylines(lng = glon, lat = glat,
-                     weight = 2,
-                     group = map_track) %>%
-        #map_kml
-          # positions from kml
-        addCircleMarkers(lng = kmlLon, lat = kmlLat,
-                         radius = 4, fillOpacity = .4, stroke = F,
-                         color = 'red',
-                         popup = paste(sep = "<br/>",
-                                       "Glider position kml",
-                                       #as.character(PLD$timesci[okloc]),
-                                       paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
-                         label = paste0('Glider position kml: ', 1:length(kmlLat)),
-                         group = map_kml)%>%
-          # line track for kml
-        addPolylines(lng = kmlLon, lat = kmlLat,
-                     col = 'red',
-                     weight = 2,
-                     group = map_kml) %>%
-          # latest position from kml
-        addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)],
-                         radius = 6, fillOpacity = 1, stroke = F,
-                         color = 'green',
-                         popup = paste(sep = "<br/>",
-                                       "Latest glider position from kml",
-                                       #as.character(PLD$timesci[okloc]),
-                                       paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
-                         label = paste0('Latest glider position from kml: ', length(kmlLat)),
-                         group = map_kml)%>%
-        # map_piloting
+                # map_piloting
           # shipping lanes
         addPolylines(lng = d1A$lon, lat = d1A$lat,
                     col = 'purple',
@@ -875,19 +835,63 @@ server <- function(input, output) {
                          label = paste0("Deployment/Recovery Location"),
                          group = map_piloting)%>%
           # piloting waypoints
-        addCircleMarkers(lng = gllon, lat = gllat,
-                         radius = 7, fillOpacity = .4, stroke = F,
-                         color = 'purple',
+        addMarkers(lng = gllon, lat = gllat,
+                         #radius = 7, fillOpacity = .4, stroke = F,
+                         #color = 'purple',
+                         icon = returnIcon,
                          popup = paste(sep = "<br/>",
                                        paste0('GL', c(1,2,3,4)),
                                        paste0(as.character(round(gllat,4)), ',', as.character(round(gllon,3)))),
                          label = paste0('GL', c(1,2,3,4)),
                          group = map_piloting) %>%
+        
+        # map_allposition
+          # glider positions
+        addCircleMarkers(lng = glon, lat = glat,
+                         radius = 6, fillOpacity = .6, stroke = F,
+                         popup = paste(sep = "<br/>",
+                                       "Glider position",
+                                       as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC')),
+                                       paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
+                         label = paste0('Glider position: ', as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC'))),
+                         group = map_allposition)%>%
+        # map_track
+          #line track
+        addPolylines(lng = glon, lat = glat,
+                     weight = 2,
+                     group = map_track) %>%
+        #map_kml
+          # positions from kml
+        addCircleMarkers(lng = kmlLon, lat = kmlLat,
+                         radius = 4, fillOpacity = .4, stroke = F,
+                         color = 'red',
+                         popup = paste(sep = "<br/>",
+                                       "Glider position kml",
+                                       #as.character(PLD$timesci[okloc]),
+                                       paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
+                         label = paste0('Glider position kml: ', 1:length(kmlLat)),
+                         group = map_kml)%>%
+          # line track for kml
+        addPolylines(lng = kmlLon, lat = kmlLat,
+                     col = 'red',
+                     weight = 2,
+                     group = map_kml) %>%
+          # latest position from kml
+        addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)],
+                         radius = 6, fillOpacity = 1, stroke = F,
+                         color = 'green',
+                         popup = paste(sep = "<br/>",
+                                       "Latest glider position from kml",
+                                       #as.character(PLD$timesci[okloc]),
+                                       paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
+                         label = paste0('Latest glider position from kml: ', length(kmlLat)),
+                         group = map_kml)%>%
+
         # group-less map items
           # halifax line
         addCircleMarkers(lng = hfxlon, lat = hfxlat,
-                         radius = 7, fillOpacity = .4, stroke = F,
-                         color = 'black',
+                         radius = 7, fillOpacity = 0.5, stroke = F,
+                         color = 'gray48',
                          popup = paste(sep = "<br/>",
                                        #paste0("HL", as.character(1:7)),
                                        c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"),
@@ -912,7 +916,7 @@ server <- function(input, output) {
                                            map_kml,
                                            map_piloting),
                                            #map_track_kml),
-                         options = layersControlOptions(collapsed = FALSE),
+                         options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
