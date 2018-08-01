@@ -744,8 +744,8 @@ server <- function(input, output) {
     # leaflet map plot
 
     # map groups
-    map_allposition <- "Glider Positions"
-    map_track <- "Glider Track"
+    map_allposition <- "Glider positions"
+    map_track <- "Glider track"
     #map_lastlocation <- "Last received location"
     map_kml <- "KML track and positions"
     map_piloting <- "Piloting waypoints"
