@@ -826,9 +826,10 @@ server <- function(input, output) {
                     group = map_piloting)%>%
 
           # deployment/recovery location
-        addCircleMarkers(lng = drlon, lat = drlat,
-                         radius = 7, fillOpacity = .4, stroke = F,
-                         color = 'purple',
+        addMarkers(lng = drlon, lat = drlat,
+                         #radius = 7, fillOpacity = .4, stroke = F,
+                         #color = 'purple',
+                         icon = returnIcon,
                          popup = paste(sep = "<br/>",
                                        "Deployment/Recovery Location",
                                        paste0(as.character(round(drlat,4)), ',', as.character(round(drlon,4)))),
