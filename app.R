@@ -19,7 +19,9 @@ source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrume
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 data('coastlineWorldFine')
-
+returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
+                       iconWidth = 13,
+                       iconHeight = 13)
 # convert lat long to decimal
 # from readSeaExplorerRealTime.R
 conv <- function(x) {
@@ -756,9 +758,7 @@ server <- function(input, output) {
     okloc <- glider$Lat > 0
     #glon <- unique(glider$Lon[okloc])
     #glat <- unique(glider$Lat[okloc])
-    returnIcon <- makeIcon(iconUrl = 'icon1.png',
-                           iconWidth = 20,
-                           iconHeight = 20)
+
 
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
