@@ -731,9 +731,13 @@ server <- function(input, output) {
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
     ## glat <- PLD$Lat[okloc]
-    okloc <- glider$Lat > 0
+    #okloc <- glider$Lat > 0 # commented out 20181015
     #glon <- unique(glider$Lon[okloc])
     #glat <- unique(glider$Lat[okloc])
+    # remove 0,0 location 20181015
+    okloc <- glat > 0
+    glon <- glon[okloc]
+    glat <- glat[okloc]
 
 
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%

@@ -91,6 +91,16 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time <- as.POSIXct(time_tmp,format='%d/%m/%Y %H:%M:%S',tz='UTC')
   time[time < as.POSIXct('2010-01-01')] <- NA
   
+  #remove 2018-07-12 dates after firmware
+  gliderfirmname <- c('SEA024', 'SEA032')
+  gliderfirmmiss <- c(29, 23)
+  missionnum <- strsplit(mission, split = 'M')[[1]][2]
+  for(i in 1:length(gliderfirmname)){
+    if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
+      time[time < as.POSIXct('2018-07-14')] <- NA
+    }
+  }
+  
   # to calculate the vertical speed
   times<-as.integer(time) # in seconds since 1970
   depth<-unlist(lapply(data_all, function(k) k$Depth))
@@ -240,6 +250,12 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time_tmpsci <- unlist(lapply(data_allsci, function(k) k$PLD_REALTIMECLOCK))
   timesci <- as.POSIXct(time_tmpsci,format='%d/%m/%Y %H:%M:%S',tz='UTC')
   timesci[timesci < as.POSIXct('2010-01-01')] <- NA
+  #remove 2018-07-12 dates see lines 94-96 for gliderfirm[name,miss]
+  for(i in 1:length(gliderfirmname)){
+    if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
+      timesci[timesci < as.POSIXct('2018-07-14')] <- NA
+    }
+  }
   
   #calculate distance traveled and glider speed
   LonT <- unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE))
