@@ -45,7 +45,7 @@ ui <- fluidPage(
     column(2, wellPanel(
          selectInput(inputId = 'Glider',
                      label = 'Choose a glider',
-                     choices = gliderdirnames), #gliderdirnames from downloadData.R
+                     choices = gliderdirnamesoffline), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
                       label = 'Download and load data'),
@@ -200,7 +200,7 @@ server <- function(input, output) {
 
   # select input for mission based on selected glider
   output$Missions <- renderUI({
-    missions <- getMissions(glider = input$Glider)
+    missions <- getMissionsOffline(glider = input$Glider)
     selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions,
                 selected=tail(missions, 1))
   })
@@ -209,7 +209,7 @@ server <- function(input, output) {
   # make plots too
   observeEvent(input$download,{
     # download and process data
-    downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    # downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission, saveRda=FALSE)
     PLD <- data$PLD
     glider <- data$NAV

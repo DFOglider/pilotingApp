@@ -23,6 +23,13 @@ gliderdirnames <- strsplit(gliderdirs, "\r*\n")[[1]]
 gdnok <- grepl(pattern = 'SEA0[0-9][0-9]', x = gliderdirnames) #find glider directories
 gliderdirnames <- gliderdirnames[gdnok]
 
+# directories for gliders offline
+gliderdirsoffline <- list.dirs(path = datadir,
+                        full.names = FALSE,
+                        recursive = FALSE)
+gdnook <- nchar(gliderdirsoffline) > 0
+gliderdirnamesoffline <- gliderdirnames[gdnook]
+
 getMissions <- function(glider){
   missiondirs <-  getURL(paste(url, 
                                dirnames, 
@@ -32,6 +39,14 @@ getMissions <- function(glider){
   missiondirnames <- strsplit(missiondirs, "\r*\n")[[1]]
   
   missiondirnames[grepl(pattern = "M[0-9][0-9]", x = missiondirnames)]
+}
+
+getMissionsOffline <- function(glider){
+  missiondirs <- list.dirs(path = paste(datadir,
+                                        glider, sep = '/'),
+                           full.names = FALSE)
+  okdirs <- nchar(missiondirs) > 0
+  missiondirnames <- missiondirs[okdirs]
 }
 
 downloadData <- function(datadir, glider, mission){
