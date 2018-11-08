@@ -28,7 +28,7 @@ gliderdirsoffline <- list.dirs(path = datadir,
                         full.names = FALSE,
                         recursive = FALSE)
 gdnook <- nchar(gliderdirsoffline) > 0
-gliderdirnamesoffline <- gliderdirnames[gdnook]
+gliderdirnamesoffline <- gliderdirsoffline[gdnook]
 
 getMissions <- function(glider){
   missiondirs <-  getURL(paste(url, 
