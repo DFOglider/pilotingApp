@@ -48,7 +48,7 @@ then displays plots of the various fields of interest.
 ## Offline version
 1. Prior to using version offline, follow steps 1-3 indicated in the Standalone section.
 2. Create a directory called `data` in the app directory
-3. Place data recieved inside `data` with directory structure `glider/M[0-9][0-9]`
+3. Place data recieved inside `data` with directory structure `glider/M[0-9][0-9]`, e.g. `SEA022/M34`
 4. Run the app by clicking "Run App" at the top of the code editor in RStudio.
 5. Once the app is running, select the `glider` and `mission` from the pull-down
    menu, and click "Load data" to fetch data placed in the loacal folder on your machine.
