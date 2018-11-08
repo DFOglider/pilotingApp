@@ -7,21 +7,21 @@ datadir <- "./data"
 # url for glider ftp site
 # directory structure as of 2018-03-14: /realData/gliderNames/MissionNumbers/dataFiles
 # e.g /realData/SEA019/M28/sea019.28.gli.sub.2.gz
-url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
-dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
-dirnamess <- strsplit(dirs, "\r*\n")[[1]]
-
-okdir <- which(dirnamess == 'realData')
-
-dirnames <- dirnamess[okdir]
-#get directories for gliders
-gliderdirs <- getURL(paste(url, 
-                           dirnames,
-                           '', sep ="/"),
-                     ftp.use.epsv = FALSE, dirlistonly = TRUE)
-gliderdirnames <- strsplit(gliderdirs, "\r*\n")[[1]]
-gdnok <- grepl(pattern = 'SEA0[0-9][0-9]', x = gliderdirnames) #find glider directories
-gliderdirnames <- gliderdirnames[gdnok]
+# url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
+# dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
+# dirnamess <- strsplit(dirs, "\r*\n")[[1]]
+# 
+# okdir <- which(dirnamess == 'realData')
+# 
+# dirnames <- dirnamess[okdir]
+# #get directories for gliders
+# gliderdirs <- getURL(paste(url, 
+#                            dirnames,
+#                            '', sep ="/"),
+#                      ftp.use.epsv = FALSE, dirlistonly = TRUE)
+# gliderdirnames <- strsplit(gliderdirs, "\r*\n")[[1]]
+# gdnok <- grepl(pattern = 'SEA0[0-9][0-9]', x = gliderdirnames) #find glider directories
+# gliderdirnames <- gliderdirnames[gdnok]
 
 # directories for gliders offline
 gliderdirsoffline <- list.dirs(path = datadir,
