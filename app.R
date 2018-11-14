@@ -710,11 +710,11 @@ server <- function(input, output) {
                        'Sal' = resizableLabel('S', axis = 'y'),
                        'Cond' = resizableLabel('conductivity S/m', axis = 'y'),
                        'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
-                       'CHL_scaled' = 'Chlorophyll',
-                       'CDOM_scaled' = 'CDOM',
-                       'BB_scaled' = expression(paste('Backscatter [', 10^3, ']')),
+                       'CHL_scaled' = expression(paste('Chlorophyll [', mu, 'g/l]')),
+                       'CDOM_scaled' = expression(paste('CDOM [ppb]')),
+                       'BB_scaled' = expression(paste('Backscatter [', 10^3, '/ m sr]')),
                        'DOF' = 'Dissolved Oxygen [Hz]',
-                       'OxyConc' = resizableLabel('oxygen mL/L', axis = 'y'),
+                       'OxyConc' = 'Oxygen [ml/l]',
                        'OxySat' = 'Oxygen Saturation [%]')
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
