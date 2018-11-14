@@ -331,7 +331,7 @@ server <- function(input, output) {
                     'Dens' = c(20, 28),
                     'CHL_scaled' = c(-.02,5),
                     'CDOM_scaled' = c(-2,12),
-                    'BB_scaled' = c(-0.005, 0.005),
+                    'BB_scaled' = c(-0.001, 0.003) * 1000,
                     'DOF' = c(2000, 5000),
                     'OxyConc' = c(0,10),
                     'OxySat' = c(0,120))
@@ -342,7 +342,7 @@ server <- function(input, output) {
                       'Dens' = unname(quantile(PLD$SigTheta, probs = c(0.02, 0.99), na.rm = TRUE)),
                       'CHL_scaled' = unname(quantile(PLD$CHL_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'CDOM_scaled' = unname(quantile(PLD$CDOM_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
-                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)) * 1000,
                       'DOF' = unname(quantile(PLD$DOF, probs = c(0.01, 0.97), na.rm = TRUE)),
                       'OxyConc' = unname(quantile(PLD$OxyConc, probs = c(0.01, 0.97), na.rm = TRUE)),
                       'OxySat' = unname(quantile(PLD$OxySat, probs = c(0.01, 0.97), na.rm = TRUE)))
@@ -353,7 +353,7 @@ server <- function(input, output) {
                      'Dens' = 0.1,
                      'CHL_scaled' = 0.1,
                      'CDOM_scaled' = 0.1,
-                     'BB_scaled' = 0.0005,
+                     'BB_scaled' = 0.0005 * 100,
                      'DOF' = 100,
                      'OxyConc' = 0.5,
                      'OxySat' = 1)
@@ -700,7 +700,7 @@ server <- function(input, output) {
                        'Dens' = PLD$SigTheta,
                        'CHL_scaled' = PLD$CHL_scaled,
                        'CDOM_scaled' = PLD$CDOM_scaled,
-                       'BB_scaled' = PLD$BB_scaled,
+                       'BB_scaled' = PLD$BB_scaled * 1000,
                        'DOF' = PLD$DOF,
                        'OxyConc' = PLD$OxyConc,
                        'OxySat' = PLD$OxySat)
@@ -712,7 +712,7 @@ server <- function(input, output) {
                        'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
                        'CHL_scaled' = 'Chlorophyll',
                        'CDOM_scaled' = 'CDOM',
-                       'BB_scaled' = 'Backscatter',
+                       'BB_scaled' = expression(paste('Backscatter [', 10^3, ']')),
                        'DOF' = 'Dissolved Oxygen [Hz]',
                        'OxyConc' = resizableLabel('oxygen mL/L', axis = 'y'),
                        'OxySat' = 'Oxygen Saturation [%]')
