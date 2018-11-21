@@ -61,7 +61,14 @@ bblat <- c(48.7300, 48.800, 48.833, 48.917, 49.025, 49.100, 49.190, 49.280, 49.3
 # halifax shipping lane boundaries
 load('shippingBoundaries.rda')
 
+# set names of gliders from gliderdirnames
+glidernames <- unlist(lapply(gliderdirnames, function(k) ifelse(k == 'SEA019', 'SEA019 - Mira',
+                                                                ifelse(k == 'SEA021', 'SEA021 - Skye',
+                                                                       ifelse(k == 'SEA022', 'SEA022 - Mersey',
+                                                                              ifelse(k == 'SEA024', 'SEA024 - Margaree',
+                                                                                     ifelse(k == 'SEA032', 'SEA032 - LaHave')))))))
 
+names(gliderdirnames) <- glidernames
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
 
