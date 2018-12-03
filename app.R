@@ -66,7 +66,7 @@ glidernames <- unlist(lapply(gliderdirnames, function(k) ifelse(k == 'SEA019', '
                                                                 ifelse(k == 'SEA021', 'SEA021 - Skye',
                                                                        ifelse(k == 'SEA022', 'SEA022 - Mersey',
                                                                               ifelse(k == 'SEA024', 'SEA024 - Margaree',
-                                                                                     ifelse(k == 'SEA032', 'SEA032 - LaHave')))))))
+                                                                                     ifelse(k == 'SEA032', 'SEA032 - LaHave', k)))))))
 
 names(gliderdirnames) <- glidernames
 # Define UI for app that draws a histogram ----
