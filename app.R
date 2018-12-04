@@ -4,6 +4,7 @@ library(oce)
 library(ocedata)
 library(measurements)
 library(leaflet)
+library(leaflet.minicharts)
 library(RCurl)
 library(geosphere)
 library(XML)
@@ -18,6 +19,8 @@ source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
+source('leafletArrows.R') # draw arrows on leaflet map
+source('compass2polar.R') # convert compass heading to polar degrees
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
@@ -248,12 +251,14 @@ server <- function(input, output) {
     PLD <- data$PLD
     glider <- data$NAV
     profileNumber <- unique(glider$profileNumber)
-    profileTimes <- glon <- glat <- NULL
+    profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
         glon <- c(glon, glider$Lon[which(profileNumber[pi] == glider$profileNumber)][1])
         glat <- c(glat, glider$Lat[which(profileNumber[pi] == glider$profileNumber)][1])
+        gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
     }
+    gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
     #dnctd <- data$dnctd
     #upctd <- data$upctd
@@ -762,6 +767,7 @@ server <- function(input, output) {
     #map_lastlocation <- "Last received location"
     map_kml <- "KML track and positions"
     map_piloting <- "Piloting waypoints"
+    map_desiredHeading <- "Desired heading"
     #map_track_kml <- "Glider Track KML"
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
@@ -773,8 +779,13 @@ server <- function(input, output) {
     okloc <- glat > 0
     glon <- glon[okloc]
     glat <- glat[okloc]
-
-
+    gdeshead <- gdeshead[okloc]
+    gdesheadpolar <- compass2polar(theta = gdeshead)
+    # get coordinates to show desired heading on map 
+    df <- arrowShaftCoordinates(longitude = glon, 
+                      latitude = glat, 
+                      phi = gdesheadpolar,
+                      L = 2)
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
@@ -870,7 +881,18 @@ server <- function(input, output) {
                                        as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC')),
                                        paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
                          label = paste0('Glider position: ', as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC'))),
-                         group = map_allposition)%>%
+                         group = map_allposition) %>%
+          # desired heading of glider
+          # syntax is kinda weird, but leaflet doesn't like for loops
+        {
+          for(i in unique(df$group)){
+            . <- addPolylines(., lng = df$longitude[df$group == i],
+                                 lat = df$latitude[df$group == i],
+                              group = map_desiredHeading,
+                              weight = 2)
+              }
+            return (.)
+        } %>%
         # map_track
           #line track
         addPolylines(lng = glon, lat = glat,
@@ -938,7 +960,8 @@ server <- function(input, output) {
                                            map_track,
                                            #map_lastlocation,
                                            map_kml,
-                                           map_piloting),
+                                           map_piloting,
+                                           map_desiredHeading),
                                            #map_track_kml),
                          options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
