@@ -20,6 +20,7 @@ source('downloadData.R') # obtain glidernames and missions from ftp and download
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 source('arrowShaftCoordinates.R') # draw arrows on leaflet map
 source('compass2polar.R') # convert compass heading to polar degrees
+source('bearing.R') #calculate bearing between two points
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
@@ -259,6 +260,14 @@ server <- function(input, output) {
     }
     gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
+    # calculate bearing
+    # remove repeat glon glat values
+    ok <- diff(glon) != 0 & diff(glat) != 0
+    glonb <- glon[ok]
+    glatb <- glat[ok]
+    bearingTime <- profileTimes[ok]
+    bearingTime <- numberAsPOSIXct(bearingTime)[1:(length(bearingTime)-1)]
+    bearing <- bearing(lon = glonb, lat = glatb)
     #dnctd <- data$dnctd
     #upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
@@ -596,6 +605,7 @@ server <- function(input, output) {
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
+        lines(bearingTime, bearing, lwd = 2, col = "darkgreen")
         grid()
         } else {
           #par(mar = marcm)
@@ -606,6 +616,7 @@ server <- function(input, output) {
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
+          lines(bearingTime, bearing, lwd = 2, col = "darkgreen")
           grid()
         }
 
