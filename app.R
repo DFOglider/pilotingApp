@@ -4,7 +4,6 @@ library(oce)
 library(ocedata)
 library(measurements)
 library(leaflet)
-library(leaflet.minicharts)
 library(RCurl)
 library(geosphere)
 library(XML)
@@ -19,7 +18,7 @@ source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
-source('leafletArrows.R') # draw arrows on leaflet map
+source('arrowShaftCoordinates.R') # draw arrows on leaflet map
 source('compass2polar.R') # convert compass heading to polar degrees
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
