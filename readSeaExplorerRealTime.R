@@ -301,14 +301,17 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
                             Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
+  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
   if(glider == 'SEA032'){
     # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
     PLD$OxyConc <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO)) / 44.661
+    oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
+    PLD$OxySat <- PLD$OxyConc / swSatO2(temperature = oxytemp, salinity = rep(34, length(oxytemp)))
   }
   
-  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+  
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
