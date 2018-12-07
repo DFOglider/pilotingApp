@@ -295,6 +295,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
   {if((glider == 'SEA024' | glider == 'SEA021') & PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
     cal <- cal[[2]]
   }
