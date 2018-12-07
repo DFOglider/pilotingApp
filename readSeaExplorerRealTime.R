@@ -295,20 +295,31 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
+  {if((glider == 'SEA024' | glider == 'SEA021') & PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+    cal <- cal[[2]]
+  }
+    else{
+      cal <- cal[[1]]
+    }
+  }
   DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                             pressure = PLD$Press, oxygenFrequency = DOF,
                             Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
+  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
   if(glider == 'SEA032'){
     # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
     PLD$OxyConc <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO)) / 44.661
+    oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
+    PLD$OxySat <- PLD$OxyConc / swSatO2(temperature = oxytemp, salinity = rep(34, length(oxytemp)))
   }
   
-  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+  
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
