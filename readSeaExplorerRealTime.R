@@ -295,6 +295,13 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  {if((glider == 'SEA024' | glider == 'SEA021') & PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+    cal <- cal[[2]]
+  }
+    else{
+      cal <- cal[[1]]
+    }
+  }
   DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                             pressure = PLD$Press, oxygenFrequency = DOF,
