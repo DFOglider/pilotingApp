@@ -296,13 +296,15 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
   # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
-  {if((glider == 'SEA024' | glider == 'SEA021') & PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
-    cal <- cal[[2]]
-  }
-    else{
+  if (glider == 'SEA024' | glider == 'SEA021') {
+    if(PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+      cal <- cal[[2]]
+      }
+  if(PLD$timesci[1] < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[1]]
-    }
+   }
   }
+  
   DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                             pressure = PLD$Press, oxygenFrequency = DOF,
