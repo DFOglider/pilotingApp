@@ -266,8 +266,9 @@ server <- function(input, output) {
     glonb <- glon[ok]
     glatb <- glat[ok]
     bearingTime <- profileTimes[ok]
-    bearingTime <- numberAsPOSIXct(bearingTime)[1:(length(bearingTime)-1)]
-    bearing <- bearing(lon = glonb, lat = glatb)
+    if(length(glonb) != 0){
+      bearingTime <- numberAsPOSIXct(bearingTime)[1:(length(bearingTime)-1)]
+      gbearing <- bearing(lon = glonb, lat = glatb)}
     #dnctd <- data$dnctd
     #upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
@@ -605,7 +606,7 @@ server <- function(input, output) {
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
-        lines(bearingTime, bearing, lwd = 2, col = "darkgreen")
+        if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
         grid()
         } else {
           #par(mar = marcm)
@@ -616,7 +617,7 @@ server <- function(input, output) {
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
-          lines(bearingTime, bearing, lwd = 2, col = "darkgreen")
+          if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
           grid()
         }
 
@@ -791,6 +792,9 @@ server <- function(input, output) {
     glat <- glat[okloc]
     gdeshead <- gdeshead[okloc]
     gdesheadpolar <- compass2polar(theta = gdeshead)
+    if(all(is.na(gdesheadpolar))){
+      gdesheadpolar <- rep(0, length(gdeshead))
+    }
     # get coordinates to show desired heading on map 
     df <- arrowShaftCoordinates(longitude = glon, 
                       latitude = glat, 

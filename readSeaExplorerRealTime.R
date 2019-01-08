@@ -300,7 +300,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     if(PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[2]]
       }
-  if(PLD$timesci[1] < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+    if(PLD$timesci[1] < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[1]]
    }
   }
