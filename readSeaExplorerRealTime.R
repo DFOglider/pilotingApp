@@ -315,10 +315,23 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   }
   
   if(glider == 'SEA032'){
+    rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
+    nado <- which(rinkodo == 9999.00)
+    rinkodo[nado] <- NA
     # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
-    PLD$OxyConc <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO)) / 44.661
+    rinkooxyconc <-  rinkodo / 44.661
     oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
-    PLD$OxySat <- PLD$OxyConc / swSatO2(temperature = oxytemp, salinity = rep(34, length(oxytemp)))
+    nat <- which(oxytemp == 9999.00)
+    oxytemp[nat] <- NA
+    PLD$OxySat <- (rinkooxyconc / swSatO2(temperature = oxytemp, salinity = rep(0, length(oxytemp)))) * 100
+    #remove 9999.0 from ctd temp and sal for calculation
+    #assuming that the 9999.00 are the same for temp and sal
+    nactd <- which(PLD$Temp == 9999.00)
+    ctdTemp <- PLD$Temp
+    ctdTemp[nactd] <- NA
+    ctdSal <- PLD$Sal
+    ctdSal[nactd] <- NA
+    PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
   }
   
   
