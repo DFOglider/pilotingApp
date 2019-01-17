@@ -281,6 +281,11 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     #DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
     Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
   )
+  # set 9999.00 values to NA before calculation of other variables
+  # think these values are only in PLD files
+  bad99 <- PLD == 9999.00
+  PLD[bad99] <- NA
+  
   # calculate salinity, sigTheta, and oxygen saturation
   PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
                     temperature = PLD$Temp, 
@@ -342,7 +347,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   NAV <- NAV[!bad,]
   
   ## approx pressure by using depth from navigation for simulation
-  if(diff(range(PLD$Press)) < 5){
+  if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
     newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
     PLD$Press <- newPress$y
   }
