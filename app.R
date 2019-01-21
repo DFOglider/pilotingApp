@@ -282,11 +282,12 @@ server <- function(input, output) {
       msn <- readMsn(file = msnfile)
     }
       else{
+        # fake data for plotting purposes
         msn <- data.frame(
-          wp = NA,
-          lon = NA,
-          lat = NA,
-          rval = NA
+          wp = 'fake',
+          lon = -63.40650,
+          lat = 44.52083,
+          rval = 0
         )
       }}
     # profile numbers
