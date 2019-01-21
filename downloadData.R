@@ -31,7 +31,7 @@ getMissions <- function(glider){
                          ftp.use.epsv = FALSE, dirlistonly = TRUE)
   missiondirnames <- strsplit(missiondirs, "\r*\n")[[1]]
   
-  missiondirnames[grepl(pattern = "M[0-9][0-9]", x = missiondirnames)]
+  missiondirnames[grepl(pattern = "^M[0-9][0-9]$", x = missiondirnames)]
 }
 
 downloadData <- function(datadir, glider, mission){
@@ -98,7 +98,7 @@ downloadData <- function(datadir, glider, mission){
                               glider,
                               msn,
                               sep = '/'),
-                  destfile = paste(savedir,
+                  destfile = paste(msavedir,
                                    msn,
                                    sep = ''))
   }
