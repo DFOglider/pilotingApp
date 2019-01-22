@@ -763,7 +763,7 @@ server <- function(input, output) {
         #                  and nav time for xlim
         if (is.null(state$xlim)) {
           oce.plot.ts(PLD$timesci, PLD$Press, type='p',
-              ylim = rev(range(glider$altHit,na.rm = TRUE)),
+              ylim = c(max(c(glider$altHit, PLD$Press),na.rm = TRUE), -5),
               xlim = (range(glider$time, na.rm = TRUE)),
               pch = 20, col = cm$zcol,
               xlab = '', ylab = '', mar=marcm)
@@ -772,7 +772,7 @@ server <- function(input, output) {
           okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
           okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
           oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
-               ylim = rev(range(glider$depth[okylimg],na.rm = TRUE)),
+               ylim = rev(range(c(glider$altHit[okylimg], PLD$Press[okylim]),na.rm = TRUE)),
                xlim = state$xlim,
                pch = 20, col = cm$zcol[okylim],
                xlab = '', ylab = '', mar=marcm)
