@@ -31,7 +31,7 @@ getMissions <- function(glider){
                          ftp.use.epsv = FALSE, dirlistonly = TRUE)
   missiondirnames <- strsplit(missiondirs, "\r*\n")[[1]]
   
-  missiondirnames[grepl(pattern = "M[0-9][0-9]", x = missiondirnames)]
+  missiondirnames[grepl(pattern = "^M[0-9][0-9]$", x = missiondirnames)]
 }
 
 downloadData <- function(datadir, glider, mission){
@@ -81,4 +81,25 @@ downloadData <- function(datadir, glider, mission){
                 destfile = paste(savedir,
                                  kml,
                                  sep=''))
+  # msn file, in directory above data files
+  msavedir <- paste(datadir, glider,'', sep='/')
+  msnpath <- paste(url, 
+                    dirnames, 
+                    glider, 
+                    '', 
+                    sep = '/')
+  mfiles <- getURL(url = msnpath,
+                  ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  mfilenames <- strsplit(mfiles, "\r*\n")[[1]]
+  msn <- mfilenames[grep(pattern = paste0(glider,mission,'.msn'), x = mfilenames)]
+  if(length(msn) != 0){
+    download.file(url = paste(url,
+                              dirnames,
+                              glider,
+                              msn,
+                              sep = '/'),
+                  destfile = paste(msavedir,
+                                   msn,
+                                   sep = ''))
+  }
 }

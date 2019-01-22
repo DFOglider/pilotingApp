@@ -21,6 +21,7 @@ source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 source('arrowShaftCoordinates.R') # draw arrows on leaflet map
 source('compass2polar.R') # convert compass heading to polar degrees
 source('bearing.R') #calculate bearing between two points
+source('readMsn.R')
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
@@ -275,6 +276,20 @@ server <- function(input, output) {
     okkml <- !is.na(kmlcoord$lon)
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
+    ## msn file
+    msnfile <- paste(datadir, input$Glider, paste0(input$Glider,input$Mission,'.msn'), sep = '/')
+    {if(file.exists(msnfile)){
+      msn <- readMsn(file = msnfile)
+    }
+      else{
+        # fake data for plotting purposes
+        msn <- data.frame(
+          wp = 'fake',
+          lon = -63.40650,
+          lat = 44.52083,
+          rval = 0
+        )
+      }}
     # profile numbers
     ## profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))
     profiles <- profileNumber
@@ -779,6 +794,7 @@ server <- function(input, output) {
     map_kml <- "KML track and positions"
     map_piloting <- "Piloting waypoints"
     map_desiredHeading <- "Desired heading"
+    map_msn <- "msn file waypoints"
     #map_track_kml <- "Glider Track KML"
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
@@ -864,7 +880,13 @@ server <- function(input, output) {
                     col = 'pink',
                     fillOpacity = 0.7,
                     group = map_piloting)%>%
-
+          # msn waypoints with rval
+        addCircles(lng = msn$lon, lat = msn$lat,
+                         radius = msn$rval * 1000,
+                         fillOpacity = 0.2,
+                         color = 'red',
+                         stroke = FALSE,
+                         group = map_msn)%>%
           # deployment/recovery location
         addMarkers(lng = drlon, lat = drlat,
                          #radius = 7, fillOpacity = .4, stroke = F,
@@ -975,7 +997,8 @@ server <- function(input, output) {
                                            #map_lastlocation,
                                            map_kml,
                                            map_piloting,
-                                           map_desiredHeading),
+                                           map_desiredHeading,
+                                           map_msn),
                                            #map_track_kml),
                          options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
