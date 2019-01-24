@@ -255,8 +255,12 @@ server <- function(input, output) {
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
-        glon <- c(glon, glider$Lon[which(profileNumber[pi] == glider$profileNumber)][1])
-        glat <- c(glat, glider$Lat[which(profileNumber[pi] == glider$profileNumber)][1])
+        lon <- glider$Lon[which(profileNumber[pi] == glider$profileNumber)]
+        lat <- glider$Lat[which(profileNumber[pi] == glider$profileNumber)]
+        oklon <- which(lon != 0)
+        oklat <- which(lat != 0)
+        glon <- c(glon, lon[oklon][1])
+        glat <- c(glat, lat[oklat][1])
         gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
     }
     gdeshead[gdeshead < 0] <- NA
