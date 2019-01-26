@@ -202,10 +202,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     else{
       filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
       okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
-      filesci <- paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
+      filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
     }
   }
-  if(exists('filesci')){
+  if(exists('filesci') & length(filesci) != 0){
   # to put the files in the right order
   strlsci<-nchar(filesci)
   catesci<-length(unique(strlsci))
@@ -469,6 +469,29 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   # } #closes pressure greater than zero criterion
   #} 
   #closes if there are new files
+  }
+  # if there are no files, then create an empty data frame with all variables
+  else{
+    PLD <- data.frame(
+      profileNumSci = NA,
+      timesci= NA,
+      Lat=NA,
+      Lon=NA,
+      Depthsci=NA,
+      CHL_count=NA,
+      CHL_scaled=NA,
+      BB_count=NA,
+      BB_scaled=NA,
+      CDOM_count=NA,
+      CDOM_scaled=NA,
+      Temp=NA,
+      Press=NA,
+      Conduc=NA,
+      OxySat = NA,
+      OxyConc = NA,
+      Sal = NA,
+      SigTheta = NA
+    )
   }
   {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     {if(exists('files')){

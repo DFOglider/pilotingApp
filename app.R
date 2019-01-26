@@ -21,6 +21,7 @@ source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
 source('arrowShaftCoordinates.R') # draw arrows on leaflet map
 source('compass2polar.R') # convert compass heading to polar degrees
 source('bearing.R') #calculate bearing between two points
+source('readMsn.R')
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
@@ -254,8 +255,12 @@ server <- function(input, output) {
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
-        glon <- c(glon, glider$Lon[which(profileNumber[pi] == glider$profileNumber)][1])
-        glat <- c(glat, glider$Lat[which(profileNumber[pi] == glider$profileNumber)][1])
+        lon <- glider$Lon[which(profileNumber[pi] == glider$profileNumber)]
+        lat <- glider$Lat[which(profileNumber[pi] == glider$profileNumber)]
+        oklon <- which(lon != 0)
+        oklat <- which(lat != 0)
+        glon <- c(glon, lon[oklon][1])
+        glat <- c(glat, lat[oklat][1])
         gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
     }
     gdeshead[gdeshead < 0] <- NA
@@ -275,6 +280,20 @@ server <- function(input, output) {
     okkml <- !is.na(kmlcoord$lon)
     kmlLon <- kmlcoord$lon[okkml]
     kmlLat <- kmlcoord$lat[okkml]
+    ## msn file
+    msnfile <- paste(datadir, input$Glider, paste0(input$Glider,input$Mission,'.msn'), sep = '/')
+    {if(file.exists(msnfile)){
+      msn <- readMsn(file = msnfile)
+    }
+      else{
+        # fake data for plotting purposes
+        msn <- data.frame(
+          wp = 'fake',
+          lon = -63.40650,
+          lat = 44.52083,
+          rval = 0
+        )
+      }}
     # profile numbers
     ## profiles <- sort(unique(round(unlist(lapply(c(dnctd,upctd), function(k) k@metadata[['station']])))))
     profiles <- profileNumber
@@ -392,7 +411,7 @@ server <- function(input, output) {
         oce.plot.ts(glider$time, glider$depth,
                     type="n",
                     ylim=c(max(glider$altHit,na.rm = TRUE), -5),
-                    xlim=(range(glider$time, na.rm = TRUE)),
+                    xlim= range(c(glider$time, PLD$timesci), na.rm = TRUE),
                     ylab='Depth (m)',xlab='Time',
                     mar=marcm)
         points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
@@ -427,7 +446,7 @@ server <- function(input, output) {
           oce.plot.ts(glider$time, glider$depth,
                type = "n",
                ylim = range(glider$alt,na.rm = TRUE),
-               xlim = range(glider$time, na.rm = TRUE),
+               xlim = range(c(glider$time, PLD$timesci), na.rm = TRUE),
                ylab = 'range (m)',
                xlab = 'Time',
                mar=marcm)
@@ -455,7 +474,7 @@ server <- function(input, output) {
            #par(xaxs='i',yaxs='i')#tight
            oce.plot.ts(glider$time, glider[[input$NavVar]],
            ylim=c(-80,40),
-           xlim=(range(glider$time, na.rm = TRUE)),
+           xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
            xlab='Time',ylab='',type='n',
            mar=marcm)
            polygon(c(glider$time,rev(glider$time)),c(rep(15,length(glider$time)),rep(25,length(glider$time))),col=gray(0.8),border=NA)
@@ -481,7 +500,7 @@ server <- function(input, output) {
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(-30,30),
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(-13,length(glider$time)),rep(-17,length(glider$time))),col=gray(0.8),border=NA)
@@ -508,7 +527,7 @@ server <- function(input, output) {
          #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider[[input$NavVar]],
              ylim=c(24,30),
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)
@@ -533,7 +552,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
                xlab='Time',ylab='(m/s)',
                mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
@@ -556,7 +575,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]],na.rm = TRUE)),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
                xlab='Time',ylab='(km)',
                mar=marcm)
           points(glider$time, glider[[input$NavVar]], pch=19,cex = 1, col = "dark green")
@@ -579,7 +598,7 @@ server <- function(input, output) {
           #par(xaxs='i',yaxs='i')#tight
           oce.plot.ts(glider$time, glider[[input$NavVar]],
                ylim=c(0,max(glider[[input$NavVar]])+3),
-               xlim=(range(glider$time, na.rm = TRUE)),
+               xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
                xlab='Time',ylab='',type='n',
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
@@ -601,7 +620,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
@@ -626,7 +645,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -649,7 +668,7 @@ server <- function(input, output) {
         #par(xaxs='i',yaxs='i')#tight
         #par(mar = marcm)
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -672,7 +691,7 @@ server <- function(input, output) {
         #par(mar = marcm)
         #par(xaxs='i',yaxs='i')#tight
         oce.plot.ts(glider$time, glider[[input$NavVar]],
-             xlim=(range(glider$time, na.rm = TRUE)),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
              xlab='Time',ylab='',type='n',
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 3, col = "red")
@@ -695,7 +714,7 @@ server <- function(input, output) {
       #par(xaxs='i',yaxs='i')#tight
       #par(mar = marcm)
       oce.plot.ts(glider$time, glider[[input$NavVar]],
-           xlim=(range(glider$time, na.rm = TRUE)),
+           xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
            xlab='Time',ylab='',type="n",
            mar=marcm)
       lines(glider$time, glider[[input$NavVar]],col='blue',lwd=2)
@@ -748,8 +767,8 @@ server <- function(input, output) {
         #                  and nav time for xlim
         if (is.null(state$xlim)) {
           oce.plot.ts(PLD$timesci, PLD$Press, type='p',
-              ylim = rev(range(glider$altHit,na.rm = TRUE)),
-              xlim = (range(glider$time, na.rm = TRUE)),
+              ylim = c(max(c(glider$altHit, PLD$Press),na.rm = TRUE), -5),
+              xlim = range(c(glider$time, PLD$timesci), na.rm = TRUE),
               pch = 20, col = cm$zcol,
               xlab = '', ylab = '', mar=marcm)
 
@@ -757,7 +776,7 @@ server <- function(input, output) {
           okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
           okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
           oce.plot.ts(PLD$timesci[okylim], PLD$Press[okylim], type='p',
-               ylim = rev(range(glider$depth[okylimg],na.rm = TRUE)),
+               ylim = rev(range(c(glider$altHit[okylimg], PLD$Press[okylim]),na.rm = TRUE)),
                xlim = state$xlim,
                pch = 20, col = cm$zcol[okylim],
                xlab = '', ylab = '', mar=marcm)
@@ -779,6 +798,7 @@ server <- function(input, output) {
     map_kml <- "KML track and positions"
     map_piloting <- "Piloting waypoints"
     map_desiredHeading <- "Desired heading"
+    map_msn <- "msn file waypoints"
     #map_track_kml <- "Glider Track KML"
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
@@ -864,7 +884,13 @@ server <- function(input, output) {
                     col = 'pink',
                     fillOpacity = 0.7,
                     group = map_piloting)%>%
-
+          # msn waypoints with rval
+        addCircles(lng = msn$lon, lat = msn$lat,
+                         radius = msn$rval * 1000,
+                         fillOpacity = 0.2,
+                         color = 'red',
+                         stroke = FALSE,
+                         group = map_msn)%>%
           # deployment/recovery location
         addMarkers(lng = drlon, lat = drlat,
                          #radius = 7, fillOpacity = .4, stroke = F,
@@ -975,7 +1001,8 @@ server <- function(input, output) {
                                            #map_lastlocation,
                                            map_kml,
                                            map_piloting,
-                                           map_desiredHeading),
+                                           map_desiredHeading,
+                                           map_msn),
                                            #map_track_kml),
                          options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
@@ -1159,14 +1186,14 @@ server <- function(input, output) {
     # reset plots
     # navigation section
     observeEvent(input$resetNav, {
-      state$xlim <- range(glider$time,na.rm = TRUE)
+      state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
     })
     observeEvent(input$plot_click, {
-      state$xlim <- range(glider$time,na.rm = TRUE)
+      state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
       })
     # science section
     observeEvent(input$resetSci, {
-      state$xlim <- range(glider$time,na.rm = TRUE)
+      state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
     })
 
     # # profile1 plot
