@@ -91,6 +91,16 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time <- as.POSIXct(time_tmp,format='%d/%m/%Y %H:%M:%S',tz='UTC')
   time[time < as.POSIXct('2010-01-01')] <- NA
   
+  #remove 2018-07-12 dates after firmware
+  gliderfirmname <- c('SEA024', 'SEA032')
+  gliderfirmmiss <- c(29, 23)
+  missionnum <- strsplit(mission, split = 'M')[[1]][2]
+  for(i in 1:length(gliderfirmname)){
+    if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
+      time[time < as.POSIXct('2018-07-14')] <- NA
+    }
+  }
+  
   # to calculate the vertical speed
   times<-as.integer(time) # in seconds since 1970
   depth<-unlist(lapply(data_all, function(k) k$Depth))
@@ -240,6 +250,12 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time_tmpsci <- unlist(lapply(data_allsci, function(k) k$PLD_REALTIMECLOCK))
   timesci <- as.POSIXct(time_tmpsci,format='%d/%m/%Y %H:%M:%S',tz='UTC')
   timesci[timesci < as.POSIXct('2010-01-01')] <- NA
+  #remove 2018-07-12 dates see lines 94-96 for gliderfirm[name,miss]
+  for(i in 1:length(gliderfirmname)){
+    if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
+      timesci[timesci < as.POSIXct('2018-07-14')] <- NA
+    }
+  }
   
   #calculate distance traveled and glider speed
   LonT <- unlist(lapply(data_allsci, function(k) k$NAV_LONGITUDE))
@@ -265,6 +281,11 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     #DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
     Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
   )
+  # set 9999.00 values to NA before calculation of other variables
+  # think these values are only in PLD files
+  bad99 <- PLD == 9999.00
+  PLD[bad99] <- NA
+  
   # calculate salinity, sigTheta, and oxygen saturation
   PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
                     temperature = PLD$Temp, 
@@ -279,20 +300,46 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
+  if (glider == 'SEA024' | glider == 'SEA021') {
+    if(PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+      cal <- cal[[2]]
+      }
+    if(PLD$timesci[1] < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+      cal <- cal[[1]]
+   }
+  }
+  
   DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                             pressure = PLD$Press, oxygenFrequency = DOF,
                             Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
                             A = cal[['A']], B = cal[['B']],
                             C = cal[['C']], Enom = cal[['Enom']])
+  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
   if(glider == 'SEA032'){
+    rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
+    nado <- which(rinkodo == 9999.00)
+    rinkodo[nado] <- NA
     # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
-    PLD$OxyConc <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO)) / 44.661
+    rinkooxyconc <-  rinkodo / 44.661
+    oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
+    nat <- which(oxytemp == 9999.00)
+    oxytemp[nat] <- NA
+    PLD$OxySat <- (rinkooxyconc / swSatO2(temperature = oxytemp, salinity = rep(0, length(oxytemp)))) * 100
+    #remove 9999.0 from ctd temp and sal for calculation
+    #assuming that the 9999.00 are the same for temp and sal
+    nactd <- which(PLD$Temp == 9999.00)
+    ctdTemp <- PLD$Temp
+    ctdTemp[nactd] <- NA
+    ctdSal <- PLD$Sal
+    ctdSal[nactd] <- NA
+    PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
   }
   
-  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+  
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
@@ -300,7 +347,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   NAV <- NAV[!bad,]
   
   ## approx pressure by using depth from navigation for simulation
-  if(diff(range(PLD$Press)) < 5){
+  if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
     newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
     PLD$Press <- newPress$y
   }

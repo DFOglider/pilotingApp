@@ -18,7 +18,26 @@ source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
 source('findProfilesSOCIB.R') # finds downcast and upcasts from a yo
+source('arrowShaftCoordinates.R') # draw arrows on leaflet map
+source('compass2polar.R') # convert compass heading to polar degrees
+source('bearing.R') #calculate bearing between two points
 data('coastlineWorldFine')
+returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
+                       iconWidth = 13,
+                       iconHeight = 13)
+# convert lat long to decimal
+# from readSeaExplorerRealTime.R
+conv <- function(x) {
+  res <- rep(NA, length(x))
+  zeros <- x == "0"
+  nas <- is.na(x)
+  good <- !(zeros | nas)
+  res[good] <- ifelse(substr(x[good], 1, 1) == "-", -1, 1)*
+    ((abs(as.numeric(x[good])/100) - floor(abs(as.numeric(x[good])/100)))*100/60 
+     + floor(abs(as.numeric(x[good])/100)))
+  res[zeros] <- 0
+  return(res)
+}
 
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
@@ -28,13 +47,31 @@ drlon <- -63.406418
 drlat <- 44.520789
 
 # halifax line stations
-hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527)
-hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635)
+hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527, -61.8326)
+hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635, 42.9402)
+
+# piloting waypoints
+gllondmm <- c(-6305.5912, -6241.3334, -6153.4760, -6317.2030)
+gllatdmm <- c(4403.3124, 4341.1479, 4258.6090, 4421.3538)
+
+gllon <- conv(gllondmm)
+gllat <- conv(gllatdmm)
+
+# bonavista line stations (BB01 - BB15)
+bblon <- c(-52.967, -52.750, -52.650, -52.400, -52.067, -51.830, -51.542, -51.280, -51.017, -50.533, -50.017, -49.500, -49, -48.472, -47.947)
+bblat <- c(48.7300, 48.800, 48.833, 48.917, 49.025, 49.100, 49.190, 49.280, 49.367, 49.517, 49.683, 49.850, 50.000, 50.177, 50.332)
 
 # halifax shipping lane boundaries
 load('shippingBoundaries.rda')
 
+# set names of gliders from gliderdirnames
+glidernames <- unlist(lapply(gliderdirnames, function(k) ifelse(k == 'SEA019', 'SEA019 - Mira',
+                                                                ifelse(k == 'SEA021', 'SEA021 - Skye',
+                                                                       ifelse(k == 'SEA022', 'SEA022 - Mersey',
+                                                                              ifelse(k == 'SEA024', 'SEA024 - Margaree',
+                                                                                     ifelse(k == 'SEA032', 'SEA032 - LaHave', k)))))))
 
+names(gliderdirnames) <- glidernames
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
 
@@ -214,13 +251,24 @@ server <- function(input, output) {
     PLD <- data$PLD
     glider <- data$NAV
     profileNumber <- unique(glider$profileNumber)
-    profileTimes <- glon <- glat <- NULL
+    profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
         profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
         glon <- c(glon, glider$Lon[which(profileNumber[pi] == glider$profileNumber)][1])
         glat <- c(glat, glider$Lat[which(profileNumber[pi] == glider$profileNumber)][1])
+        gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
     }
+    gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
+    # calculate bearing
+    # remove repeat glon glat values
+    ok <- diff(glon) != 0 & diff(glat) != 0
+    glonb <- glon[ok]
+    glatb <- glat[ok]
+    bearingTime <- profileTimes[ok]
+    if(length(glonb) != 0){
+      bearingTime <- numberAsPOSIXct(bearingTime)[1:(length(bearingTime)-1)]
+      gbearing <- bearing(lon = glonb, lat = glatb)}
     #dnctd <- data$dnctd
     #upctd <- data$upctd
     kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
@@ -304,18 +352,18 @@ server <- function(input, output) {
                     'Dens' = c(20, 28),
                     'CHL_scaled' = c(-.02,5),
                     'CDOM_scaled' = c(-2,12),
-                    'BB_scaled' = c(-0.005, 0.005),
+                    'BB_scaled' = c(-0.001, 0.003) * 1000,
                     'DOF' = c(2000, 5000),
                     'OxyConc' = c(0,10),
                     'OxySat' = c(0,120))
       value <- switch(input$SciVar,
-                      'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.99), na.rm = TRUE)),
-                      'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.99),  na.rm = TRUE)),
-                      'Cond' = unname(quantile(PLD$Conduc, probs = c(0.02, 0.99), na.rm = TRUE)),
-                      'Dens' = unname(quantile(PLD$SigTheta, probs = c(0.02, 0.99), na.rm = TRUE)),
+                      'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.98), na.rm = TRUE)),
+                      'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.98),  na.rm = TRUE)),
+                      'Cond' = unname(quantile(PLD$Conduc, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'Dens' = unname(quantile(PLD$SigTheta, probs = c(0.02, 0.98), na.rm = TRUE)),
                       'CHL_scaled' = unname(quantile(PLD$CHL_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
                       'CDOM_scaled' = unname(quantile(PLD$CDOM_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
-                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)) * 1000,
                       'DOF' = unname(quantile(PLD$DOF, probs = c(0.01, 0.97), na.rm = TRUE)),
                       'OxyConc' = unname(quantile(PLD$OxyConc, probs = c(0.01, 0.97), na.rm = TRUE)),
                       'OxySat' = unname(quantile(PLD$OxySat, probs = c(0.01, 0.97), na.rm = TRUE)))
@@ -326,7 +374,7 @@ server <- function(input, output) {
                      'Dens' = 0.1,
                      'CHL_scaled' = 0.1,
                      'CDOM_scaled' = 0.1,
-                     'BB_scaled' = 0.0005,
+                     'BB_scaled' = 0.0005 * 100,
                      'DOF' = 100,
                      'OxyConc' = 0.5,
                      'OxySat' = 1)
@@ -558,6 +606,7 @@ server <- function(input, output) {
              mar=marcm)
         lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
+        if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
         grid()
         } else {
           #par(mar = marcm)
@@ -568,6 +617,7 @@ server <- function(input, output) {
                mar=marcm)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
+          if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
           grid()
         }
 
@@ -673,7 +723,7 @@ server <- function(input, output) {
                        'Dens' = PLD$SigTheta,
                        'CHL_scaled' = PLD$CHL_scaled,
                        'CDOM_scaled' = PLD$CDOM_scaled,
-                       'BB_scaled' = PLD$BB_scaled,
+                       'BB_scaled' = PLD$BB_scaled * 1000,
                        'DOF' = PLD$DOF,
                        'OxyConc' = PLD$OxyConc,
                        'OxySat' = PLD$OxySat)
@@ -683,11 +733,11 @@ server <- function(input, output) {
                        'Sal' = resizableLabel('S', axis = 'y'),
                        'Cond' = resizableLabel('conductivity S/m', axis = 'y'),
                        'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
-                       'CHL_scaled' = 'Chlorophyll',
-                       'CDOM_scaled' = 'CDOM',
-                       'BB_scaled' = 'Backscatter',
+                       'CHL_scaled' = expression(paste('Chlorophyll [', mu, 'g/l]')),
+                       'CDOM_scaled' = expression(paste('CDOM [ppb]')),
+                       'BB_scaled' = expression(paste('Backscatter [', 10^3, '/ m sr]')),
                        'DOF' = 'Dissolved Oxygen [Hz]',
-                       'OxyConc' = resizableLabel('oxygen mL/L', axis = 'y'),
+                       'OxyConc' = 'Oxygen [ml/l]',
                        'OxySat' = 'Oxygen Saturation [%]')
         cm <- colormap(data, zlim = input$sciLimits)
         ylabp <- resizableLabel('p', axis = 'y')
@@ -723,19 +773,33 @@ server <- function(input, output) {
     # leaflet map plot
 
     # map groups
-    map_allposition <- "All Positions"
-    map_track <- "Glider Track"
-    map_lastlocation <- "Last received location"
-    map_kml <- "Positions from KML"
-    map_track_kml <- "Glider Track KML"
+    map_allposition <- "Glider positions"
+    map_track <- "Glider track"
+    #map_lastlocation <- "Last received location"
+    map_kml <- "KML track and positions"
+    map_piloting <- "Piloting waypoints"
+    map_desiredHeading <- "Desired heading"
+    #map_track_kml <- "Glider Track KML"
     ## okloc <- PLD$Lat > 0
     ## glon <- PLD$Lon[okloc]
     ## glat <- PLD$Lat[okloc]
-    okloc <- glider$Lat > 0
+    #okloc <- glider$Lat > 0 # commented out 20181015
     #glon <- unique(glider$Lon[okloc])
     #glat <- unique(glider$Lat[okloc])
-
-
+    # remove 0,0 location 20181015
+    okloc <- glat > 0
+    glon <- glon[okloc]
+    glat <- glat[okloc]
+    gdeshead <- gdeshead[okloc]
+    gdesheadpolar <- compass2polar(theta = gdeshead)
+    if(all(is.na(gdesheadpolar))){
+      gdesheadpolar <- rep(0, length(gdeshead))
+    }
+    # get coordinates to show desired heading on map 
+    df <- arrowShaftCoordinates(longitude = glon, 
+                      latitude = glat, 
+                      phi = gdesheadpolar,
+                      L = 2)
       map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
@@ -758,63 +822,72 @@ server <- function(input, output) {
                    primaryAreaUnit = "hectares",
                    secondaryAreaUnit="acres",
                    position = 'bottomleft') %>%
-
-        # shipping lanes
+                # map_piloting
+          # shipping lanes
         addPolylines(lng = d1A$lon, lat = d1A$lat,
                     col = 'purple',
-                    weight = 3)%>%
+                    weight = 3,
+                    group = map_piloting)%>%
         addPolylines(lng = d1C1B$lon, lat = d1C1B$lat,
                      col = 'purple',
-                     weight = 3)%>%
+                     weight = 3,
+                     group = map_piloting)%>%
         addPolylines(lng = d1E$lon, lat = d1E$lat,
                      col = 'purple',
-                     weight = 3)%>%
+                     weight = 3,
+                     group = map_piloting)%>%
         addPolylines(lng = d1F$lon, lat = d1F$lat,
                      col = 'purple',
-                     weight = 3)%>%
-        # shipping lane zones
+                     weight = 3,
+                     group = map_piloting)%>%
+          # shipping lane zones
         addPolygons(lng = d1A1Bzone$lon, lat = d1A1Bzone$lat,
                     col = 'pink',
                     stroke = FALSE,
-                    fillOpacity = 0.7)%>%
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
         addPolygons(lng = d1B1Czone$lon, lat = d1B1Czone$lat,
                     col = 'pink',
                     stroke = FALSE,
-                    fillOpacity = 0.7)%>%
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
         addPolygons(lng = d2C2Dzone$lon, lat = d2C2Dzone$lat,
                     col = 'pink',
                     stroke = FALSE,
-                    fillOpacity = 0.7)%>%
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
         addPolygons(lng = d1E1Fzone$lon, lat = d1E1Fzone$lat,
                     col = 'pink',
-                    fillOpacity = 0.7)%>%
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
         addPolygons(lng = d3C3Dzone$lon, lat = d3C3Dzone$lat,
                     col = 'pink',
-                    fillOpacity = 0.7)%>%
+                    fillOpacity = 0.7,
+                    group = map_piloting)%>%
 
-        # deployment/recovery location
-        addCircleMarkers(lng = drlon, lat = drlat,
-                         radius = 5, fillOpacity = .4, stroke = F,
-                         color = 'black',
+          # deployment/recovery location
+        addMarkers(lng = drlon, lat = drlat,
+                         #radius = 7, fillOpacity = .4, stroke = F,
+                         #color = 'purple',
+                         icon = returnIcon,
                          popup = paste(sep = "<br/>",
                                        "Deployment/Recovery Location",
                                        paste0(as.character(round(drlat,4)), ',', as.character(round(drlon,4)))),
-                         label = paste0("Deployment/Recovery Location"))%>%
-        # halifax line
-        addCircleMarkers(lng = hfxlon, lat = hfxlat,
-                         radius = 5, fillOpacity = .4, stroke = F,
-                         color = 'black',
+                         label = paste0("Deployment/Recovery Location"),
+                         group = map_piloting)%>%
+          # piloting waypoints
+        addMarkers(lng = gllon, lat = gllat,
+                         #radius = 7, fillOpacity = .4, stroke = F,
+                         #color = 'purple',
+                         icon = returnIcon,
                          popup = paste(sep = "<br/>",
-                                       #paste0("HL", as.character(1:7)),
-                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"),
-                                       paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
-                        # label = paste0("HL", 1:7))
-                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3"))%>%
-        #line track
-        addPolylines(lng = glon, lat = glat,
-                     weight = 2,
-                     group = map_track) %>%        
-        # glider positions
+                                       paste0('GL', c(1,2,3,4)),
+                                       paste0(as.character(round(gllat,4)), ',', as.character(round(gllon,3)))),
+                         label = paste0('GL', c(1,2,3,4)),
+                         group = map_piloting) %>%
+        
+        # map_allposition
+          # glider positions
         addCircleMarkers(lng = glon, lat = glat,
                          radius = 6, fillOpacity = .6, stroke = F,
                          popup = paste(sep = "<br/>",
@@ -822,8 +895,25 @@ server <- function(input, output) {
                                        as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC')),
                                        paste0(as.character(round(glat,4)), ', ', as.character(round(glon,4)))),
                          label = paste0('Glider position: ', as.character(as.POSIXct(profileTimes, origin = '1970-01-01', tz = 'UTC'))),
-                         group = map_allposition)%>%
-        # positions from kml
+                         group = map_allposition) %>%
+          # desired heading of glider
+          # syntax is kinda weird, but leaflet doesn't like for loops
+        {
+          for(i in unique(df$group)){
+            . <- addPolylines(., lng = df$longitude[df$group == i],
+                                 lat = df$latitude[df$group == i],
+                              group = map_desiredHeading,
+                              weight = 2)
+              }
+            return (.)
+        } %>%
+        # map_track
+          #line track
+        addPolylines(lng = glon, lat = glat,
+                     weight = 2,
+                     group = map_track) %>%
+        #map_kml
+          # positions from kml
         addCircleMarkers(lng = kmlLon, lat = kmlLat,
                          radius = 4, fillOpacity = .4, stroke = F,
                          color = 'red',
@@ -833,22 +923,12 @@ server <- function(input, output) {
                                        paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
                          label = paste0('Glider position kml: ', 1:length(kmlLat)),
                          group = map_kml)%>%
-        #line track for kml
+          # line track for kml
         addPolylines(lng = kmlLon, lat = kmlLat,
                      col = 'red',
                      weight = 2,
-                     group = map_track_kml) %>%
-        # last received / current location
-        addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
-                         radius = 6, fillOpacity = 1, stroke = F,
-                         popup = paste(sep = "<br/>",
-                                       "Lastest location received from nav file",
-                                       as.character(PLD$timesci[okloc][length(glon)]),
-                                       paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
-                         label = paste0("Last location received from nav file:", as.character(glider$time[okloc][length(glon)])),
-                         color = 'green',
-                         group = map_lastlocation) %>%
-        # latest position from kml
+                     group = map_kml) %>%
+          # latest position from kml
         addCircleMarkers(lng = kmlLon[length(kmlLat)], lat = kmlLat[length(kmlLat)],
                          radius = 6, fillOpacity = 1, stroke = F,
                          color = 'green',
@@ -858,13 +938,46 @@ server <- function(input, output) {
                                        paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
                          label = paste0('Latest glider position from kml: ', length(kmlLat)),
                          group = map_kml)%>%
+
+        # group-less map items
+          # halifax line
+        addCircleMarkers(lng = hfxlon, lat = hfxlat,
+                         radius = 7, fillOpacity = 0.5, stroke = F,
+                         color = 'gray48',
+                         popup = paste(sep = "<br/>",
+                                       #paste0("HL", as.character(1:7)),
+                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"),
+                                       paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
+                        # label = paste0("HL", 1:7))
+                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"))%>%
+          # bonavista line
+        addCircleMarkers(lng = bblon, lat = bblat,
+                         radius = 7, fillOpacity = 0.5, stroke = F,
+                         color = 'gray48',
+                         popup = paste(sep = "<br/>",
+                                       paste0('BB', seq(1,15)),
+                                       paste0(as.character(round(bblat, 4)), ',', as.character(round(bblon, 3)))),
+                         label = paste0('BB', seq(1,15)))%>%
+          # last received / current location
+        addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
+                         radius = 6, fillOpacity = 1, stroke = F,
+                         popup = paste(sep = "<br/>",
+                                       "Lastest location received from nav file",
+                                       as.character(profileTimes[length(glon)]),
+                                       paste0(as.character(round(glat[length(glon)],4)), ', ', as.character(round(glon[length(glon)],4)))),
+                         label = paste0("Last location received from nav file:", as.character(profileTimes[length(glon)])),
+                         color = 'green') %>%
+                         #group = map_lastlocation) %>%
+
         # layer control legend
         addLayersControl(overlayGroups = c(map_allposition,
                                            map_track,
-                                           map_lastlocation,
+                                           #map_lastlocation,
                                            map_kml,
-                                           map_track_kml),
-                         options = layersControlOptions(collapsed = FALSE),
+                                           map_piloting,
+                                           map_desiredHeading),
+                                           #map_track_kml),
+                         options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
