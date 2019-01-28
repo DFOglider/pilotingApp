@@ -92,8 +92,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time[time < as.POSIXct('2010-01-01')] <- NA
   
   #remove 2018-07-12 dates after firmware
-  gliderfirmname <- c('SEA024', 'SEA032')
-  gliderfirmmiss <- c(29, 23)
+  gliderfirmname <- c('SEA019', 'SEA021', 'SEA022', 'SEA024', 'SEA032')
+  gliderfirmmiss <- c(54, 39, 32, 29, 23)
   missionnum <- strsplit(mission, split = 'M')[[1]][2]
   for(i in 1:length(gliderfirmname)){
     if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
