@@ -80,7 +80,7 @@ ui <- fluidPage(
   titlePanel("Glider Data"),
 
   fluidRow(
-    column(2, wellPanel(
+      column(2, wellPanel(
          selectInput(inputId = 'Glider',
                      label = 'Choose a glider',
                      choices = gliderdirnames), #gliderdirnames from downloadData.R
