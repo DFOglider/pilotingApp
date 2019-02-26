@@ -7,6 +7,7 @@ library(leaflet)
 library(RCurl)
 library(geosphere)
 library(XML)
+load('sx_spline.rda')
 data(ctd) # for initial plotProfile tests, delete later
 options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc
 
@@ -91,7 +92,7 @@ ui <- fluidPage(
   titlePanel("Glider Data"),
 
   fluidRow(
-    column(2, wellPanel(
+      column(2, wellPanel(
          selectInput(inputId = 'Glider',
                      label = 'Choose a glider',
                      choices = gliderdirnames), #gliderdirnames from downloadData.R
@@ -123,6 +124,7 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
+                              'Battery Percentage'='BatteriePerc',
                               'Internal Temperature'='Temperature',
                               'Internal Pressure'='int_pres',
                               'Distance'='distkm',
@@ -553,6 +555,27 @@ server <- function(input, output) {
                xlab='Time',ylab='',type='n',
                mar=marcm)
           polygon(c(glider$time,rev(glider$time)),c(rep(24,length(glider$time)),rep(26,length(glider$time))),col=gray(0.8),border=NA)
+          lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
+          grid()
+        }
+
+      } else if (input$NavVar=='BatteriePerc') {
+        if (is.null(state$xlim)) {
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
+             ylim=c(0, 100),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
+polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx(26),length(glider$time))),col=gray(0.8),border=NA)
+        lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
+        grid()
+        } else {
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
+               ylim=c(0, 100),
+               xlim=state$xlim,
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
+polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx(26),length(glider$time))),col=gray(0.8),border=NA)
           lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
           grid()
         }
