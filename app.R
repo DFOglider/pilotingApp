@@ -26,6 +26,9 @@ data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
                        iconHeight = 13)
+mooringIcon <- makeIcon(iconUrl = 'icon2.bmp',
+                        iconWidth = 20,
+                        iconHeight = 20)
 # convert lat long to decimal
 # from readSeaExplorerRealTime.R
 conv <- function(x) {
@@ -42,6 +45,14 @@ conv <- function(x) {
 
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
+
+# NSCM location
+nscmlon <- conv(-6309.7860)
+nscmlat <- conv(4414.73)
+
+# HFX viking buoy
+hfxviklon <- conv(-6318.40)
+hfxviklat <- conv(4420.85)
 
 #deployment/recovery location
 drlon <- -63.406418
@@ -891,6 +902,19 @@ server <- function(input, output) {
                          color = 'red',
                          stroke = FALSE,
                          group = map_msn)%>%
+          # nscm and viking buoy
+        addMarkers(lng = nscmlon, lat = nscmlat,
+                   icon = mooringIcon,
+                   popup = paste(sep = "<br/>",
+                                 "Nova Scotia Current Mooring"),
+                   label = paste0("Nova Scotia Current Mooring"),
+                   group = map_piloting) %>%
+        addMarkers(lng = hfxviklon, lat = hfxviklat,
+                   icon = mooringIcon,
+                   popup = paste(sep = "<br/>",
+                                 "HFX Viking Buoy"),
+                   label = paste0("HFX Viking Buoy"),
+                   group = map_piloting) %>%
           # deployment/recovery location
         addMarkers(lng = drlon, lat = drlat,
                          #radius = 7, fillOpacity = .4, stroke = F,
