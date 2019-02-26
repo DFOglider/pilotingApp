@@ -7,7 +7,7 @@ plot(.5, .5, pch = 15, col = 'black', cex = min(width, height) / 8,
      bty = 'n', axes = FALSE, ylab = '', xlab = '', type = 'p')
 dev.off()
 
-f <- 'icon2.bmp'
+f <- 'icon2.tif'
 width <- 50
 height <- 50
 tiff(f, width = width, height = height, bg = 'transparent', type = 'cairo')

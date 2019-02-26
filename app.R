@@ -27,7 +27,7 @@ data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
                        iconHeight = 13)
-mooringIcon <- makeIcon(iconUrl = 'icon2.bmp',
+mooringIcon <- makeIcon(iconUrl = 'icon2.tif',
                         iconWidth = 20,
                         iconHeight = 20)
 # convert lat long to decimal
