@@ -7,8 +7,8 @@ datadir <- "./data"
 # url for glider ftp site
 # directory structure as of 2018-03-14: /realData/gliderNames/MissionNumbers/dataFiles
 # e.g /realData/SEA019/M28/sea019.28.gli.sub.2.gz
-## url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
-url <- 'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider'
+url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
+###url <- 'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider'
 dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
 dirnamess <- strsplit(dirs, "\r*\n")[[1]]
 
