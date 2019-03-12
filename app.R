@@ -158,55 +158,55 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar')),
-        #conditionalPanels for profileplots
-        conditionalPanel(
-          condition = "input.tabs == 'Profiles'",
-          # left profile plot data selection
-          selectInput(inputId = 'profile1var',
-                      label = 'Variable for left Profile:',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'temperature'),
-          # reset left profile plot button
-          actionButton('resetp1', 'Reset profile axes'),
-          # right profile plot data selection
-          selectInput(inputId = 'profile2var',
-                      label = 'Variable for right Profile :',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'salinity'),
-          # reset right profile plot button
-          # NOTE : not currently needed
-          #actionButton('resetp2', 'Reset right Profile'),
-          checkboxInput(inputId = 'dncstp1',
-                        label = 'Downcasts',
-                        value = TRUE),
-          checkboxInput(inputId = 'upcstp1',
-                        label = 'Upcasts',
-                        value = FALSE),
-          uiOutput(outputId = 'numDncst'),
-          uiOutput(outputId = 'numUpcst'),
-          strong('Plot Profiles\n'),
-          uiOutput(outputId = 'rng1p1'),
-          uiOutput(outputId = 'rng2p1'),
-          actionButton("last10", "Last 10 profiles"),
-          actionButton("resetlast10", "Reset profiles")
-          ) #closes conditional panel for profile variable choices.
+            uiOutput('sciScaleBar'))
+        ## #conditionalPanels for profileplots
+        ## conditionalPanel(
+        ##   condition = "input.tabs == 'Profiles'",
+        ##   ## # left profile plot data selection
+        ##   selectInput(inputId = 'profile1var',
+        ##               label = 'Variable for left Profile:',
+        ##               choices = c('Temperature'='temperature',
+        ##                           'Conductivity'='conductivity',
+        ##                           'Salinity'='salinity',
+        ##                           'Density'='sigmaTheta',
+        ##                           'Oxygen Concentration' = 'oxygenConcentration',
+        ##                           'Oxygen Saturation' = 'oxygenSaturation',
+        ##                           'Chlorophyll'='chlorophyll',
+        ##                           'CDOM'='cdom',
+        ##                           'Backscatter'='backscatter'),
+        ##               selected = 'temperature')
+        ##   ## # reset left profile plot button
+        ##   ## actionButton('resetp1', 'Reset profile axes'),
+        ##   ## # right profile plot data selection
+        ##   ## selectInput(inputId = 'profile2var',
+        ##   ##             label = 'Variable for right Profile :',
+        ##   ##             choices = c('Temperature'='temperature',
+        ##   ##                         'Conductivity'='conductivity',
+        ##   ##                         'Salinity'='salinity',
+        ##   ##                         'Density'='sigmaTheta',
+        ##   ##                         'Oxygen Concentration' = 'oxygenConcentration',
+        ##   ##                         'Oxygen Saturation' = 'oxygenSaturation',
+        ##   ##                         'Chlorophyll'='chlorophyll',
+        ##   ##                         'CDOM'='cdom',
+        ##   ##                         'Backscatter'='backscatter'),
+        ##   ##             selected = 'salinity'),
+        ##   ## # reset right profile plot button
+        ##   ## # NOTE : not currently needed
+        ##   ## #actionButton('resetp2', 'Reset right Profile'),
+        ##   ## checkboxInput(inputId = 'dncstp1',
+        ##   ##               label = 'Downcasts',
+        ##   ##               value = TRUE),
+        ##   ## checkboxInput(inputId = 'upcstp1',
+        ##   ##               label = 'Upcasts',
+        ##   ##               value = FALSE),
+        ##   ## uiOutput(outputId = 'numDncst'),
+        ##   ## uiOutput(outputId = 'numUpcst'),
+        ##   ## strong('Plot Profiles\n'),
+        ##   ## uiOutput(outputId = 'rng1p1'),
+        ##   ## uiOutput(outputId = 'rng2p1'),
+        ##   ## actionButton("last10", "Last 10 profiles"),
+        ##   ## actionButton("resetlast10", "Reset profiles")
+        ##   ) #closes conditional panel for profile variable choices.
     ) #closes well panel
     ), # closes fluidRow
     # Main panel for displaying outputs ----
@@ -220,7 +220,22 @@ ui <- fluidPage(
                                             height="310px"),
                plotOutput("plot2", height="310px")),
       tabPanel("Map",
-        leafletOutput("map", height = '620px'))
+        leafletOutput("map", height = '620px')),
+      tabPanel("TS",
+               fluidRow(
+                   column(6,
+                  plotOutput("plot1", dblclick="plot_click",
+                             brush = brushOpts(id = 'plot_brush',
+                                               direction = 'x',
+                                               resetOnNew = TRUE),
+                             height = '310px'
+                             #width = '450px'
+                             )),
+                 column(6,
+                  plotOutput("TS",
+                             height = '620px'
+                             #width = '450px'
+                             ))))
       # Q : Fixed width for profiles or fluid ?
       # tabPanel("Profiles",
       #          fluidRow(
@@ -1057,6 +1072,14 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
+    output$TS  <- renderPlot({
+        if (is.null(state$xlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+        } else {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+        }
+    })
+    
     # output$profile1 <- renderPlot({
     #   # can't use oce plotProfile due to its restrictions on
     #   # providing limits for variables, i.e, cannot supply
