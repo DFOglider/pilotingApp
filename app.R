@@ -222,20 +222,17 @@ ui <- fluidPage(
       tabPanel("Map",
         leafletOutput("map", height = '620px')),
       tabPanel("TS",
-               fluidRow(
-                   column(6,
-                  plotOutput("plot1", dblclick="plot_click",
+                  plotOutput("plotpressure", dblclick="plot_click",
                              brush = brushOpts(id = 'plot_brush',
                                                direction = 'x',
                                                resetOnNew = TRUE),
                              height = '310px'
                              #width = '450px'
-                             )),
-                 column(6,
+                             ),
                   plotOutput("TS",
-                             height = '620px'
-                             #width = '450px'
-                             ))))
+                             height = '500px',
+                             width = '500px'
+                             ))
       # Q : Fixed width for profiles or fluid ?
       # tabPanel("Profiles",
       #          fluidRow(
@@ -1072,11 +1069,44 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
+    output$plotpressure <- renderPlot({
+      if (is.null(state$xlim)) {
+        #par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type="n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim= range(c(glider$time, PLD$timesci), na.rm = TRUE),
+                    ylab='Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      } else {
+        par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type = "n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim = state$xlim,
+                    ylab = 'Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      }
+    })
+    
     output$TS  <- renderPlot({
         if (is.null(state$xlim)) {
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1)
         } else {
             plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
         }
     })
     
