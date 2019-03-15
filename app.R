@@ -114,7 +114,9 @@ ui <- fluidPage(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
 
-
+        conditionalPanel(
+          condition = "input.tabs == 'TS'",
+          actionButton("resetTS", "Reset plot")),
 
          conditionalPanel(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'",
@@ -229,7 +231,10 @@ ui <- fluidPage(
                              height = '310px'
                              #width = '450px'
                              ),
-                  plotOutput("TS",
+                  plotOutput("TS", dblclick="plot_click_TS",
+                             brush = brushOpts(id = 'plot_brush_TS',
+                                               direction = 'xy',
+                                               resetOnNew = TRUE),
                              height = '500px',
                              width = '500px'
                              ))
@@ -1100,11 +1105,20 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
     })
     
     output$TS  <- renderPlot({
-        if (is.null(state$xlim)) {
+        if (is.null(state$xlim) & is.null(state$Tlim)) {
             plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1)
-        } else {
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+        } else if (is.null(state$xlim) & !is.null(state$Tlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1,
+                   Tlim=state$Tlim, Slim=state$Slim)
+        } else if (!is.null(state$xlim) & is.null(state$Tlim)) {
             II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
+        } else {
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey',
+                   Tlim=state$Tlim, Slim=state$Slim)
             plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
                    add=TRUE)
         }
@@ -1284,6 +1298,10 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
+    observeEvent(input$plot_brush_TS, {
+        state$Tlim <- c(input$plot_brush_TS$ymin, input$plot_brush_TS$ymax)
+        state$Slim <- c(input$plot_brush_TS$xmin, input$plot_brush_TS$xmax)
+    })
     # reset plots
     # navigation section
     observeEvent(input$resetNav, {
@@ -1295,6 +1313,15 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+    })
+    observeEvent(input$resetTS, {
+        state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
+    })
+    observeEvent(input$plot_click_TS, {
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
     })
 
     # # profile1 plot
