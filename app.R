@@ -107,24 +107,24 @@ ui <- fluidPage(
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
                       label = 'Load data'),
-         
-         # conditional panel for plots tab
-         conditionalPanel(
-           condition = "input.tabs == 'Plots'",
-            selectInput(inputId="Var",
-                     label="Data Set:",
-                     choices=c('Navigation'='Navigation','Science'='Science'),
-                     selected = 'Navigation')
-         ),
-        #conditional panels for navigation in plots tab
-        conditionalPanel(
-          condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
-          actionButton("resetNav", "Reset plot")),
+         conditionalPanel("input.download != 0",
+                          # conditional panel for plots tab
+            conditionalPanel(
+            condition = "input.tabs == 'Plots'",
+              selectInput(inputId="Var",
+                       label="Data Set:",
+                       choices=c('Navigation'='Navigation','Science'='Science'),
+                       selected = 'Navigation')
+          ),
+          #conditional panels for navigation in plots tab
+          conditionalPanel(
+            condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
+            actionButton("resetNav", "Reset plot")),
 
-        conditionalPanel(
-          condition = "input.tabs == 'TS'",
-          actionButton("resetTS", "Reset plot")),
-
+          conditionalPanel(
+            condition = "input.tabs == 'TS'",
+            actionButton("resetTS", "Reset plot")),
+  
          conditionalPanel(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'",
           radioButtons(inputId = "NavVar",
@@ -216,6 +216,7 @@ ui <- fluidPage(
         ##   ## actionButton("last10", "Last 10 profiles"),
         ##   ## actionButton("resetlast10", "Reset profiles")
         ##   ) #closes conditional panel for profile variable choices.
+         ) # closes download button conditionalPanel
         ) # closes ftp button conditionalPanel
 
     ) #closes well panel
