@@ -7,25 +7,29 @@ datadir <- "./data"
 # url for glider ftp site
 # directory structure as of 2018-03-14: /realData/gliderNames/MissionNumbers/dataFiles
 # e.g /realData/SEA019/M28/sea019.28.gli.sub.2.gz
-## url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
-url <- 'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider'
-dirs <- getURL(paste(url,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
-dirnamess <- strsplit(dirs, "\r*\n")[[1]]
+#url <- 'ftp://ftp.dfo-mpo.gc.ca/glider'
+#url <- 'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider'
 
-okdir <- which(dirnamess == 'realData')
+getGliderNames <- function(ftpUrl){
+  dirs <- getURL(paste(ftpUrl,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  dirnamess <- strsplit(dirs, "\r*\n")[[1]]
+  okdir <- which(dirnamess == 'realData')
+  dirnames <- dirnamess[okdir]
+  #get directories for gliders
+  gliderdirs <- getURL(paste(ftpUrl, 
+                            dirnames,
+                            '', sep ="/"),
+                      ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  gliderdirnames <- strsplit(gliderdirs, "\r*\n")[[1]]
+  gdnok <- grepl(pattern = 'SEA0[0-9][0-9]', x = gliderdirnames) #find glider directories
+  gliderdirnames <- gliderdirnames[gdnok]
+  gliderdirnames
+}
 
-dirnames <- dirnamess[okdir]
-#get directories for gliders
-gliderdirs <- getURL(paste(url, 
-                           dirnames,
-                           '', sep ="/"),
-                     ftp.use.epsv = FALSE, dirlistonly = TRUE)
-gliderdirnames <- strsplit(gliderdirs, "\r*\n")[[1]]
-gdnok <- grepl(pattern = 'SEA0[0-9][0-9]', x = gliderdirnames) #find glider directories
-gliderdirnames <- gliderdirnames[gdnok]
 
-getMissions <- function(glider){
-  missiondirs <-  getURL(paste(url, 
+
+getMissions <- function(ftpUrl, glider){
+  missiondirs <-  getURL(paste(ftpUrl, 
                                dirnames, 
                                glider,
                                '', sep ="/"), 
@@ -35,7 +39,7 @@ getMissions <- function(glider){
   missiondirnames[grepl(pattern = "^M[0-9][0-9]$", x = missiondirnames)]
 }
 
-downloadData <- function(datadir, glider, mission){
+downloadData <- function(ftpUrl, datadir, glider, mission){
   savedir <- paste(datadir, glider, mission,'', sep='/')
   # check if savedir exists, if not, create it
   if(!dir.exists(savedir)){
@@ -44,7 +48,7 @@ downloadData <- function(datadir, glider, mission){
   # get existing files
   existing_files <- list.files(path = savedir)
   # get files for the glider and mission from ftp
-  filepath <- paste(url, 
+  filepath <- paste(ftpUrl, 
                     dirnames, 
                     glider, 
                     mission, 
@@ -59,7 +63,7 @@ downloadData <- function(datadir, glider, mission){
   # download nav and pld files
   if(length(files_to_get) != 0){
     for (file in files_to_get){
-      download.file(url = paste(url,
+      download.file(url = paste(ftpUrl,
                                 dirnames,
                                 glider,
                                 mission,
@@ -73,7 +77,7 @@ downloadData <- function(datadir, glider, mission){
   
   kml <- filenames[grep(pattern = '*.trk.kml', x = filenames)]
   # download kml file, downloads everytime
-  download.file(url = paste(url,
+  download.file(url = paste(ftpUrl,
                             dirnames,
                             glider,
                             mission,
@@ -84,7 +88,7 @@ downloadData <- function(datadir, glider, mission){
                                  sep=''))
   # msn file, in directory above data files
   msavedir <- paste(datadir, glider,'', sep='/')
-  msnpath <- paste(url, 
+  msnpath <- paste(ftpUrl, 
                     dirnames, 
                     glider, 
                     '', 
@@ -94,7 +98,7 @@ downloadData <- function(datadir, glider, mission){
   mfilenames <- strsplit(mfiles, "\r*\n")[[1]]
   msn <- mfilenames[grep(pattern = paste0(glider,mission,'.msn'), x = mfilenames)]
   if(length(msn) != 0){
-    download.file(url = paste(url,
+    download.file(url = paste(ftpUrl,
                               dirnames,
                               glider,
                               msn,

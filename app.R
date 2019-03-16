@@ -78,14 +78,11 @@ bblat <- c(48.7300, 48.800, 48.833, 48.917, 49.025, 49.100, 49.190, 49.280, 49.3
 # halifax shipping lane boundaries
 load('shippingBoundaries.rda')
 
-# set names of gliders from gliderdirnames
-glidernames <- unlist(lapply(gliderdirnames, function(k) ifelse(k == 'SEA019', 'SEA019 - Mira',
-                                                                ifelse(k == 'SEA021', 'SEA021 - Skye',
-                                                                       ifelse(k == 'SEA022', 'SEA022 - Mersey',
-                                                                              ifelse(k == 'SEA024', 'SEA024 - Margaree',
-                                                                                     ifelse(k == 'SEA032', 'SEA032 - LaHave', k)))))))
-
-names(gliderdirnames) <- glidernames
+# define ftp urls
+ftpUrl <- c('ftp://ftp.dfo-mpo.gc.ca/glider',
+             'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider')
+ftpUrlNames <- c('DFO', 'DAL')
+names(ftpUrl) <- ftpUrlNames
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
 
@@ -94,13 +91,23 @@ ui <- fluidPage(
 
   fluidRow(
       column(2, wellPanel(
-         selectInput(inputId = 'Glider',
-                     label = 'Choose a glider',
-                     choices = gliderdirnames), #gliderdirnames from downloadData.R
+        selectInput(inputId = 'ftp',
+                    label = 'Choose an ftp site',
+                    choices = ftpUrl),
+        actionButton(inputId = 'ftpChoice',
+                     label = 'Go !'),
+        # once ftp button clicked, then everything else
+        # pops up
+        conditionalPanel(
+          condition = "input.ftpChoice != 0",
+          uiOutput(outputId = 'Gliders'),
+          # selectInput(inputId = 'Glider',
+          #            label = 'Choose a glider',
+          #            choices = gliderdirnames), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
-                      label = 'Download and load data'),
-
+                      label = 'Load data'),
+         
          # conditional panel for plots tab
          conditionalPanel(
            condition = "input.tabs == 'Plots'",
@@ -209,6 +216,8 @@ ui <- fluidPage(
         ##   ## actionButton("last10", "Last 10 profiles"),
         ##   ## actionButton("resetlast10", "Reset profiles")
         ##   ) #closes conditional panel for profile variable choices.
+        ) # closes ftp button conditionalPanel
+
     ) #closes well panel
     ), # closes fluidRow
     # Main panel for displaying outputs ----
@@ -266,19 +275,39 @@ ui <- fluidPage(
 # Define server
 server <- function(input, output) {
   state <- reactiveValues()
-
-  # select input for mission based on selected glider
-  output$Missions <- renderUI({
-    missions <- getMissions(glider = input$Glider)
-    selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions,
-                selected=tail(missions, 1))
+  # put observe event when button for ftp choice
+  observeEvent(input$ftpChoice, {
+    output$Gliders <- renderUI({
+      gliders <- getGliderNames(ftpUrl = input$ftp)
+      # set names of gliders from gliderdirnames
+      glidernames <- unlist(lapply(gliders, function(k) ifelse(k == 'SEA019', 'SEA019 - Mira',
+                                                                      ifelse(k == 'SEA021', 'SEA021 - Skye',
+                                                                             ifelse(k == 'SEA022', 'SEA022 - Mersey',
+                                                                                    ifelse(k == 'SEA024', 'SEA024 - Margaree',
+                                                                                           ifelse(k == 'SEA032', 'SEA032 - LaHave', k)))))))
+      
+      names(gliders) <- glidernames
+       selectInput(inputId = 'Glider',
+                  label = 'Choose a glider',
+                  choices = gliders)
+    })
+    output$Missions <- renderUI({
+      missions <- getMissions(ftpUrl = input$ftp, glider = input$Glider)
+      selectInput(inputId = 'Mission', label = 'Choose a mission', choices = missions,
+                  selected=tail(missions, 1))
   })
+  })
+  # select input for mission based on selected glider
+
 
   # download data and load when actionButton clicked
   # make plots too
   observeEvent(input$download,{
     # download and process data
-    downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    downloadData(ftpUrl = input$ftp,
+                 datadir = datadir, 
+                 glider = input$Glider, 
+                 mission = input$Mission)
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission, saveRda=FALSE)
     PLD <- data$PLD
     glider <- data$NAV
