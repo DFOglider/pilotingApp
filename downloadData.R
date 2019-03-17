@@ -29,6 +29,10 @@ getGliderNames <- function(ftpUrl){
 
 
 getMissions <- function(ftpUrl, glider){
+  dirs <- getURL(paste(ftpUrl,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  dirnamess <- strsplit(dirs, "\r*\n")[[1]]
+  okdir <- which(dirnamess == 'realData')
+  dirnames <- dirnamess[okdir]
   missiondirs <-  getURL(paste(ftpUrl, 
                                dirnames, 
                                glider,
@@ -40,6 +44,10 @@ getMissions <- function(ftpUrl, glider){
 }
 
 downloadData <- function(ftpUrl, datadir, glider, mission){
+  dirs <- getURL(paste(ftpUrl,'', sep ="/"), ftp.use.epsv = FALSE, dirlistonly = TRUE)
+  dirnamess <- strsplit(dirs, "\r*\n")[[1]]
+  okdir <- which(dirnamess == 'realData')
+  dirnames <- dirnamess[okdir]
   savedir <- paste(datadir, glider, mission,'', sep='/')
   # check if savedir exists, if not, create it
   if(!dir.exists(savedir)){
