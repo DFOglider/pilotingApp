@@ -268,14 +268,16 @@ server <- function(input, output) {
     profileNumber <- unique(glider$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
-        profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
-        lon <- glider$Lon[which(profileNumber[pi] == glider$profileNumber)]
-        lat <- glider$Lat[which(profileNumber[pi] == glider$profileNumber)]
+      ok <- which(profileNumber[pi] == glider$profileNumber)
+        profileTimes <- c(profileTimes, glider$time[ok][1])
+        lon <- glider$Lon[ok]
+        lat <- glider$Lat[ok]
         oklon <- which(lon != 0)
         oklat <- which(lat != 0)
         glon <- c(glon, lon[oklon][1])
         glat <- c(glat, lat[oklat][1])
-        gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
+        heading <- glider$DesiredHeading[ok][1] - glider$Declination[ok][1] # what DH calls 'geographical' heading
+        gdeshead <- c(gdeshead, heading)
     }
     gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
@@ -662,6 +664,12 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
         if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
         grid()
+        legend('topleft',
+               lty = 1,
+               col = c('red', 'blue','darkgreen'),
+               legend = c('glider',
+                          'desired',
+                          'pog'))
         } else {
           #par(mar = marcm)
           #par(xaxs='i',yaxs='i')#tight
@@ -673,6 +681,12 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
           if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
           grid()
+          legend('topleft',
+                 lty = 1,
+                 col = c('red', 'blue','darkgreen'),
+                 legend = c('glider',
+                            'desired',
+                            'pog'))
         }
 
       } else if (input$NavVar=='BallastPos') {

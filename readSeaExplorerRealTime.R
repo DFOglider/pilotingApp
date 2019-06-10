@@ -128,6 +128,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     NavState=unlist(lapply(data_all, function(k) k$NavState)),
     alarm=unlist(lapply(data_all, function(k) k$SecurityLevel)),
     Heading=unlist(lapply(data_all, function(k) k$Heading)),
+    Declination = if("Declination" %in% names(data_all[[1]])) unlist(lapply(data_all, function(k) k$Declination)) else unlist(lapply(data_all, function(k) rep(0, length(k$Heading)))),
     Pitch=unlist(lapply(data_all, function(k) k$Pitch)),
     Roll=unlist(lapply(data_all, function(k) k$Roll)),
     Temperature=unlist(lapply(data_all, function(k) k$Temperature)),
