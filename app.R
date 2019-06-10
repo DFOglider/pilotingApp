@@ -114,7 +114,9 @@ ui <- fluidPage(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
 
-
+        conditionalPanel(
+          condition = "input.tabs == 'TS'",
+          actionButton("resetTS", "Reset plot")),
 
          conditionalPanel(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'",
@@ -158,55 +160,55 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar')),
-        #conditionalPanels for profileplots
-        conditionalPanel(
-          condition = "input.tabs == 'Profiles'",
-          # left profile plot data selection
-          selectInput(inputId = 'profile1var',
-                      label = 'Variable for left Profile:',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'temperature'),
-          # reset left profile plot button
-          actionButton('resetp1', 'Reset profile axes'),
-          # right profile plot data selection
-          selectInput(inputId = 'profile2var',
-                      label = 'Variable for right Profile :',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'salinity'),
-          # reset right profile plot button
-          # NOTE : not currently needed
-          #actionButton('resetp2', 'Reset right Profile'),
-          checkboxInput(inputId = 'dncstp1',
-                        label = 'Downcasts',
-                        value = TRUE),
-          checkboxInput(inputId = 'upcstp1',
-                        label = 'Upcasts',
-                        value = FALSE),
-          uiOutput(outputId = 'numDncst'),
-          uiOutput(outputId = 'numUpcst'),
-          strong('Plot Profiles\n'),
-          uiOutput(outputId = 'rng1p1'),
-          uiOutput(outputId = 'rng2p1'),
-          actionButton("last10", "Last 10 profiles"),
-          actionButton("resetlast10", "Reset profiles")
-          ) #closes conditional panel for profile variable choices.
+            uiOutput('sciScaleBar'))
+        ## #conditionalPanels for profileplots
+        ## conditionalPanel(
+        ##   condition = "input.tabs == 'Profiles'",
+        ##   ## # left profile plot data selection
+        ##   selectInput(inputId = 'profile1var',
+        ##               label = 'Variable for left Profile:',
+        ##               choices = c('Temperature'='temperature',
+        ##                           'Conductivity'='conductivity',
+        ##                           'Salinity'='salinity',
+        ##                           'Density'='sigmaTheta',
+        ##                           'Oxygen Concentration' = 'oxygenConcentration',
+        ##                           'Oxygen Saturation' = 'oxygenSaturation',
+        ##                           'Chlorophyll'='chlorophyll',
+        ##                           'CDOM'='cdom',
+        ##                           'Backscatter'='backscatter'),
+        ##               selected = 'temperature')
+        ##   ## # reset left profile plot button
+        ##   ## actionButton('resetp1', 'Reset profile axes'),
+        ##   ## # right profile plot data selection
+        ##   ## selectInput(inputId = 'profile2var',
+        ##   ##             label = 'Variable for right Profile :',
+        ##   ##             choices = c('Temperature'='temperature',
+        ##   ##                         'Conductivity'='conductivity',
+        ##   ##                         'Salinity'='salinity',
+        ##   ##                         'Density'='sigmaTheta',
+        ##   ##                         'Oxygen Concentration' = 'oxygenConcentration',
+        ##   ##                         'Oxygen Saturation' = 'oxygenSaturation',
+        ##   ##                         'Chlorophyll'='chlorophyll',
+        ##   ##                         'CDOM'='cdom',
+        ##   ##                         'Backscatter'='backscatter'),
+        ##   ##             selected = 'salinity'),
+        ##   ## # reset right profile plot button
+        ##   ## # NOTE : not currently needed
+        ##   ## #actionButton('resetp2', 'Reset right Profile'),
+        ##   ## checkboxInput(inputId = 'dncstp1',
+        ##   ##               label = 'Downcasts',
+        ##   ##               value = TRUE),
+        ##   ## checkboxInput(inputId = 'upcstp1',
+        ##   ##               label = 'Upcasts',
+        ##   ##               value = FALSE),
+        ##   ## uiOutput(outputId = 'numDncst'),
+        ##   ## uiOutput(outputId = 'numUpcst'),
+        ##   ## strong('Plot Profiles\n'),
+        ##   ## uiOutput(outputId = 'rng1p1'),
+        ##   ## uiOutput(outputId = 'rng2p1'),
+        ##   ## actionButton("last10", "Last 10 profiles"),
+        ##   ## actionButton("resetlast10", "Reset profiles")
+        ##   ) #closes conditional panel for profile variable choices.
     ) #closes well panel
     ), # closes fluidRow
     # Main panel for displaying outputs ----
@@ -220,7 +222,22 @@ ui <- fluidPage(
                                             height="310px"),
                plotOutput("plot2", height="310px")),
       tabPanel("Map",
-        leafletOutput("map", height = '620px'))
+        leafletOutput("map", height = '620px')),
+      tabPanel("TS",
+                  plotOutput("plotpressure", dblclick="plot_click",
+                             brush = brushOpts(id = 'plot_brush',
+                                               direction = 'x',
+                                               resetOnNew = TRUE),
+                             height = '310px'
+                             #width = '450px'
+                             ),
+                  plotOutput("TS", dblclick="plot_click_TS",
+                             brush = brushOpts(id = 'plot_brush_TS',
+                                               direction = 'xy',
+                                               resetOnNew = TRUE),
+                             height = '500px',
+                             width = '500px'
+                             ))
       # Q : Fixed width for profiles or fluid ?
       # tabPanel("Profiles",
       #          fluidRow(
@@ -1071,6 +1088,56 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
+    output$plotpressure <- renderPlot({
+      if (is.null(state$xlim)) {
+        #par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type="n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim= range(c(glider$time, PLD$timesci), na.rm = TRUE),
+                    ylab='Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      } else {
+        par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type = "n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim = state$xlim,
+                    ylab = 'Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      }
+    })
+    
+    output$TS  <- renderPlot({
+        if (is.null(state$xlim) & is.null(state$Tlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1)
+        } else if (is.null(state$xlim) & !is.null(state$Tlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1,
+                   Tlim=state$Tlim, Slim=state$Slim)
+        } else if (!is.null(state$xlim) & is.null(state$Tlim)) {
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
+        } else {
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey',
+                   Tlim=state$Tlim, Slim=state$Slim)
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
+        }
+    })
+    
     # output$profile1 <- renderPlot({
     #   # can't use oce plotProfile due to its restrictions on
     #   # providing limits for variables, i.e, cannot supply
@@ -1245,6 +1312,10 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
+    observeEvent(input$plot_brush_TS, {
+        state$Tlim <- c(input$plot_brush_TS$ymin, input$plot_brush_TS$ymax)
+        state$Slim <- c(input$plot_brush_TS$xmin, input$plot_brush_TS$xmax)
+    })
     # reset plots
     # navigation section
     observeEvent(input$resetNav, {
@@ -1256,6 +1327,15 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+    })
+    observeEvent(input$resetTS, {
+        state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
+    })
+    observeEvent(input$plot_click_TS, {
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
     })
 
     # # profile1 plot
