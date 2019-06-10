@@ -60,9 +60,9 @@ hfxviklat <- conv(4420.85)
 drlon <- -63.406418
 drlat <- 44.520789
 
-# halifax line stations
-hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527, -61.8326)
-hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635, 42.9402)
+# halifax line stations (HL01 - HL07, HL3.3, HL5.5, HL6.3, HL6.7)
+hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527, -61.8326, -61.6167, -61.5167)
+hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635, 42.9402, 42.7333, 42.6183)
 
 # piloting waypoints
 gllondmm <- c(-6305.5912, -6241.3334, -6153.4760, -6317.2030)
@@ -1020,10 +1020,10 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
                          color = 'gray48',
                          popup = paste(sep = "<br/>",
                                        #paste0("HL", as.character(1:7)),
-                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"),
+                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5", "HL6.3", "HL6.7"),
                                        paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
                         # label = paste0("HL", 1:7))
-                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"))%>%
+                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5", "HL6.3", "HL6.7"))%>%
           # bonavista line
         addCircleMarkers(lng = bblon, lat = bblat,
                          radius = 7, fillOpacity = 0.5, stroke = F,
