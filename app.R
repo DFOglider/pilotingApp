@@ -7,6 +7,7 @@ library(leaflet)
 library(RCurl)
 library(geosphere)
 library(XML)
+load('sx_spline.rda')
 data(ctd) # for initial plotProfile tests, delete later
 options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc
 
@@ -26,6 +27,10 @@ data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
                        iconHeight = 13)
+
+mooringIcon <- makeIcon(iconUrl = 'anchor.png',
+                        iconWidth = 20,
+                        iconHeight = 20)
 # convert lat long to decimal
 # from readSeaExplorerRealTime.R
 conv <- function(x) {
@@ -43,13 +48,21 @@ conv <- function(x) {
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
 
+# NSCM location
+nscmlon <- conv(-6309.7860)
+nscmlat <- conv(4414.73)
+
+# HFX viking buoy
+hfxviklon <- conv(-6318.40)
+hfxviklat <- conv(4420.85)
+
 #deployment/recovery location
 drlon <- -63.406418
 drlat <- 44.520789
 
-# halifax line stations
-hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527, -61.8326)
-hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635, 42.9402)
+# halifax line stations (HL01 - HL07, HL3.3, HL5.5, HL6.3, HL6.7)
+hfxlon <- c(-63.450000, -63.317000, -62.883000, -62.451000, -62.098000, -61.733000, -61.393945, -62.7527, -61.8326, -61.6167, -61.5167)
+hfxlat <- c(44.400001, 44.267001, 43.883001, 43.479000, 43.183000, 42.850000, 42.531138, 43.7635, 42.9402, 42.7333, 42.6183)
 
 # piloting waypoints
 gllondmm <- c(-6305.5912, -6241.3334, -6153.4760, -6317.2030)
@@ -80,7 +93,7 @@ ui <- fluidPage(
   titlePanel("Glider Data"),
 
   fluidRow(
-    column(2, wellPanel(
+      column(2, wellPanel(
          selectInput(inputId = 'Glider',
                      label = 'Choose a glider',
                      choices = gliderdirnames), #gliderdirnames from downloadData.R
@@ -101,7 +114,9 @@ ui <- fluidPage(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
 
-
+        conditionalPanel(
+          condition = "input.tabs == 'TS'",
+          actionButton("resetTS", "Reset plot")),
 
          conditionalPanel(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'",
@@ -112,6 +127,7 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
+                              'Battery Percentage'='BatteriePerc',
                               'Internal Temperature'='Temperature',
                               'Internal Pressure'='int_pres',
                               'Distance'='distkm',
@@ -144,55 +160,55 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar')),
-        #conditionalPanels for profileplots
-        conditionalPanel(
-          condition = "input.tabs == 'Profiles'",
-          # left profile plot data selection
-          selectInput(inputId = 'profile1var',
-                      label = 'Variable for left Profile:',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'temperature'),
-          # reset left profile plot button
-          actionButton('resetp1', 'Reset profile axes'),
-          # right profile plot data selection
-          selectInput(inputId = 'profile2var',
-                      label = 'Variable for right Profile :',
-                      choices = c('Temperature'='temperature',
-                                  'Conductivity'='conductivity',
-                                  'Salinity'='salinity',
-                                  'Density'='sigmaTheta',
-                                  'Oxygen Concentration' = 'oxygenConcentration',
-                                  'Oxygen Saturation' = 'oxygenSaturation',
-                                  'Chlorophyll'='chlorophyll',
-                                  'CDOM'='cdom',
-                                  'Backscatter'='backscatter'),
-                      selected = 'salinity'),
-          # reset right profile plot button
-          # NOTE : not currently needed
-          #actionButton('resetp2', 'Reset right Profile'),
-          checkboxInput(inputId = 'dncstp1',
-                        label = 'Downcasts',
-                        value = TRUE),
-          checkboxInput(inputId = 'upcstp1',
-                        label = 'Upcasts',
-                        value = FALSE),
-          uiOutput(outputId = 'numDncst'),
-          uiOutput(outputId = 'numUpcst'),
-          strong('Plot Profiles\n'),
-          uiOutput(outputId = 'rng1p1'),
-          uiOutput(outputId = 'rng2p1'),
-          actionButton("last10", "Last 10 profiles"),
-          actionButton("resetlast10", "Reset profiles")
-          ) #closes conditional panel for profile variable choices.
+            uiOutput('sciScaleBar'))
+        ## #conditionalPanels for profileplots
+        ## conditionalPanel(
+        ##   condition = "input.tabs == 'Profiles'",
+        ##   ## # left profile plot data selection
+        ##   selectInput(inputId = 'profile1var',
+        ##               label = 'Variable for left Profile:',
+        ##               choices = c('Temperature'='temperature',
+        ##                           'Conductivity'='conductivity',
+        ##                           'Salinity'='salinity',
+        ##                           'Density'='sigmaTheta',
+        ##                           'Oxygen Concentration' = 'oxygenConcentration',
+        ##                           'Oxygen Saturation' = 'oxygenSaturation',
+        ##                           'Chlorophyll'='chlorophyll',
+        ##                           'CDOM'='cdom',
+        ##                           'Backscatter'='backscatter'),
+        ##               selected = 'temperature')
+        ##   ## # reset left profile plot button
+        ##   ## actionButton('resetp1', 'Reset profile axes'),
+        ##   ## # right profile plot data selection
+        ##   ## selectInput(inputId = 'profile2var',
+        ##   ##             label = 'Variable for right Profile :',
+        ##   ##             choices = c('Temperature'='temperature',
+        ##   ##                         'Conductivity'='conductivity',
+        ##   ##                         'Salinity'='salinity',
+        ##   ##                         'Density'='sigmaTheta',
+        ##   ##                         'Oxygen Concentration' = 'oxygenConcentration',
+        ##   ##                         'Oxygen Saturation' = 'oxygenSaturation',
+        ##   ##                         'Chlorophyll'='chlorophyll',
+        ##   ##                         'CDOM'='cdom',
+        ##   ##                         'Backscatter'='backscatter'),
+        ##   ##             selected = 'salinity'),
+        ##   ## # reset right profile plot button
+        ##   ## # NOTE : not currently needed
+        ##   ## #actionButton('resetp2', 'Reset right Profile'),
+        ##   ## checkboxInput(inputId = 'dncstp1',
+        ##   ##               label = 'Downcasts',
+        ##   ##               value = TRUE),
+        ##   ## checkboxInput(inputId = 'upcstp1',
+        ##   ##               label = 'Upcasts',
+        ##   ##               value = FALSE),
+        ##   ## uiOutput(outputId = 'numDncst'),
+        ##   ## uiOutput(outputId = 'numUpcst'),
+        ##   ## strong('Plot Profiles\n'),
+        ##   ## uiOutput(outputId = 'rng1p1'),
+        ##   ## uiOutput(outputId = 'rng2p1'),
+        ##   ## actionButton("last10", "Last 10 profiles"),
+        ##   ## actionButton("resetlast10", "Reset profiles")
+        ##   ) #closes conditional panel for profile variable choices.
     ) #closes well panel
     ), # closes fluidRow
     # Main panel for displaying outputs ----
@@ -206,7 +222,22 @@ ui <- fluidPage(
                                             height="310px"),
                plotOutput("plot2", height="310px")),
       tabPanel("Map",
-        leafletOutput("map", height = '620px'))
+        leafletOutput("map", height = '620px')),
+      tabPanel("TS",
+                  plotOutput("plotpressure", dblclick="plot_click",
+                             brush = brushOpts(id = 'plot_brush',
+                                               direction = 'x',
+                                               resetOnNew = TRUE),
+                             height = '310px'
+                             #width = '450px'
+                             ),
+                  plotOutput("TS", dblclick="plot_click_TS",
+                             brush = brushOpts(id = 'plot_brush_TS',
+                                               direction = 'xy',
+                                               resetOnNew = TRUE),
+                             height = '500px',
+                             width = '500px'
+                             ))
       # Q : Fixed width for profiles or fluid ?
       # tabPanel("Profiles",
       #          fluidRow(
@@ -254,14 +285,16 @@ server <- function(input, output) {
     profileNumber <- unique(glider$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
-        profileTimes <- c(profileTimes, glider$time[which(profileNumber[pi] == glider$profileNumber)][1])
-        lon <- glider$Lon[which(profileNumber[pi] == glider$profileNumber)]
-        lat <- glider$Lat[which(profileNumber[pi] == glider$profileNumber)]
+      ok <- which(profileNumber[pi] == glider$profileNumber)
+        profileTimes <- c(profileTimes, glider$time[ok][1])
+        lon <- glider$Lon[ok]
+        lat <- glider$Lat[ok]
         oklon <- which(lon != 0)
         oklat <- which(lat != 0)
         glon <- c(glon, lon[oklon][1])
         glat <- c(glat, lat[oklat][1])
-        gdeshead <- c(gdeshead, glider$DesiredHeading[which(profileNumber[pi] == glider$profileNumber)][1])
+        heading <- glider$DesiredHeading[ok][1] - glider$Declination[ok][1] # what DH calls 'geographical' heading
+        gdeshead <- c(gdeshead, heading)
     }
     gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
@@ -546,6 +579,27 @@ server <- function(input, output) {
           grid()
         }
 
+      } else if (input$NavVar=='BatteriePerc') {
+        if (is.null(state$xlim)) {
+        oce.plot.ts(glider$time, glider[[input$NavVar]],
+             ylim=c(0, 100),
+             xlim=range(c(glider$time, PLD$timesci), na.rm = TRUE),
+             xlab='Time',ylab='',type='n',
+             mar=marcm)
+polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx(26),length(glider$time))),col=gray(0.8),border=NA)
+        lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
+        grid()
+        } else {
+          oce.plot.ts(glider$time, glider[[input$NavVar]],
+               ylim=c(0, 100),
+               xlim=state$xlim,
+               xlab='Time',ylab='',type='n',
+               mar=marcm)
+polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx(26),length(glider$time))),col=gray(0.8),border=NA)
+          lines(glider$time, glider[[input$NavVar]],lwd = 2, col = "red")
+          grid()
+        }
+
       } else if (input$NavVar=='speedms') {
         if (is.null(state$xlim)) {
           #par(mar = marcm)
@@ -627,6 +681,12 @@ server <- function(input, output) {
         lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
         if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
         grid()
+        legend('topleft',
+               lty = 1,
+               col = c('red', 'blue','darkgreen'),
+               legend = c('glider',
+                          'desired',
+                          'pog'))
         } else {
           #par(mar = marcm)
           #par(xaxs='i',yaxs='i')#tight
@@ -638,6 +698,12 @@ server <- function(input, output) {
           lines(glider$time, glider$DesiredHeading,lwd = 2, col = "blue")
           if(exists('gbearing')) lines(bearingTime, gbearing, lwd = 2, col = "darkgreen")
           grid()
+          legend('topleft',
+                 lty = 1,
+                 col = c('red', 'blue','darkgreen'),
+                 legend = c('glider',
+                            'desired',
+                            'pog'))
         }
 
       } else if (input$NavVar=='BallastPos') {
@@ -891,6 +957,19 @@ server <- function(input, output) {
                          color = 'red',
                          stroke = FALSE,
                          group = map_msn)%>%
+          # nscm and viking buoy
+        addMarkers(lng = nscmlon, lat = nscmlat,
+                   icon = mooringIcon,
+                   popup = paste(sep = "<br/>",
+                                 "Nova Scotia Current Mooring"),
+                   label = paste0("Nova Scotia Current Mooring"),
+                   group = map_piloting) %>%
+        addMarkers(lng = hfxviklon, lat = hfxviklat,
+                   icon = mooringIcon,
+                   popup = paste(sep = "<br/>",
+                                 "HFX Viking Buoy"),
+                   label = paste0("HFX Viking Buoy"),
+                   group = map_piloting) %>%
           # deployment/recovery location
         addMarkers(lng = drlon, lat = drlat,
                          #radius = 7, fillOpacity = .4, stroke = F,
@@ -972,10 +1051,10 @@ server <- function(input, output) {
                          color = 'gray48',
                          popup = paste(sep = "<br/>",
                                        #paste0("HL", as.character(1:7)),
-                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"),
+                                       c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5", "HL6.3", "HL6.7"),
                                        paste0(as.character(round(hfxlat,4)), ',', as.character(round(hfxlon,3)))),
                         # label = paste0("HL", 1:7))
-                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5"))%>%
+                          label = c("HL1","HL2","HL3","HL4","HL5","HL6","HL7","HL3.3", "HL5.5", "HL6.3", "HL6.7"))%>%
           # bonavista line
         addCircleMarkers(lng = bblon, lat = bblat,
                          radius = 7, fillOpacity = 0.5, stroke = F,
@@ -1009,6 +1088,56 @@ server <- function(input, output) {
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
+    output$plotpressure <- renderPlot({
+      if (is.null(state$xlim)) {
+        #par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type="n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim= range(c(glider$time, PLD$timesci), na.rm = TRUE),
+                    ylab='Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      } else {
+        par(mar = marcm)
+        #par(xaxs='i',yaxs='i')#tight
+        oce.plot.ts(glider$time, glider$depth,
+                    type = "n",
+                    ylim=c(max(glider$altHit,na.rm = TRUE), -5),
+                    xlim = state$xlim,
+                    ylab = 'Depth (m)',xlab='Time',
+                    mar=marcm)
+        points(glider$time,glider$altHit,pch=20,cex = 1, col = "red")
+        points(glider$time, glider$depth, pch=20,cex = 1, col = "dark blue")
+        text(profileTimes, -2, as.character(profileNumber), cex=1)
+        grid()
+      }
+    })
+    
+    output$TS  <- renderPlot({
+        if (is.null(state$xlim) & is.null(state$Tlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1)
+        } else if (is.null(state$xlim) & !is.null(state$Tlim)) {
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1,
+                   Tlim=state$Tlim, Slim=state$Slim)
+        } else if (!is.null(state$xlim) & is.null(state$Tlim)) {
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
+        } else {
+            II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
+            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey',
+                   Tlim=state$Tlim, Slim=state$Slim)
+            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+                   add=TRUE)
+        }
+    })
+    
     # output$profile1 <- renderPlot({
     #   # can't use oce plotProfile due to its restrictions on
     #   # providing limits for variables, i.e, cannot supply
@@ -1183,6 +1312,10 @@ server <- function(input, output) {
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
+    observeEvent(input$plot_brush_TS, {
+        state$Tlim <- c(input$plot_brush_TS$ymin, input$plot_brush_TS$ymax)
+        state$Slim <- c(input$plot_brush_TS$xmin, input$plot_brush_TS$xmax)
+    })
     # reset plots
     # navigation section
     observeEvent(input$resetNav, {
@@ -1194,6 +1327,15 @@ server <- function(input, output) {
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+    })
+    observeEvent(input$resetTS, {
+        state$xlim <- range(c(glider$time, PLD$timesci), na.rm = TRUE)
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
+    })
+    observeEvent(input$plot_click_TS, {
+        state$Tlim <- range(PLD$Temp, na.rm = TRUE)
+        state$Slim <- range(PLD$Sal, na.rm = TRUE)
     })
 
     # # profile1 plot

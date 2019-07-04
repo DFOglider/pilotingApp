@@ -114,7 +114,11 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   alt<-unlist(lapply(data_all, function(k) k$Altitude))
   alt[alt<0]<-0
   altHit<-depth+alt
-  
+
+      ##calculate battery percentage using spline
+      load('sx_spline.rda')
+      batteryPerc <- sx(unlist(lapply(data_all, function(k) k$Voltage)))
+      
   # to put everything in a dataframe where all the dives are together
   NAV <- data.frame(
     profileNumber=profileNum,
@@ -124,6 +128,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     NavState=unlist(lapply(data_all, function(k) k$NavState)),
     alarm=unlist(lapply(data_all, function(k) k$SecurityLevel)),
     Heading=unlist(lapply(data_all, function(k) k$Heading)),
+    Declination = if("Declination" %in% names(data_all[[1]])) unlist(lapply(data_all, function(k) k$Declination)) else unlist(lapply(data_all, function(k) rep(0, length(k$Heading)))),
     Pitch=unlist(lapply(data_all, function(k) k$Pitch)),
     Roll=unlist(lapply(data_all, function(k) k$Roll)),
     Temperature=unlist(lapply(data_all, function(k) k$Temperature)),
@@ -137,6 +142,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     AngCmd=unlist(lapply(data_all, function(k) k$AngCmd)),
     AngPos=unlist(lapply(data_all, function(k) k$AngPos)),
     BatterieVolt=unlist(lapply(data_all, function(k) k$Voltage)),
+    BatteriePerc=batteryPerc,
     alt=unlist(lapply(data_all, function(k) k$Altitude)),
     Lat=conv(unlist(lapply(data_all, function(k) k$Lat))),
     Lon=conv(unlist(lapply(data_all, function(k) k$Lon)))
@@ -302,10 +308,15 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   cal <- oxycalib[[okcalib]]
   # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
   if (glider == 'SEA024' | glider == 'SEA021') {
-    if(PLD$timesci[1] > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+    #get first time idx, there was an instance of NA, so find first not na value
+    # do it just on first 10 values for now
+    t10 <- head(PLD$timesci, 10)
+    ok <- !is.na(t10)
+    t1 <- t10[ok][1]
+    if(t1 > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[2]]
       }
-    if(PLD$timesci[1] < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+    if(t1 < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[1]]
    }
   }
