@@ -47,37 +47,11 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   }
   
   if(exists('files')){
-  # to put the files in the right order
-  strl <- nchar(files)
-  cate <- length(unique(strl))
-  if(cate == 1){
-    data_all <- lapply(as.list(files), read.table, sep=";",header=TRUE)
-  } else if (cate==2){
-    first <- which(strl == min(strl), arr.ind = TRUE)
-    seco <- which(strl == min(strl)+1, arr.ind = TRUE)
-    data_all1 <- lapply(as.list(files[first]), read.table, sep=";",header=TRUE)
-    data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
-    data_all <- c(data_all1,data_all2)
-  } else if (cate==3) {
-    first <- which(strl == min(strl), arr.ind = TRUE)
-    seco <- which(strl == min(strl)+1, arr.ind = TRUE)
-    third <- which(strl == min(strl)+2, arr.ind = TRUE)
-    data_all1 <- lapply(as.list(files[first]), read.table, sep=";",header=TRUE)
-    data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
-    data_all3 <- lapply(as.list(files[third]), read.table, sep=";",header=TRUE)
-    data_all <- c(data_all1,data_all2,data_all3)
-  } else {
-    first <- which(strl == min(strl), arr.ind = TRUE)
-    seco <- which(strl == min(strl)+1, arr.ind = TRUE)
-    third <- which(strl == min(strl)+2, arr.ind = TRUE)
-    fourth <- which(strl == min(strl)+3, arr.ind = TRUE)
-    data_all1 <- lapply(as.list(files[first]), read.table, sep=";",header=TRUE)
-    data_all2 <- lapply(as.list(files[seco]), read.table, sep=";",header=TRUE)
-    data_all3 <- lapply(as.list(files[third]), read.table, sep=";",header=TRUE)
-    data_all4 <- lapply(as.list(files[fourth]), read.table, sep=";",header=TRUE)
-    data_all <- c(data_all1,data_all2,data_all3,data_all4)
-  }
-  
+  # to put the files in the right order    
+  fileidx <-   as.numeric(unlist(lapply(files, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+  o <- order(fileidx)
+  data_all <- lapply(files[o], read.table, sep = ";", header = TRUE)
+
   #Yo num
   profileNum <- unlist(lapply(files, function(x) {
     tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
@@ -213,35 +187,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   }
   if(exists('filesci') & length(filesci) != 0){
   # to put the files in the right order
-  strlsci<-nchar(filesci)
-  catesci<-length(unique(strlsci))
-  if(catesci==1){
-    data_allsci <- lapply(as.list(filesci), read.table, sep=";",header=TRUE)
-  } else if (catesci==2){
-    firstsci<-which(strlsci == min(strlsci), arr.ind = TRUE)
-    secosci<-which(strlsci == min(strlsci)+1, arr.ind = TRUE)
-    data_all1sci <- lapply(as.list(filesci[firstsci]), read.table, sep=";",header=TRUE)
-    data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
-    data_allsci <- c(data_all1sci,data_all2sci)
-  } else if (catesci==3){
-    firstsci<-which(strlsci == min(strlsci), arr.ind = TRUE)
-    secosci<-which(strlsci == min(strlsci)+1, arr.ind = TRUE)
-    thirdsci<-which(strlsci == min(strlsci)+2, arr.ind = TRUE)
-    data_all1sci <- lapply(as.list(filesci[firstsci]), read.table, sep=";",header=TRUE)
-    data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
-    data_all3sci <- lapply(as.list(filesci[thirdsci]), read.table, sep=";",header=TRUE)
-    data_allsci <- c(data_all1sci,data_all2sci,data_all3sci)
-  } else {
-    firstsci<-which(strlsci == min(strlsci), arr.ind = TRUE)
-    secosci<-which(strlsci == min(strlsci)+1, arr.ind = TRUE)
-    thirdsci<-which(strlsci == min(strlsci)+2, arr.ind = TRUE)
-    fourthsci<-which(strlsci == min(strlsci)+3, arr.ind = TRUE)
-    data_all1sci <- lapply(as.list(filesci[firstsci]), read.table, sep=";",header=TRUE)
-    data_all2sci <- lapply(as.list(filesci[secosci]), read.table, sep=";",header=TRUE)
-    data_all3sci <- lapply(as.list(filesci[thirdsci]), read.table, sep=";",header=TRUE)
-    data_all4sci <- lapply(as.list(filesci[fourthsci]), read.table, sep=";",header=TRUE)
-    data_allsci <- c(data_all1sci,data_all2sci,data_all3sci,data_all4sci)
-  }
+    fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+    o <- order(fileidx)
+    data_allsci <- lapply(filesci[o], read.table, sep = ";", header = TRUE)
   
   #sci profile Numbers
   profileNumSci <- unlist(lapply(filesci, function(x) {
@@ -270,6 +218,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   Latd <- conv(LatT)
  
   # to put everything in a dataframe where all the dive are together
+  # PLD with CTD and ecopuck
+  # check if there is an eco puck variable (chl, bb or cdom) and a physical variable, (temp, cond, press)
+  if('FLBBCD_CHL_COUNT' %in% names(data_allsci[[1]]) && 'GPCTD_TEMPERATURE' %in% names(data_allsci[[1]])){
   PLD <- data.frame(
     profileNumSci = profileNumSci,
     timesci=timesci,
@@ -368,7 +319,29 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
     newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
     PLD$Press <- newPress$y
+    }
+  } # closes if there is a CTD and ECOpuck, note that it would have to be moved if using profile stuff below
+  
+  # check if there are porpoise variables
+  # unlike CTD and ECOpuck, only need to check one var
+  if('PORPOISE_DISK_MOUNTED' %in% names(data_allsci[[1]])){
+    PLD <- data.frame(
+      profileNumSci = profileNumSci,
+      timesci=timesci,
+      Lat=Latd,
+      Lon=Lond,
+      events = unlist(lapply(data_allsci, function(k) k$PORPOISE_EVTS)),
+      status = unlist(lapply(data_allsci, function(k) k$PORPOISE_STATUS)),
+      diskMounted = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISK_MOUNTED)),
+      disksUsage = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISKS_USAGE)),
+      disksFull = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISKS_FULL)),
+      samplingStatus = unlist(lapply(data_allsci, function(k) k$PORPOISE_SAMPLING_STATUS)),
+      acousticRecording = unlist(lapply(data_allsci, function(k) k$PORPOISE_ACOUSTIC_RECORDING))
+    )
   }
+  
+  
+  
   
   # if less than 60% of pressure is greater than zero
   # find profiles
@@ -488,7 +461,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   #} 
   #closes if there are new files
   }
-  # if there are no files, then create an empty data frame with all variables
+  # if there are no files, then create an empty data frame with all variables for CTD and ecoPUCK setup
   else{
     PLD <- data.frame(
       profileNumSci = NA,
