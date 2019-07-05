@@ -306,13 +306,18 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   if(glider != 'SEA032'){
   okcalib <- which(names(oxycalib) == glider)
   cal <- oxycalib[[okcalib]]
+  calDate <- as.POSIXct(unlist(lapply(cal, function(x) x[['date']])), origin = '1970-01-01', tz = 'UTC')
+  # get first time idx, there was an instance of NA, so find first not na value
+  # do it just on first 10 values for now
+  t10 <- head(PLD$timesci, 10)  
+  ok <- !is.na(t10)
+  t1 <- t10[ok][1]
+  
+    
   # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
   if (glider == 'SEA024' | glider == 'SEA021') {
-    #get first time idx, there was an instance of NA, so find first not na value
-    # do it just on first 10 values for now
-    t10 <- head(PLD$timesci, 10)
-    ok <- !is.na(t10)
-    t1 <- t10[ok][1]
+
+
     if(t1 > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
       cal <- cal[[2]]
       }
