@@ -106,22 +106,6 @@ ui <- fluidPage(
           #            choices = gliderdirnames), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
-<<<<<<< HEAD
-                      label = 'Load data'),
-         conditionalPanel("input.download != 0",
-                          # conditional panel for plots tab
-            conditionalPanel(
-            condition = "input.tabs == 'Plots'",
-              selectInput(inputId="Var",
-                       label="Data Set:",
-                       choices=c('Navigation'='Navigation','Science'='Science'),
-                       selected = 'Navigation')
-          ),
-          #conditional panels for navigation in plots tab
-          conditionalPanel(
-            condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
-            actionButton("resetNav", "Reset plot")),
-=======
                       label = 'Download and load data'),
 
          # conditional panel for plots tab
@@ -137,11 +121,6 @@ ui <- fluidPage(
         conditionalPanel(
           condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
           actionButton("resetNav", "Reset plot")),
-
-        conditionalPanel(
-          condition = "input.tabs == 'TS'",
-          actionButton("resetTS", "Reset plot")),
->>>>>>> master
 
           conditionalPanel(
             condition = "input.tabs == 'TS'",
@@ -202,55 +181,7 @@ ui <- fluidPage(
                                    'Sampling Status' = 'samplingStatus',
                                    'Acoustic Recording'='acousticRecording'),
                        selected = 'disksUsage'))
-        ## #conditionalPanels for profileplots
-        ## conditionalPanel(
-        ##   condition = "input.tabs == 'Profiles'",
-        ##   ## # left profile plot data selection
-        ##   selectInput(inputId = 'profile1var',
-        ##               label = 'Variable for left Profile:',
-        ##               choices = c('Temperature'='temperature',
-        ##                           'Conductivity'='conductivity',
-        ##                           'Salinity'='salinity',
-        ##                           'Density'='sigmaTheta',
-        ##                           'Oxygen Concentration' = 'oxygenConcentration',
-        ##                           'Oxygen Saturation' = 'oxygenSaturation',
-        ##                           'Chlorophyll'='chlorophyll',
-        ##                           'CDOM'='cdom',
-        ##                           'Backscatter'='backscatter'),
-        ##               selected = 'temperature')
-        ##   ## # reset left profile plot button
-        ##   ## actionButton('resetp1', 'Reset profile axes'),
-        ##   ## # right profile plot data selection
-        ##   ## selectInput(inputId = 'profile2var',
-        ##   ##             label = 'Variable for right Profile :',
-        ##   ##             choices = c('Temperature'='temperature',
-        ##   ##                         'Conductivity'='conductivity',
-        ##   ##                         'Salinity'='salinity',
-        ##   ##                         'Density'='sigmaTheta',
-        ##   ##                         'Oxygen Concentration' = 'oxygenConcentration',
-        ##   ##                         'Oxygen Saturation' = 'oxygenSaturation',
-        ##   ##                         'Chlorophyll'='chlorophyll',
-        ##   ##                         'CDOM'='cdom',
-        ##   ##                         'Backscatter'='backscatter'),
-        ##   ##             selected = 'salinity'),
-        ##   ## # reset right profile plot button
-        ##   ## # NOTE : not currently needed
-        ##   ## #actionButton('resetp2', 'Reset right Profile'),
-        ##   ## checkboxInput(inputId = 'dncstp1',
-        ##   ##               label = 'Downcasts',
-        ##   ##               value = TRUE),
-        ##   ## checkboxInput(inputId = 'upcstp1',
-        ##   ##               label = 'Upcasts',
-        ##   ##               value = FALSE),
-        ##   ## uiOutput(outputId = 'numDncst'),
-        ##   ## uiOutput(outputId = 'numUpcst'),
-        ##   ## strong('Plot Profiles\n'),
-        ##   ## uiOutput(outputId = 'rng1p1'),
-        ##   ## uiOutput(outputId = 'rng2p1'),
-        ##   ## actionButton("last10", "Last 10 profiles"),
-        ##   ## actionButton("resetlast10", "Reset profiles")
-        ##   ) #closes conditional panel for profile variable choices.
-         ) # closes download button conditionalPanel
+         #) # closes download button conditionalPanel
         ) # closes ftp button conditionalPanel
 
     ) #closes well panel
@@ -302,6 +233,7 @@ ui <- fluidPage(
     ) #closes column
     ) #closes fluidRow
 ) #closes ui
+
 
 
 
