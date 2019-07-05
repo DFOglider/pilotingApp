@@ -304,35 +304,37 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   # TO-DO implement new oxygen sensor for SEA032
   # use coefficients from calibration files for SBE 43 DO sensor
   if(glider != 'SEA032'){
-  okcalib <- which(names(oxycalib) == glider)
-  cal <- oxycalib[[okcalib]]
-  calDate <- as.POSIXct(unlist(lapply(cal, function(x) x[['date']])), origin = '1970-01-01', tz = 'UTC')
-  # get first time idx, there was an instance of NA, so find first not na value
-  # do it just on first 10 values for now
-  t10 <- head(PLD$timesci, 10)  
-  ok <- !is.na(t10)
-  t1 <- t10[ok][1]
-  
-    
-  # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
-  if (glider == 'SEA024' | glider == 'SEA021') {
+   okcalib <- which(names(oxycalib) == glider)
+    cal <- oxycalib[[okcalib]]
+    calDate <- as.POSIXct(unlist(lapply(cal, function(x) x[['date']])), origin = '1970-01-01', tz = 'UTC')
+    # get first time idx, there was an instance of NA, so find first not na value
+    # do it just on first 10 values for now
+    t10 <- head(PLD$timesci, 10)  
+    ok <- !is.na(t10)
+    t1 <- t10[ok][1]
+    okcal <- which(t1 > calDate)
+    cal <- cal[[okcal[length(okcal)]]]
 
-
-    if(t1 > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
-      cal <- cal[[2]]
-      }
-    if(t1 < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
-      cal <- cal[[1]]
-   }
-  }
   
-  DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
-  PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
-                            pressure = PLD$Press, oxygenFrequency = DOF,
-                            Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
-                            A = cal[['A']], B = cal[['B']],
-                            C = cal[['C']], Enom = cal[['Enom']])
-  PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+  # # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
+  # if (glider == 'SEA024' | glider == 'SEA021') {
+  # 
+  # 
+  #   if(t1 > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+  #     cal <- cal[[2]]
+  #     }
+  #   if(t1 < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
+  #     cal <- cal[[1]]
+  #  }
+  # }
+  
+    DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
+    PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
+                               pressure = PLD$Press, oxygenFrequency = DOF,
+                               Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
+                               A = cal[['A']], B = cal[['B']],
+                               C = cal[['C']], Enom = cal[['Enom']])
+    PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
   if(glider == 'SEA032'){
