@@ -106,6 +106,7 @@ ui <- fluidPage(
           #            choices = gliderdirnames), #gliderdirnames from downloadData.R
          uiOutput(outputId = 'Missions'),
          actionButton(inputId = 'download',
+<<<<<<< HEAD
                       label = 'Load data'),
          conditionalPanel("input.download != 0",
                           # conditional panel for plots tab
@@ -120,6 +121,27 @@ ui <- fluidPage(
           conditionalPanel(
             condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
             actionButton("resetNav", "Reset plot")),
+=======
+                      label = 'Download and load data'),
+
+         # conditional panel for plots tab
+         conditionalPanel(
+           condition = "input.tabs == 'Plots'",
+           uiOutput(outputId = 'Vars')
+            #selectInput(inputId="Var",
+            #         label="Data Set:",
+            #         choices=c('Navigation'='Navigation','Science'='Science'),
+            #         selected = 'Navigation')
+         ),
+        #conditional panels for navigation in plots tab
+        conditionalPanel(
+          condition = "input.Var == 'Navigation' & input.tabs == 'Plots'",
+          actionButton("resetNav", "Reset plot")),
+
+        conditionalPanel(
+          condition = "input.tabs == 'TS'",
+          actionButton("resetTS", "Reset plot")),
+>>>>>>> master
 
           conditionalPanel(
             condition = "input.tabs == 'TS'",
@@ -149,7 +171,7 @@ ui <- fluidPage(
 
         #conditional panels for science in plots tab
         conditionalPanel(
-          condition = "input.Var == 'Science' & input.tabs == 'Plots'",
+          condition = "(input.Var == 'Science' | input.Var == 'Porpoise') & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
 
         conditionalPanel(
@@ -167,7 +189,19 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar'))
+            uiOutput('sciScaleBar')),
+        conditionalPanel(
+          condition="input.Var=='Porpoise' & input.tabs == 'Plots'",
+          radioButtons(inputId = "porpVar",
+                       label = "Variables:",
+                       choices = c('Events'='events',
+                                   'Status'='status',
+                                   'Disk Mounted'='diskMounted',
+                                   'Disks Usage'='disksUsage',
+                                   'Disks Full' = 'disksFull',
+                                   'Sampling Status' = 'samplingStatus',
+                                   'Acoustic Recording'='acousticRecording'),
+                       selected = 'disksUsage'))
         ## #conditionalPanels for profileplots
         ## conditionalPanel(
         ##   condition = "input.tabs == 'Profiles'",
@@ -312,6 +346,25 @@ server <- function(input, output) {
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission, saveRda=FALSE)
     PLD <- data$PLD
     glider <- data$NAV
+    
+    ## UIOUTPUT for choice of data set
+    output$Vars <- renderUI({
+      # similar to readSeaExplorerRealTime.R code
+      # for CTD/ eco puck set up check for two variables (CHL_count and Temp)
+      # for porpoise, check for one variable (diskMounted)
+      if('CHL_count' %in% names(PLD) && 'Temp' %in% names(PLD)){
+        choices <- c('Navigation'='Navigation','Science'='Science')
+      }
+      if('diskMounted' %in% names(PLD)){
+        choices <- c('Navigation'='Navigation','Porpoise'='Porpoise')
+      }
+      selectInput(inputId="Var",
+               label="Data Set:",
+               choices = choices,
+               selected = choices[1])
+    })
+    
+    
     profileNumber <- unique(glider$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
@@ -882,7 +935,75 @@ polygon(c(glider$time,rev(glider$time)),c(rep(sx(24),length(glider$time)),rep(sx
         par(mar=mardef)
 
 
-      } # closes else if sciVar = science
+      } else if (input$Var == 'Porpoise') { # closes else if sciVar = science 
+      porpData <- switch(input$porpVar,
+                     'events' = PLD$events,
+                     'status' = PLD$status,
+                     'diskMounted' = PLD$diskMounted,
+                     'disksUsage' = PLD$disksUsage,
+                     'disksFull' = PLD$disksFull,
+                     'samplingStatus' = PLD$samplingStatus,
+                     'acousticRecording' = PLD$acousticRecording)
+      varlim <- switch(input$porpVar,
+                       'events' = c(0,1), # not sure on this yet
+                       'status' = c(0,1),
+                       'diskMounted' = c(0,1),
+                       'disksUsage' = c(0,100),
+                       'disksFull' = c(0,1),
+                       'samplingStatus' = c(0,1),
+                       'acousticRecording' = c(0,1))
+      varlabel <- switch(input$porpVar,
+                         'events' = NA, # not sure on this yet
+                         'status' = rev(c('On', 'Off')),
+                         'diskMounted' = rev(c('Mounted', 'Not Mounted')),
+                         'disksUsage' = NA,
+                         'disksFull' = rev(c('Full', 'Not Full')),
+                         'samplingStatus' = rev(c('Sampling', 'Not Sampling')),
+                         'acousticRecording' = rev(c('Recording', 'Not Recording')))
+      # I'm into bquote right now
+      L <- '['
+      R <- ']'
+      zlab <- switch(input$porpVar,
+                     'events' = bquote('Events'),
+                     'status' = bquote('Status'),
+                     'diskMounted' = bquote('Disk Mounted'),
+                     'disksUsage' = bquote('Disks Usage'*.(L)*'%'*.(R)),
+                     'disksFull' = bquote('Disks Full'),
+                     'samplingStatus' = bquote('Sampling Status'),
+                     'acousticRecording' = bquote('Acoustic Recording'))
+      #par(xaxs='i',yaxs='i', mar=mardef)
+      par(mar=mardef)
+
+      yaxt <- ifelse(!is.na(varlabel[1]), 'n', 's')
+      if (is.null(state$xlim)) {
+        oce.plot.ts(PLD$timesci, porpData,
+                    ylim = varlim,
+                    xlim = range(c(glider$time, PLD$timesci), na.rm = TRUE),
+                    xlab = '', ylab = zlab, mar=marcm, type = 'n',
+                    yaxt = yaxt)
+        lines(PLD$timesci, porpData, lwd = 2)
+        if(!is.na(varlabel[1])){
+          axis(2, at = varlim, label = varlabel)
+        }
+        
+      } else {
+        okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
+        okylimg <- glider$time > state$xlim[1] & glider$time < state$xlim[2] #limits for depth from navigation
+        oce.plot.ts(PLD$timesci, porpData,
+                    ylim = rev(range(porpData[okylim],na.rm = TRUE)), # might not be right
+                    xlim = state$xlim,
+                    xlab = '', ylab = zlab, mar=marcm,
+                    yaxt = yaxt)
+        lines(PLD$timesci, porpData, lwd = 2)
+        if(!is.na(varlabel[1])){
+          axis(2, at = varlim, label = varlabel)
+        }
+      }
+      grid()
+      par(mar=mardef)
+      
+      
+    } # closes else if sciVar = porpoise
     }) # closes plot2
 
     # leaflet map plot
