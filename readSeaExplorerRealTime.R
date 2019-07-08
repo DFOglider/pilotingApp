@@ -185,7 +185,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
       filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
     }
   }
-  if(exists('filesci') & length(filesci) != 0){
+  {if(exists('filesci') & length(filesci) != 0){
   # to put the files in the right order
     fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
     o <- order(fileidx)
@@ -264,7 +264,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     ok <- !is.na(t10)
     t1 <- t10[ok][1]
     okcal <- which(t1 > calDate)
-    cal <- cal[[okcal[length(okcal)]]]
+    oxycal <- cal[[okcal[length(okcal)]]]
 
   
   # # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
@@ -282,9 +282,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
     PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
                                pressure = PLD$Press, oxygenFrequency = DOF,
-                               Soc = cal[['Soc']], Foffset = cal[['Foffset']], 
-                               A = cal[['A']], B = cal[['B']],
-                               C = cal[['C']], Enom = cal[['Enom']])
+                               Soc = oxycal[['Soc']], Foffset = oxycal[['Foffset']], 
+                               A = oxycal[['A']], B = oxycal[['B']],
+                               C = oxycal[['C']], Enom = oxycal[['Enom']])
     PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
@@ -338,7 +338,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
       samplingStatus = unlist(lapply(data_allsci, function(k) k$PORPOISE_SAMPLING_STATUS)),
       acousticRecording = unlist(lapply(data_allsci, function(k) k$PORPOISE_ACOUSTIC_RECORDING))
     )
-  }
+  } # closes if its a porpoise
   
   
   
@@ -483,6 +483,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
       Sal = NA,
       SigTheta = NA
     )
+  }
   }
   {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
     {if(exists('files')){

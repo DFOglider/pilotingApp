@@ -7,7 +7,7 @@ oxycalib$SEA019[[1]] <- c(Soc = 3.2305e-4, Foffset = -830.74, A = -3.4562e-3, B 
 # calibration done in December 2018
 # R:/Shared/Gliders/SEA019/Calibration_files/SEA019_CTD_DO_calib_files_SN0186_2018.pdf [as of 2019-01-09]
 oxycalib$SEA019[[2]] <- c(Soc = 2.8304e-4, Foffset = -835.35, A = -3.7649e-3, B = 1.1716e-4,
-                     C = -1.3298-6, Enom = 0.036, date = as.POSIXct('2018-12-19', tz = 'UTC'))
+                     C = -1.3298e-6, Enom = 0.036, date = as.POSIXct('2018-12-19', tz = 'UTC'))
 
 # R:/Shared/Gliders/SEA021/Calibration_files/SEA021_CTD_DO_calib_files_SN0184_2016.pdf [as of 2018-03-14]
 oxycalib$SEA021[[1]] <- c(Soc = 2.7945e-4, Foffset = -794.20, A = -3.4437e-3, B = 1.5480e-4,
@@ -23,7 +23,7 @@ oxycalib$SEA022[[1]] <- c(Soc = 3.1884e-4, Foffset = -807.15, A = -4.2074e-3, B 
 # calibration done in March 2019
 # R:/Shared/Gliders/SEA022/Calibration_files/SEA022_DO_calib_files_SN0175_2019.pdf [as of 2018-03-14]
 oxycalib$SEA022[[2]] <- c(Soc = 2.9165e-4, Foffset = -800.49, A = -5.0595e-3, B = 2.3090e-4,
-                     C = -3.2232-6, Enom = 0.036, date = as.POSIXct('2019-03-12', tz = 'UTC'))
+                     C = -3.2232e-6, Enom = 0.036, date = as.POSIXct('2019-03-12', tz = 'UTC'))
 
 # R:/Shared/Gliders/SEA022/Calibration_files/SEA024_CTD_DO_calib_files_SN0188_2016.pdf [as of 2018-03-14]
 oxycalib$SEA024[[1]] <- c(Soc = 2.8277e-4, Foffset = -847.84, A = -2.8377e-3, B = 1.2076e-4,
