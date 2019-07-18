@@ -278,6 +278,11 @@ server <- function(input, output) {
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission, saveRda=FALSE)
     PLD <- data$PLD
     glider <- data$NAV
+    # find bad conductivity values and make pressure and salinity NA
+    # this will be enough for plotting purposes
+    badConduc <- which(PLD$Conduc > 9)
+    PLD$Press[badConduc] <- NA
+    PLD$Sal[badConduc] <- NA
     
     ## UIOUTPUT for choice of data set
     output$Vars <- renderUI({
