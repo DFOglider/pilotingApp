@@ -329,10 +329,20 @@ server <- function(input, output) {
       gbearing <- bearing(lon = glonb, lat = glatb)}
     #dnctd <- data$dnctd
     #upctd <- data$upctd
-    kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
-    okkml <- !is.na(kmlcoord$lon)
-    kmlLon <- kmlcoord$lon[okkml]
-    kmlLat <- kmlcoord$lat[okkml]
+    
+    ## kml file
+    kmlfile <- paste(datadir, input$Glider, paste0(input$Glider,'.', input$Missions,'.trk.kml'), sep = '/')
+    {if(file.exists(kmlfile)){
+      kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
+      okkml <- !is.na(kmlcoord$lon)
+      kmlLon <- kmlcoord$lon[okkml]
+      kmlLat <- kmlcoord$lat[okkml]
+    } else{
+      # 0,0 for plotting purposes
+      kmlLon <- 0
+      kmlLat <- 0
+    }}
+
     ## msn file
     msnfile <- paste(datadir, input$Glider, paste0(input$Glider,input$Mission,'.msn'), sep = '/')
     {if(file.exists(msnfile)){
