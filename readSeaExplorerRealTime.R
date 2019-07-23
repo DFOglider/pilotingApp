@@ -33,14 +33,14 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
       rm(dnctd)
       upctdold <- upctd
       rm(upctd)}
-    navfilesall <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
+    navfilesall <- list.files(path = dir, pattern = '*.gli.sub.*')
     oknewfiles <- navfilesall %in% navfilesold & !grepl(pattern = '*Copy.gz', x = navfilesall)
     if(length(navfilesall[!oknewfiles] != 0)) {
       files <- paste(dir, as.list(navfilesall[!oknewfiles]), sep = '')
     }
   }
     else{ # no data.rda
-      filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
+      filelist <- list.files(path = dir, pattern = '*.gli.sub.*')
       okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
       files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
     }
@@ -172,7 +172,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   
   # data.rda already loaded, so look for new science files
   {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
-    scifilesall <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
+    scifilesall <- list.files(path = dir, pattern = '*.pld1.sub.*')
     oknewfiles <- scifilesall %in% scifilesold & !grepl(pattern = '*Copy.gz', x = scifilesall)
     #filesci <- paste(dir, as.list(scifilesall[oknewfiles]), sep = '')
     if(length(scifilesall[!oknewfiles] != 0)) {
@@ -180,7 +180,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     }
   }
     else{
-      filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
+      filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*')
       okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
       filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
     }
