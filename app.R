@@ -251,7 +251,8 @@ server <- function(input, output) {
                                                                       ifelse(k == 'SEA021', 'SEA021 - Skye',
                                                                              ifelse(k == 'SEA022', 'SEA022 - Mersey',
                                                                                     ifelse(k == 'SEA024', 'SEA024 - Margaree',
-                                                                                           ifelse(k == 'SEA032', 'SEA032 - LaHave', k)))))))
+                                                                                           ifelse(k == 'SEA032', 'SEA032 - LaHave', 
+                                                                                                  ifelse(k == 'SEA035', 'SEA035 - Eva', k))))))))
       
       names(gliders) <- glidernames
        selectInput(inputId = 'Glider',
