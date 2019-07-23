@@ -66,9 +66,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   time[time < as.POSIXct('2010-01-01')] <- NA
   
   #remove 2018-07-12 dates after firmware
-  gliderfirmname <- c('SEA019', 'SEA021', 'SEA022', 'SEA024', 'SEA032')
-  gliderfirmmiss <- c(54, 39, 32, 29, 23)
-  missionnum <- strsplit(mission, split = 'M')[[1]][2]
+  # not sure of first 10 missions for SEA035, so put firmware upgrade mission as 9 for now
+  gliderfirmname <- c('SEA019', 'SEA021', 'SEA022', 'SEA024', 'SEA032', 'SEA035')
+  gliderfirmmiss <- c(54, 39, 32, 29, 23, 9)
+  missionnum <- as.numeric(strsplit(mission, split = 'M')[[1]][2])
   for(i in 1:length(gliderfirmname)){
     if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
       time[time < as.POSIXct('2018-07-14')] <- NA
@@ -254,7 +255,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   # calculate oxygen saturation
   # TO-DO implement new oxygen sensor for SEA032
   # use coefficients from calibration files for SBE 43 DO sensor
-  if(glider != 'SEA032'){
+  if(glider != 'SEA032' & glider != 'SEA035'){
    okcalib <- which(names(oxycalib) == glider)
     cal <- oxycalib[[okcalib]]
     calDate <- as.POSIXct(unlist(lapply(cal, function(x) x[['date']])), origin = '1970-01-01', tz = 'UTC')
@@ -288,7 +289,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
   }
   
-  if(glider == 'SEA032'){
+  if(glider == 'SEA032' | glider == 'SEA035'){
     rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
     nado <- which(rinkodo == 9999.00)
     rinkodo[nado] <- NA
@@ -307,8 +308,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
     ctdSal[nactd] <- NA
     PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
   }
-  
-  
+
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]

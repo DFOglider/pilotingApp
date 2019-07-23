@@ -331,7 +331,7 @@ server <- function(input, output) {
     #upctd <- data$upctd
     
     ## kml file
-    kmlfile <- paste(datadir, input$Glider, paste0(input$Glider,'.', input$Missions,'.trk.kml'), sep = '/')
+    kmlfile <- paste(datadir, input$Glider, input$Mission, paste0(input$Glider,'.', input$Mission,'.trk.kml'), sep = '/')
     {if(file.exists(kmlfile)){
       kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
       okkml <- !is.na(kmlcoord$lon)
