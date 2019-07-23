@@ -84,7 +84,8 @@ downloadData <- function(ftpUrl, datadir, glider, mission){
   }
   
   kml <- filenames[grep(pattern = '*.trk.kml', x = filenames)]
-  # download kml file, downloads everytime
+  # download kml file, downloads everytime if there
+  if(length(kml) != 0){
   download.file(url = paste(ftpUrl,
                             dirnames,
                             glider,
@@ -94,6 +95,7 @@ downloadData <- function(ftpUrl, datadir, glider, mission){
                 destfile = paste(savedir,
                                  kml,
                                  sep=''))
+  }
   # msn file, in directory above data files
   msavedir <- paste(datadir, glider,'', sep='/')
   msnpath <- paste(ftpUrl, 
