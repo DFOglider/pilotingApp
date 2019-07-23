@@ -65,7 +65,7 @@ downloadData <- function(ftpUrl, datadir, glider, mission){
   files <- getURL(url = filepath,
                   ftp.use.epsv = FALSE, dirlistonly = TRUE)
   filenames <- strsplit(files, "\r*\n")[[1]]
-  f <- filenames[grep(pattern = '*.sub.*.gz' , x = filenames)] #nav and pld
+  f <- filenames[grep(pattern = '*.sub.*' , x = filenames)] #nav and pld
   # find which files to download
   files_to_get <- f[!(f %in% existing_files)]
   # download nav and pld files
