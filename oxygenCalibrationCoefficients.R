@@ -32,3 +32,7 @@ oxycalib$SEA024[[1]] <- c(Soc = 2.8277e-4, Foffset = -847.84, A = -2.8377e-3, B 
 # calibration done in July 2018
 oxycalib$SEA024[[2]] <- c(Soc = 3.1993e-4, Foffset = -834.99, A = -3.6818e-3, B = 1.4127e-4,
                           C = -2.2880e-6, Enom = 0.036, date = as.POSIXct('2018-08-14', tz = 'UTC'))
+# ad-hoc calibration coeff edit, SEA021's DO on SEA024 for Bonavista mission, 
+# date set to a few days before simulation
+oxycalib$SEA024[[3]] <- c(Soc = 2.8722e-4, Foffset = -777.23, A = -4.4454e-3, B = 1.8630e-4,
+                          C = -2.8650e-6, Enom = 0.036, date = as.POSIXct('2019-07-10', tz = 'UTC'))
