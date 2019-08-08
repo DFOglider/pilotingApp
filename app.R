@@ -330,7 +330,7 @@ server <- function(input, output) {
         oklat <- which(lat != 0)
         glon <- c(glon, lon[oklon][1])
         glat <- c(glat, lat[oklat][1])
-        heading <- glider$DesiredHeading[ok][1] - glider$Declination[ok][1] # what DH calls 'geographical' heading
+        heading <- glider$DesiredHeading[ok][1] #- glider$Declination[ok][1] # what DH calls 'geographical' heading
         gdeshead <- c(gdeshead, heading)
     }
     gdeshead[gdeshead < 0] <- NA
