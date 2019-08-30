@@ -224,7 +224,7 @@ server <- function(input, output) {
   observeEvent(input$download,{
     # download and process data
     downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
-    data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission, saveRda=FALSE)
+    data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
     PLD <- data$PLD
     glider <- data$NAV
     # find bad conductivity values and make pressure and salinity NA
