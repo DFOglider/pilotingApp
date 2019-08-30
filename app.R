@@ -421,31 +421,31 @@ server <- function(input, output) {
         #plot var as lines or points
         # to save on code, we'll store everything pertaining to plot styling
         # order will be
-        # type ('l'/'p'), col
+        # type ('l'/'p'), col, lwd
         navtype <- switch(input$NavVar,
-                          'altimeter' = c('p','red'),
-                          'alarm' = c('l','blue'),
-                          'Pitch' = c('l', 'black'),
-                          'VertSpeed' = c('l','black'),
-                          'BatterieVolt' = c('l','red'),
-                          'BatteriePerc' = c('l', 'red'),
-                          'Temperature' = c('l','red'),
-                          'int_pres' = c('l', 'blue'),
-                          'distkm' = c('p', 'darkgreen'),
-                          'speedms' = c('p', 'darkgreen'),
-                          'Heading' = c('l','red'),
-                          'BallastPos' = c('l', 'red'),
-                          'AngPos' = c('l', 'red'),
-                          'LinPos' = c('l', 'red'),
-                          'Roll' = c('l', 'blue'),
-                          'profileNumber' = c('l','blue'))
-        if (is.null(state$xlim)) {
+                          'altimeter' = c('p','red',1),
+                          'alarm' = c('l','blue',2),
+                          'Pitch' = c('l', 'black',2),
+                          'VertSpeed' = c('l','black',2),
+                          'BatterieVolt' = c('l','red',2),
+                          'BatteriePerc' = c('l', 'red',2),
+                          'Temperature' = c('l','red',2),
+                          'int_pres' = c('l', 'blue',2),
+                          'distkm' = c('p', 'darkgreen',1),
+                          'speedms' = c('p', 'darkgreen',1),
+                          'Heading' = c('l','red',2),
+                          'BallastPos' = c('l', 'red',2),
+                          'AngPos' = c('l', 'red',2),
+                          'LinPos' = c('l', 'red',2),
+                          'Roll' = c('l', 'blue',2),
+                          'profileNumber' = c('l','blue',2))
+        {if (is.null(state$xlim)) {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata,
                         xlim = range(c(NAV$time, PLD$timesci), na.rm = TRUE),
                         type = navtype[1], 
                         col = navtype[2],
-                        xlab = '', ylab = navzlab, mar=marcm)
+                        xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
             
         } else {
             par('pch' = 20)
@@ -453,8 +453,8 @@ server <- function(input, output) {
                         xlim = state$xlim,
                         type = navtype[1], 
                         col = navtype[2],
-                        xlab = '', ylab = navzlab, mar=marcm)
-        }
+                        xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
+        }}
         # go through special cases
         if(input$NavVar == 'Pitch'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
@@ -463,16 +463,16 @@ server <- function(input, output) {
                     col = gray(0.8), border = NA)
             polygon(xpoly, rev(ypoly) * -1, 
                     col = gray(0.8), border = NA)
-            lines(NAV$time, navdata, lwd = 2)
+            lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
-        if(input$NavVar == 'VertSpped'){
+        if(input$NavVar == 'VertSpeed'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
             ypoly <- c(13, 13, 17, 17)
             polygon(xpoly, ypoly,
                     col = gray(0.8), border = NA)
             polygon(xpoly, rev(ypoly) * -1, 
                     col = gray(0.8), border = NA)
-            lines(NAV$time, navdata, lwd = 2)
+            lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
         if(input$NavVar == 'BatterieVolt'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
@@ -481,7 +481,7 @@ server <- function(input, output) {
                     col = gray(0.8), border = NA)
             polygon(xpoly, rev(ypoly) * -1, 
                     col = gray(0.8), border = NA)
-            lines(NAV$time, navdata, lwd = 2)
+            lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
         if(input$NavVar == 'BatteriePerc'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
@@ -490,7 +490,7 @@ server <- function(input, output) {
                     col = gray(0.8), border = NA)
             polygon(xpoly, rev(ypoly) * -1, 
                     col = gray(0.8), border = NA)
-            lines(NAV$time, navdata, lwd = 2)
+            lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
         if(input$NavVar == 'Heading'){
             lines(NAV$time, NAV$DesiredHeading,lwd = 2, col = "blue")
@@ -512,7 +512,7 @@ server <- function(input, output) {
             lines(NAV$time, NAV$LinCmd, lwd = 2, col = 'blue')
         }
         
-        grid()
+        grid(lwd = 1)
         par(mar=mardef)
                     
     } else if (input$Var == 'Science') {
