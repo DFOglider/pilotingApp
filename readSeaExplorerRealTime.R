@@ -163,7 +163,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, saveRda = TRUE){
   NAV$speedms <- rep(NA, length(NAV$time))
   NAV$distkm <-  rep(NA, length(NAV$time))
   NAV$speedms[indexspeed] <- speed_good
-  NAV$distkm[indexdist] <- distsum
+  NAV$distkm[indexdist] <- distsum[!is.na(distsum)]
   
   
   
