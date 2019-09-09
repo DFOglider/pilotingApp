@@ -135,7 +135,8 @@ ui <- fluidPage(
                               'Linear'='LinPos',
                               'Roll'='Roll',
                               'Yo Numbers'='profileNumber'),
-                  selected = 'Pitch')),
+                  selected = 'Pitch'),
+          uiOutput('navScaleBar')),
 
         #conditional panels for science in plots tab
         conditionalPanel(
@@ -305,6 +306,63 @@ server <- function(input, output) {
     output$numUpcst <- renderUI({
       h5(paste0(length(upctd),' upcasts detected'))
     })
+    # scaleBar for navigation plots
+    output$navScaleBar <- renderUI({
+        rng <- switch(input$NavVar,
+                      'altimeter' = c(0, 100),
+                      'alarm' = c(0, 1e6),
+                      'Pitch' = c(-80,50),
+                      'VertSpeed' = c(-50, 50),
+                      'BatterieVolt' = c(24, 30),
+                      'BatteriePerc' = c(0, 100),
+                      'Temperature' = c(0,26),
+                      'int_pres' = c(7.1e4, 7.7e4),
+                      'distkm' = c(0, 1000),
+                      'speedms' = c(0,2),
+                      'Heading' = c(0, 360),
+                      'BallastPos' = c(-500, 500),
+                      'AngPos' = c(-70, 70),
+                      'LinPos' = c(20, 100),
+                      'Roll' = c(-20, 30),
+                      'profileNumber' = c(0, 1200))
+        value <- switch(input$NavVar,
+                        'altimeter' = c(0, 100),
+                        'alarm' = c(0, 1e6),
+                        'Pitch' = c(-80,50),
+                        'VertSpeed' = c(-50, 50),
+                        'BatterieVolt' = c(24, 30),
+                        'BatteriePerc' = c(0, 100),
+                        'Temperature' = c(0,26),
+                        'int_pres' = c(7.1e4, 7.7e4),
+                        'distkm' = c(0, 1000),
+                        'speedms' = c(0,2),
+                        'Heading' = c(0, 360),
+                        'BallastPos' = c(-500, 500),
+                        'AngPos' = c(-70, 70),
+                        'LinPos' = c(20, 100),
+                        'Roll' = c(-20, 30),
+                        'profileNumber' = c(0, 1200))
+        step <- switch(input$NavVar,
+                       'altimeter' = 1,
+                       'alarm' = 1e3,
+                       'Pitch' = 5,
+                       'VertSpeed' = 5,
+                       'BatterieVolt' = 0.05,
+                       'BatteriePerc' = 1,
+                       'Temperature' = 1,
+                       'int_pres' = 50,
+                       'distkm' = 50,
+                       'speedms' = 0.1,
+                       'Heading' = 10,
+                       'BallastPos' = 25,
+                       'AngPos' = 5,
+                       'LinPos' = 5,
+                       'Roll' = 5,
+                       'profileNumber' = 20)
+        sliderInput("navLimits", "Choose limits:", min = rng[1], max = rng[2],
+                    value = value, step = step, animate = FALSE)
+        
+    })
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
@@ -439,22 +497,25 @@ server <- function(input, output) {
                           'LinPos' = c('l', 'red',2),
                           'Roll' = c('l', 'blue',2),
                           'profileNumber' = c('l','blue',2))
-        {if (is.null(state$xlim)) {
+        {if (is.null(state$xlim) & is.null(state$ylim)) {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata,
                         xlim = range(c(NAV$time, PLD$timesci), na.rm = TRUE),
+                        ylim = input$navLimits,
                         type = navtype[1], 
                         col = navtype[2],
                         xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
             
-        } else {
+        }  else {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata, 
                         xlim = state$xlim,
+                        ylim = input$navLimits,
                         type = navtype[1], 
                         col = navtype[2],
                         xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
-        }}
+        }
+        }
         # go through special cases
         if(input$NavVar == 'Pitch'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
@@ -936,6 +997,7 @@ server <- function(input, output) {
     observeEvent(input$plot_brush, {
       state$xlim <- c(input$plot_brush$xmin, input$plot_brush$xmax)
     })
+    # TS
     observeEvent(input$plot_brush_TS, {
         state$Tlim <- c(input$plot_brush_TS$ymin, input$plot_brush_TS$ymax)
         state$Slim <- c(input$plot_brush_TS$xmin, input$plot_brush_TS$xmax)
