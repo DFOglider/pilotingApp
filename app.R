@@ -282,9 +282,8 @@ server <- function(input, output) {
     # find bad conductivity values and make pressure and salinity NA
     # this will be enough for plotting purposes
     badConduc <- which(PLD$Conduc > 9)
-    if(length(badConduc) != 0){
-        PLD$Press[badConduc] <- NA
-        PLD$Sal[badConduc] <- NA}
+    PLD$Press[badConduc] <- NA
+    PLD$Sal[badConduc] <- NA
     
     ## UIOUTPUT for choice of data set
     output$Vars <- renderUI({
