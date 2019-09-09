@@ -18,41 +18,11 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     res[zeros] <- 0
     return(res)
   }
-  
-<<<<<<< HEAD
-  ##load rda of all data and get list of new nav files to read in
-  #files <- NA
-  {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
-    # assign old NAV, PLD and profiles
-    load(paste0(dir,'data.rda'))
-    if(exists('NAV') & exists('PLD')){ #for previously saved rda files
-      NAVold <- NAV
-      rm(NAV)
-      PLDold <- PLD
-      rm(PLD)
-      dnctdold <- dnctd
-      rm(dnctd)
-      upctdold <- upctd
-      rm(upctd)}
-    navfilesall <- list.files(path = dir, pattern = '*.gli.sub.*')
-    oknewfiles <- navfilesall %in% navfilesold & !grepl(pattern = '*Copy.gz', x = navfilesall)
-    if(length(navfilesall[!oknewfiles] != 0)) {
-      files <- paste(dir, as.list(navfilesall[!oknewfiles]), sep = '')
-    }
-  }
-    else{ # no data.rda
-      filelist <- list.files(path = dir, pattern = '*.gli.sub.*')
-      okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
-      files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
-    }
-  }
-=======
 
   filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
   okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
   files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
 
->>>>>>> master
   
   if(exists('files')){
   # to put the files in the right order    
@@ -179,28 +149,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   ### READ PLD FILES
   
-<<<<<<< HEAD
-  # data.rda already loaded, so look for new science files
-  {if('data.rda' %in% list.files(path = dir) & saveRda == TRUE){
-    scifilesall <- list.files(path = dir, pattern = '*.pld1.sub.*')
-    oknewfiles <- scifilesall %in% scifilesold & !grepl(pattern = '*Copy.gz', x = scifilesall)
-    #filesci <- paste(dir, as.list(scifilesall[oknewfiles]), sep = '')
-    if(length(scifilesall[!oknewfiles] != 0)) {
-      filesci <- paste(dir, as.list(scifilesall[!oknewfiles]), sep = '')
-    }
-  }
-    else{
-      filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*')
-      okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
-      filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
-    }
-  }
-=======
   filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
   okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
   filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
 
->>>>>>> master
   {if(exists('filesci') & length(filesci) != 0){
   # to put the files in the right order
     fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))

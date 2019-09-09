@@ -252,7 +252,7 @@ server <- function(input, output) {
   # make plots too
   observeEvent(input$download,{
     # download and process data
-    downloadData(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    downloadData(ftpUrl = input$ftp, datadir = datadir, glider = input$Glider, mission = input$Mission)
     data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
     PLD <- data$PLD
     NAV <- data$NAV
