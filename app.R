@@ -45,6 +45,12 @@ conv <- function(x) {
   return(res)
 }
 
+# log2 adjusted
+log2adjusted <- function(x){
+    x[x==0] <- 0.5
+    log2(x)
+}
+
 mardef <- c(3.1, 3.1, 1.1, 2.1) # default margins
 marcm <- c(3.1, 3.1, 1.1, 6.1) # color bar with zlab margins
 
@@ -349,25 +355,25 @@ server <- function(input, output) {
     # scaleBar for navigation plots
     output$navScaleBar <- renderUI({
         rng <- switch(input$NavVar,
-                      'altimeter' = c(0, 100),
-                      'alarm' = c(0, 1e6),
+                      'altimeter' = c(0, 60),
+                      'alarm' = log2adjusted(c(0.5, 2^20)),
                       'Pitch' = c(-80,50),
                       'VertSpeed' = c(-50, 50),
                       'BatterieVolt' = c(24, 30),
                       'BatteriePerc' = c(0, 100),
-                      'Temperature' = c(0,26),
-                      'int_pres' = c(7.1e4, 7.7e4),
-                      'distkm' = c(0, 1000),
+                      'Temperature' = c(0,30),
+                      'int_pres' = c(7.1e4, 8.1e4),
+                      'distkm' = c(0, 700),
                       'speedms' = c(0,2),
                       'Heading' = c(0, 360),
                       'BallastPos' = c(-500, 500),
                       'AngPos' = c(-70, 70),
                       'LinPos' = c(20, 100),
                       'Roll' = c(-20, 30),
-                      'profileNumber' = c(0, 1200))
+                      'profileNumber' = c(0, 1500))
         value <- switch(input$NavVar,
                         'altimeter' = c(0, 100),
-                        'alarm' = c(0, 1e6),
+                        'alarm' = c(-1, 20),
                         'Pitch' = c(-80,50),
                         'VertSpeed' = c(-50, 50),
                         'BatterieVolt' = c(24, 30),
@@ -375,7 +381,7 @@ server <- function(input, output) {
                         'Temperature' = c(0,26),
                         'int_pres' = c(7.1e4, 7.7e4),
                         'distkm' = c(0, 1000),
-                        'speedms' = c(0,2),
+                        'speedms' = c(0,1),
                         'Heading' = c(0, 360),
                         'BallastPos' = c(-500, 500),
                         'AngPos' = c(-70, 70),
@@ -384,7 +390,7 @@ server <- function(input, output) {
                         'profileNumber' = c(0, 1200))
         step <- switch(input$NavVar,
                        'altimeter' = 1,
-                       'alarm' = 1e3,
+                       'alarm' = 1,
                        'Pitch' = 5,
                        'VertSpeed' = 5,
                        'BatterieVolt' = 0.05,
@@ -398,7 +404,7 @@ server <- function(input, output) {
                        'AngPos' = 5,
                        'LinPos' = 5,
                        'Roll' = 5,
-                       'profileNumber' = 20)
+                       'profileNumber' = 50)
         sliderInput("navLimits", "Choose limits:", min = rng[1], max = rng[2],
                     value = value, step = step, animate = FALSE)
         
@@ -482,7 +488,7 @@ server <- function(input, output) {
     if (input$Var == 'Navigation') {
         navdata <- switch(input$NavVar,
                           'altimeter' = NAV$alt,
-                          'alarm' = NAV$alarm,
+                          'alarm' = log2adjusted(NAV$alarm),
                           'Pitch' = NAV$Pitch,
                           'VertSpeed' = NAV$VertSpeed,
                           'BatterieVolt' = NAV$BatterieVolt,
@@ -537,6 +543,11 @@ server <- function(input, output) {
                           'LinPos' = c('l', 'red',2),
                           'Roll' = c('l', 'blue',2),
                           'profileNumber' = c('l','blue',2))
+        {if(input$NavVar == 'alarm'){
+            yaxt <- 'n'
+        } else {
+            yaxt <- 's'
+        }}
         {if (is.null(state$xlim) & is.null(state$ylim)) {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata,
@@ -544,6 +555,7 @@ server <- function(input, output) {
                         ylim = input$navLimits,
                         type = navtype[1], 
                         col = navtype[2],
+                        yaxt = yaxt,
                         xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
             
         }  else {
@@ -553,10 +565,16 @@ server <- function(input, output) {
                         ylim = input$navLimits,
                         type = navtype[1], 
                         col = navtype[2],
+                        yaxt = yaxt,
                         xlab = '', ylab = navzlab, mar=marcm, lwd = as.numeric(navtype[3]))
         }
         }
         # go through special cases
+        if(input$NavVar == 'alarm'){
+            ylab <- c(0, 2^(0:20))
+            yat <- -1:20
+            axis(side = 2, at = yat, labels = ylab)
+        }
         if(input$NavVar == 'Pitch'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
             ypoly <- c(15, 15, 25, 25)
@@ -603,7 +621,7 @@ server <- function(input, output) {
                               'desired',
                               'cog'))
         }
-        if(input$NavVar == 'Ballast'){
+        if(input$NavVar == 'BallastPos'){
             lines(NAV$time, NAV$BallastCmd, lwd = 2, col = 'blue')
         }
         if(input$NavVar == 'AngPos'){
