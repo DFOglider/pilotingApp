@@ -50,7 +50,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   missionnum <- strsplit(mission, split = 'M')[[1]][2]
   for(i in 1:length(gliderfirmname)){
     if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
-      time[time < as.POSIXct('2018-07-14')] <- NA
+      time[time < as.POSIXct('2018-07-29')] <- NA
     }
   }
   
@@ -175,7 +175,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   #remove 2018-07-12 dates see lines 94-96 for gliderfirm[name,miss]
   for(i in 1:length(gliderfirmname)){
     if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
-      timesci[timesci < as.POSIXct('2018-07-14')] <- NA
+      timesci[timesci < as.POSIXct('2018-07-29')] <- NA
     }
   }
   
