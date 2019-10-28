@@ -153,8 +153,10 @@ ui <- fluidPage(
 
         #conditional panels for science in plots tab
         conditionalPanel(
-          condition = "(input.Var == 'Science' | input.Var == 'Porpoise') & input.tabs == 'Plots'",
+          condition = "input.Var == 'Science' & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
+        
+
 
         conditionalPanel(
           condition="input.Var=='Science' & input.tabs == 'Plots'",
@@ -172,6 +174,12 @@ ui <- fluidPage(
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
             uiOutput('sciScaleBar')),
+        
+        #conditional panels for porpoise in plots tab
+        conditionalPanel(
+            condition = "input.Var == 'Porpoise' & input.tabs == 'Plots'",
+            actionButton("resetPorp", "Reset plot")),
+        
         conditionalPanel(
           condition="input.Var=='Porpoise' & input.tabs == 'Plots'",
           radioButtons(inputId = "porpVar",
@@ -742,8 +750,13 @@ server <- function(input, output) {
       } else {
         okylim <- PLD$timesci > state$xlim[1] & PLD$timesci < state$xlim[2] #limits for science var
         okylimg <- NAV$time > state$xlim[1] & NAV$time < state$xlim[2] #limits for depth from navigation
+        if(input$porpVar == 'disksUsage'){
+            ylim <- range(porpData[porpData != 9999][okylim],na.rm = TRUE)
+        } else {
+            ylim <- varlim
+        }
         oce.plot.ts(PLD$timesci, porpData,
-                    ylim = rev(range(porpData[okylim],na.rm = TRUE)), # might not be right
+                    ylim = ylim,
                     xlim = state$xlim,
                     xlab = '', ylab = zlab, mar=marcm,
                     yaxt = yaxt)
@@ -1071,6 +1084,10 @@ server <- function(input, output) {
     # science section
     observeEvent(input$resetSci, {
       state$xlim <- range(c(NAV$time, PLD$timesci), na.rm = TRUE)
+    })
+    # porpoise plots
+    observeEvent(input$resetPorp, {
+        state$xlim <- range(c(NAV$time, PLD$timesci), na.rm = TRUE)
     })
     observeEvent(input$resetTS, {
         state$xlim <- range(c(NAV$time, PLD$timesci), na.rm = TRUE)
