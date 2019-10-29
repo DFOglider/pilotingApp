@@ -211,7 +211,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   bad99 <- PLD == 9999.00
   PLD[bad99] <- NA
   
-  # calculate salinity, sigTheta, and oxygen saturation
+  # calculate salinity, sigTheta, soundSpeed, and oxygen saturation
   PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
                     temperature = PLD$Temp, 
                     pressure = PLD$Press, 
@@ -219,6 +219,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   PLD$SigTheta <- swSigmaTheta(salinity = PLD$Sal,
                                temperature = PLD$Temp,
                                pressure = PLD$Press)
+  PLD$SoundSpeed <- swSoundSpeed(salinity = PLD$Sal,
+                                 temperature = PLD$Temp,
+                                 pressure = PLD$Press)
   # calculate oxygen saturation
   # TO-DO implement new oxygen sensor for SEA032
   # use coefficients from calibration files for SBE 43 DO sensor
