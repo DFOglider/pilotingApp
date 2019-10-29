@@ -778,7 +778,7 @@ server <- function(input, output) {
                     xlim = range(c(NAV$time, PLD$timesci), na.rm = TRUE),
                     xlab = '', ylab = zlab, mar=marcm, type = 'n',
                     yaxt = yaxt)
-        
+          lines(PLD$timesci, porpData, lwd = 2)
         if(!is.na(varlabel[1])){
           axis(2, at = varlim, label = varlabel)
         }
