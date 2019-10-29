@@ -132,7 +132,8 @@ ui <- fluidPage(
           condition="input.Var=='Navigation' & input.tabs == 'Plots'",
           radioButtons(inputId = "NavVar",
                   label = "Variables:",
-                  choices = c('Altimeter' = 'altimeter',
+                  choices = c('Depth' = 'depth',
+                              'Altimeter' = 'altimeter',
                               'Alarm'='alarm',
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
@@ -156,8 +157,6 @@ ui <- fluidPage(
           condition = "input.Var == 'Science' & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
         
-
-
         conditionalPanel(
           condition="input.Var=='Science' & input.tabs == 'Plots'",
             radioButtons(inputId = "SciVar",
@@ -191,7 +190,8 @@ ui <- fluidPage(
                                    'Disks Full' = 'disksFull',
                                    'Sampling Status' = 'samplingStatus',
                                    'Acoustic Recording'='acousticRecording'),
-                       selected = 'disksUsage'))
+                       selected = 'disksUsage'),
+          uiOutput('porpScaleBar'))
          #) # closes download button conditionalPanel
         ) # closes ftp button conditionalPanel
     ) #closes well panel
@@ -363,6 +363,7 @@ server <- function(input, output) {
     # scaleBar for navigation plots
     output$navScaleBar <- renderUI({
         rng <- switch(input$NavVar,
+                      'depth' = c(0,700),
                       'altimeter' = c(0, 60),
                       'alarm' = log2adjusted(c(0.5, 2^20)),
                       'Pitch' = c(-80,50),
@@ -380,6 +381,7 @@ server <- function(input, output) {
                       'Roll' = c(-20, 30),
                       'profileNumber' = c(0, 1500))
         value <- switch(input$NavVar,
+                        'depth' = rev(c(max(NAV$altHit,na.rm = TRUE), 0)),
                         'altimeter' = c(0, 100),
                         'alarm' = c(-1, 20),
                         'Pitch' = c(-80,50),
@@ -397,6 +399,7 @@ server <- function(input, output) {
                         'Roll' = c(-20, 30),
                         'profileNumber' = c(0, 1200))
         step <- switch(input$NavVar,
+                       'depth' = 5,
                        'altimeter' = 1,
                        'alarm' = 1,
                        'Pitch' = 5,
@@ -458,6 +461,36 @@ server <- function(input, output) {
                   value = value, step = step, animate = FALSE)
 
     })
+    # scaleBar for porpoise data
+    output$porpScaleBar <- renderUI({
+        rng <- switch(input$porpVar,
+                      'events' = c(0,1), # not sure on this yet
+                      'status' = c(0,1),
+                      'diskMounted' = c(0,1),
+                      'disksUsage' = c(0,100),
+                      'disksFull' = c(0,1),
+                      'samplingStatus' = c(0,1),
+                      'acousticRecording' = c(0,1))
+        value <- switch(input$porpVar,
+                        'events' = c(0,1),
+                        'status' = c(0,1),
+                        'diskMounted' = c(0,1),
+                        'disksUsage' = range(PLD$disksUsage[PLD$disksUsage != 9999]),
+                        'disksFull' = c(0,1),
+                        'samplingStatus' = c(0,1),
+                        'acousticRecording' = c(0,1))
+        step <- switch(input$porpVar,
+                       'events' = 0.5,
+                       'status' = 0.5,
+                       'diskMounted' = 0.5,
+                       'disksUsage' = 0.5,
+                       'disksFull' = 0.5,
+                       'samplingStatus' = 0.5,
+                       'acousticRecording' = 0.5)
+        if(input$porpVar == 'disksUsage' & diff(value) < 5*step){value[2] <- value[2] + 2*step}
+        sliderInput("porpLimits", "Choose limits:", min = rng[1], max = rng[2],
+                    value = value, step = step, animate = FALSE)
+    })
     # plot1 - top plot
     output$plot1 <- renderPlot({
       if (is.null(state$xlim)) {
@@ -495,6 +528,7 @@ server <- function(input, output) {
     output$plot2 <- renderPlot({
     if (input$Var == 'Navigation') {
         navdata <- switch(input$NavVar,
+                          'depth' = NAV$depth,
                           'altimeter' = NAV$alt,
                           'alarm' = log2adjusted(NAV$alarm),
                           'Pitch' = NAV$Pitch,
@@ -514,6 +548,7 @@ server <- function(input, output) {
         L <- '['
         R <- ']'
         navzlab <- switch(input$NavVar,
+                          'depth' = bquote('Depth'*.(L)*m*.(R)),
                           'altimeter' = bquote('Range from bottom'*.(L)*'m'*.(R)),
                           'alarm' = bquote('Alarm'),
                           'Pitch' = bquote('Pitch'*.(L)*'degrees'*.(R)),
@@ -535,6 +570,7 @@ server <- function(input, output) {
         # order will be
         # type ('l'/'p'), col, lwd
         navtype <- switch(input$NavVar,
+                          'depth' = c('p', 'dark blue', 1),
                           'altimeter' = c('p','red',1),
                           'alarm' = c('l','blue',2),
                           'Pitch' = c('l', 'black',2),
@@ -560,7 +596,7 @@ server <- function(input, output) {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata,
                         xlim = range(c(NAV$time, PLD$timesci), na.rm = TRUE),
-                        ylim = input$navLimits,
+                        ylim = if(input$NavVar == 'depth') {rev(input$navLimits)} else {input$navLimits},
                         type = navtype[1], 
                         col = navtype[2],
                         yaxt = yaxt,
@@ -570,7 +606,7 @@ server <- function(input, output) {
             par('pch' = 20)
             oce.plot.ts(NAV$time, navdata, 
                         xlim = state$xlim,
-                        ylim = input$navLimits,
+                        ylim = if(input$NavVar == 'depth') {rev(input$navLimits)} else {input$navLimits},
                         type = navtype[1], 
                         col = navtype[2],
                         yaxt = yaxt,
@@ -698,13 +734,13 @@ server <- function(input, output) {
 
       } else if (input$Var == 'Porpoise') { # closes else if sciVar = science 
       porpData <- switch(input$porpVar,
-                     'events' = PLD$events,
-                     'status' = PLD$status,
-                     'diskMounted' = PLD$diskMounted,
-                     'disksUsage' = PLD$disksUsage,
-                     'disksFull' = PLD$disksFull,
-                     'samplingStatus' = PLD$samplingStatus,
-                     'acousticRecording' = PLD$acousticRecording)
+                         'events' = PLD$events,
+                         'status' = PLD$status,
+                         'diskMounted' = PLD$diskMounted,
+                         'disksUsage' = PLD$disksUsage,
+                         'disksFull' = PLD$disksFull,
+                         'samplingStatus' = PLD$samplingStatus,
+                         'acousticRecording' = PLD$acousticRecording)
       varlim <- switch(input$porpVar,
                        'events' = c(0,1), # not sure on this yet
                        'status' = c(0,1),
@@ -738,11 +774,11 @@ server <- function(input, output) {
       yaxt <- ifelse(!is.na(varlabel[1]), 'n', 's')
       if (is.null(state$xlim)) {
         oce.plot.ts(PLD$timesci, porpData,
-                    ylim = varlim,
+                    ylim = input$porpLimits,
                     xlim = range(c(NAV$time, PLD$timesci), na.rm = TRUE),
                     xlab = '', ylab = zlab, mar=marcm, type = 'n',
                     yaxt = yaxt)
-        lines(PLD$timesci, porpData, lwd = 2)
+        
         if(!is.na(varlabel[1])){
           axis(2, at = varlim, label = varlabel)
         }
@@ -756,7 +792,7 @@ server <- function(input, output) {
             ylim <- varlim
         }
         oce.plot.ts(PLD$timesci, porpData,
-                    ylim = ylim,
+                    ylim = input$porpLimits,
                     xlim = state$xlim,
                     xlab = '', ylab = zlab, mar=marcm,
                     yaxt = yaxt)
