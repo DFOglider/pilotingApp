@@ -169,7 +169,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   # to read the time in the right format
   
-  time_tmpsci <- unlist(lapply(data_allsci, function(k) k$PLD_REALTIMECLOCK))
+  time_tmpsci <- unlist(lapply(data_allsci, function(k) as.character(paste(k$PLD_REALTIMECLOCK))))
   timesci <- as.POSIXct(time_tmpsci,format='%d/%m/%Y %H:%M:%S',tz='UTC')
   timesci[timesci < as.POSIXct('2010-01-01')] <- NA
   #remove 2018-07-12 dates see lines 94-96 for gliderfirm[name,miss]
