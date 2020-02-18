@@ -19,21 +19,23 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     return(res)
   }
 
-  filelist <- list.files(path = dir, pattern = '*.gli.sub.*.gz')
-  okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below
-  files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
-
+  filelist <- list.files(path = dir, pattern = paste0(tolower(glider), '\\.\\w+\\.gli\\.sub\\.\\w+$'))
+  #okfiles <- !grepl(pattern = '*Copy.gz', x = filelist) #omit these files, creates error below, from older ftp, all automated show so shouldn't need this
+  #files <- paste(dir, as.list(filelist[okfiles]), sep = '') 
+  files <- filelist
   
   if(exists('files')){
   # to put the files in the right order    
-  fileidx <-   as.numeric(unlist(lapply(files, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+  #fileidx <-   as.numeric(unlist(lapply(files, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+      fileidx <-   as.numeric(unlist(lapply(files, function(x) unlist(strsplit(x, '.', fixed=TRUE))[5])))
   o <- order(fileidx)
-  data_all <- lapply(files[o], read.table, sep = ";", header = TRUE)
+  data_all <- lapply(paste0(dir, files[o]), read.table, sep = ";", header = TRUE)
 
   #Yo num
-  profileNum <- unlist(lapply(files, function(x) {
-    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
-    len <- dim(read.table(x, sep=';', header=TRUE))[1]
+  profileNum <- unlist(lapply(files[o], function(x) {
+    #tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
+    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[5]
+    len <- dim(read.table(paste0(dir,x), sep=';', header=TRUE))[1]
     rep(tmp, len)
   }))
   profileNum <- sort(as.numeric(profileNum))
@@ -47,7 +49,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   # not sure of first 10 missions for SEA035, so put firmware upgrade mission as 9 for now
   gliderfirmname <- c('SEA019', 'SEA021', 'SEA022', 'SEA024', 'SEA032', 'SEA035')
   gliderfirmmiss <- c(54, 39, 32, 29, 23, 9)
-  missionnum <- as.numeric(strsplit(mission, split = 'M')[[1]][2])
+  #missionnum <- as.numeric(strsplit(mission, split = 'M')[[1]][2])
+  missionnum <- as.numeric(mission)
   for(i in 1:length(gliderfirmname)){
     if(glider == gliderfirmname[i] & missionnum > gliderfirmmiss[i]){
       time[time < as.POSIXct('2018-07-29')] <- NA
@@ -149,23 +152,26 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
   
   ### READ PLD FILES
   
-  filelistsci <- list.files(path = dir, pattern = '*.pld1.sub.*.gz')
-  okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below
-  filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
-
+  filelistsci <- list.files(path = dir, pattern = paste0(tolower(glider), '\\.\\w+\\.pld1\\.sub\\.\\w+$'))
+  # okfilesci <- !grepl(pattern = '*Copy.gz', x = filelistsci) #omit these files, creates error below, from previous ftp shouldn't be a problem now
+  # filesci <- if(length(okfilesci) != 0) paste(dir, as.list(filelistsci[okfilesci]), sep = '') 
+  filesci <- filelistsci
+  
   {if(exists('filesci') & length(filesci) != 0){
   # to put the files in the right order
-    fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+    #fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[6])))
+    fileidx <-   as.numeric(unlist(lapply(filesci, function(x) unlist(strsplit(x, '.', fixed=TRUE))[5])))
     o <- order(fileidx)
-    data_allsci <- lapply(filesci[o], read.table, sep = ";", header = TRUE)
+    data_allsci <- lapply(paste0(dir, filesci[o]), read.table, sep = ";", header = TRUE)
   
   #sci profile Numbers
-  profileNumSci <- unlist(lapply(filesci, function(x) {
-    tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
-    len <- dim(read.table(x, sep=';', header=TRUE))[1]
+  profileNumSci <- unlist(lapply(filesci[o], function(x) {
+    #tmp <- unlist(strsplit(x, '.', fixed=TRUE))[6]
+      tmp <- unlist(strsplit(x, '.', fixed=TRUE))[5]
+    len <- dim(read.table(paste0(dir,x), sep=';', header=TRUE))[1]
     rep(tmp, len)
   }))
-  profileNumSci <- sort(as.numeric(profileNumSci))
+  #profileNumSci <- sort(as.numeric(profileNumSci)) # commented out b/c now using order
   
   # to read the time in the right format
   

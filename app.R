@@ -14,6 +14,7 @@ options(oceEOS='unesco') # prevent error for calculated values using swSigmaThet
 source('addMouseCoordinates.R') # from mapview package, some had issues with mapview
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
 source('readSeaExplorerKml.R') # gets lon lat from kml file
+source('readSeaExplorerKmlGlimpse.R')
 source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of Hz to ml/l
 source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
@@ -86,8 +87,9 @@ load('shippingBoundaries.rda')
 
 # define ftp urls
 ftpUrl <- c('ftp://ftp.dfo-mpo.gc.ca/glider',
-             'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider')
-ftpUrlNames <- c('DFO', 'DAL')
+             'ftp://dfoftp.ocean.dal.ca/pub/dfo/glider',
+            'ftp://dfoftp.ocean.dal.ca/pub/dfo/glimpse/')
+ftpUrlNames <- c('DFO', 'DAL', 'DAL-GLIMPSE')
 names(ftpUrl) <- ftpUrlNames
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -326,16 +328,25 @@ server <- function(input, output) {
     #upctd <- data$upctd
     
     ## kml file
-    kmlfile <- paste(datadir, input$Glider, input$Mission, paste0(input$Glider,'.', input$Mission,'.trk.kml'), sep = '/')
+    #kmlfile <- paste(datadir, input$Glider, input$Mission, paste0(input$Glider,'.', input$Mission,'.trk.kml'), sep = '/')
+    kmlfile <- list.files(path = paste(datadir, input$Glider, input$Mission, sep = '/'), pattern = paste0(tolower(input$Glider), '\\.\\w+\\.gps\\.all\\.csv'), full.names = TRUE)
+    #kmlfile <- paste(datadir, as.list(list.files(path = datadir, pattern = paste0(tolower(glider), '\\.\\w+\\.gps\\.all\\.csv'))), sep = '')
     {if(file.exists(kmlfile)){
-      kmlcoord <- readSeaExplorerKml(datadir = datadir, glider = input$Glider, mission = input$Mission)
+      kmlcoord <- readSeaExplorerKmlGlimpse(datadir = datadir, glider = input$Glider, mission = input$Mission)
       okkml <- !is.na(kmlcoord$lon)
       kmlLon <- kmlcoord$lon[okkml]
       kmlLat <- kmlcoord$lat[okkml]
+      if('timestamp' %in% names(kmlcoord)){
+         kmlTime <- kmlcoord$time[okkml] 
+      } else {
+          kmlTime <- rep(NA, length(kmlLon))
+      }
+      
     } else{
       # 0,0 for plotting purposes
       kmlLon <- 0
       kmlLat <- 0
+      kmlTime <- NA
     }}
 
     ## msn file
@@ -372,7 +383,7 @@ server <- function(input, output) {
                       'BatterieVolt' = c(24, 30),
                       'BatteriePerc' = c(0, 100),
                       'Temperature' = c(0,30),
-                      'int_pres' = c(7.1e4, 8.1e4),
+                      'int_pres' = c(6.9e4, 8.1e4),
                       'distkm' = c(0, 700),
                       'speedms' = c(0,2),
                       'Heading' = c(0, 360),
@@ -390,7 +401,7 @@ server <- function(input, output) {
                         'BatterieVolt' = c(24, 30),
                         'BatteriePerc' = c(0, 100),
                         'Temperature' = c(0,26),
-                        'int_pres' = c(7.1e4, 7.7e4),
+                        'int_pres' = c(6.9e4, 8.1e4),
                         'distkm' = c(0, 1000),
                         'speedms' = c(0,1),
                         'Heading' = c(0, 360),
@@ -983,7 +994,7 @@ server <- function(input, output) {
                          color = 'red',
                          popup = paste(sep = "<br/>",
                                        "Glider position kml",
-                                       #as.character(PLD$timesci[okloc]),
+                                       kmlTime,
                                        paste0(as.character(round(kmlLat,4)), ', ', as.character(round(kmlLon,4)))),
                          label = paste0('Glider position kml: ', 1:length(kmlLat)),
                          group = map_kml)%>%
@@ -998,11 +1009,10 @@ server <- function(input, output) {
                          color = 'green',
                          popup = paste(sep = "<br/>",
                                        "Latest glider position from kml",
-                                       #as.character(PLD$timesci[okloc]),
+                                       kmlTime[length(kmlLat)],
                                        paste0(as.character(round(kmlLat[length(kmlLat)],4)), ', ', as.character(round(kmlLon[length(kmlLat)],4)))),
-                         label = paste0('Latest glider position from kml: ', length(kmlLat)),
+                         label = paste0('Latest glider position from kml: ', as.character(kmlTime[length(kmlLat)])),
                          group = map_kml)%>%
-
         # group-less map items
           # halifax line
         addCircleMarkers(lng = hfxlon, lat = hfxlat,
