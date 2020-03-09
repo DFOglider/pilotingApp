@@ -67,7 +67,7 @@ downloadData <- function(ftpUrl, datadir, glider, mission){
   # find which files to download
   files_to_get <- f[!(f %in% existing_files)]
   # download nav and pld files
-  if(length(files_to_get) != 0){
+    if(length(files_to_get) != 0){
     for (file in files_to_get){
       download.file(url = paste(ftpUrl,
                                 #dirnames,
@@ -94,9 +94,9 @@ downloadData <- function(ftpUrl, datadir, glider, mission){
   kml <- kmlfilenames[grep(pattern = '^\\w+\\.\\w+\\.gps\\.all\\.csv$', x = kmlfilenames)]
   # download kml file, downloads everytime if there
   if(length(kml) != 0){
-  download.file(url = paste0(kmlpath, kml),
+  download.file(url = paste0(kmlpath, tail(kml, 1)),
                 destfile = paste(savedir,
-                                 kml,
+                                 tail(kml, 1),
                                  sep=''))
   }
   # # msn file, in directory above data files
