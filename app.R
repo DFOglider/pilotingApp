@@ -101,7 +101,8 @@ ui <- fluidPage(
       column(2, wellPanel(
         selectInput(inputId = 'ftp',
                     label = 'Choose an ftp site',
-                    choices = ftpUrl),
+                    choices = ftpUrl,
+                    selected = ftpUrl[3]),
         actionButton(inputId = 'ftpChoice',
                      label = 'Go !'),
         # once ftp button clicked, then everything else
