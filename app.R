@@ -302,16 +302,12 @@ server <- function(input, output) {
     profileNumber <- unique(NAV$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
-      ok <- which(profileNumber[pi] == NAV$profileNumber)
-        profileTimes <- c(profileTimes, NAV$time[ok][1])
-        lon <- NAV$Lon[ok]
-        lat <- NAV$Lat[ok]
-        oklon <- which(lon != 0)
-        oklat <- which(lat != 0)
-        glon <- c(glon, lon[oklon][1])
-        glat <- c(glat, lat[oklat][1])
-        heading <- NAV$DesiredHeading[ok][1] #- NAV$Declination[ok][1] # what DH calls 'geographical' heading
-        gdeshead <- c(gdeshead, heading)
+      ok <- profileNumber[pi] == NAV$profileNumber & NAV$Lon != 0 & NAV$Lat != 0
+      profileTimes <- c(profileTimes, NAV$time[ok][1])
+      glon <- c(glon, NAV$Lon[ok][1])
+      glat <- c(glat, NAV$Lat[ok][1])
+      heading <- NAV$DesiredHeading[ok][1] #- NAV$Declination[ok][1] # what DH calls 'geographical' heading
+      gdeshead <- c(gdeshead, heading)
     }
     gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
