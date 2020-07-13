@@ -101,7 +101,8 @@ readSeaExplorerRealTime <- function(datadir, glider, mission){
     BatteriePerc=batteryPerc,
     alt=unlist(lapply(data_all, function(k) k$Altitude)),
     Lat=conv(unlist(lapply(data_all, function(k) k$Lat))),
-    Lon=conv(unlist(lapply(data_all, function(k) k$Lon)))
+    Lon=conv(unlist(lapply(data_all, function(k) k$Lon))),
+    deadReckoning = unlist(lapply(data_all, function(k) k$DeadReckoning))
   )
     bad <- is.na(NAV$VertSpeed)
     NAV <- NAV[!bad,]  
