@@ -7,6 +7,7 @@ library(leaflet)
 library(RCurl)
 library(geosphere)
 library(XML)
+library(readxl)
 load('sx_spline.rda')
 data(ctd) # for initial plotProfile tests, delete later
 options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc
@@ -24,6 +25,15 @@ source('arrowShaftCoordinates.R') # draw arrows on leaflet map
 source('compass2polar.R') # convert compass heading to polar degrees
 source('bearing.R') #calculate bearing between two points
 source('readMsn.R')
+
+# read in mission tracking sheet
+file <- 'GliderMission.xlsx'
+gm <- data.frame(read_xlsx(file, skip = 1))
+# remove \\. from headers for easier use
+names(gm) <- gsub('\\.', '', names(gm))
+# only want rows that have a glider and mission
+ok <- !is.na(gm$Glider) & !is.na(gm$Mission)
+gm <- gm[ok, ]
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
