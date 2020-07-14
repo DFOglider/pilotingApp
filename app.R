@@ -16,7 +16,7 @@ source('addMouseCoordinates.R') # from mapview package, some had issues with map
 source('readSeaExplorerRealTime.R') # read in real time seaExplorer data
 source('readSeaExplorerKml.R') # gets lon lat from kml file
 source('readSeaExplorerKmlGlimpse.R')
-source('oxygenCalibrationCoefficients.R') # used to convert oxygen from units of Hz to ml/l
+source('oxygenCalibrationCoefficients2.R') # used to convert oxygen from units of Hz to ml/l
 source('swSatO2.R') # for use in sbeO2Hz2Sat.R
 source('sbeO2Hz2Sat.R') # calculate oxygen from Hz to ml/l from seaBird instrument
 source('downloadData.R') # obtain glidernames and missions from ftp and downloads
@@ -34,6 +34,10 @@ names(gm) <- gsub('\\.', '', names(gm))
 # only want rows that have a glider and mission
 ok <- !is.na(gm$Glider) & !is.na(gm$Mission)
 gm <- gm[ok, ]
+# pull out information about oxygen calibration coeff
+oxycalibMeta <- data.frame(serialNumber = unlist(lapply(oxycalib, function(k) k[['serialNumber']])),
+                          calibrationDate = unlist(lapply(oxycalib, function(k) k[['calibrationDate']])))
+
 data('coastlineWorldFine')
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
@@ -281,7 +285,24 @@ server <- function(input, output) {
   observeEvent(input$download,{
     # download and process data
     downloadData(ftpUrl = input$ftp, datadir = datadir, glider = input$Glider, mission = input$Mission)
-    data <- readSeaExplorerRealTime(datadir = datadir, glider = input$Glider, mission = input$Mission)
+    # get oxygen coefficients, if applicable
+    okgm <- gm$Glider == input$Glider & gm$Mission == as.numeric(input$Mission)
+    gmcurrent <- gm[okgm, ]
+    if(dim(gmcurrent)[1] != 0){ # meaning the sheet has been updated
+      okoxycalib <- oxycalibMeta$serialNumber == gmcurrent$OxygenSN & oxycalibMeta$calibrationDate == gmcurrent$CTDcaldate
+      if(!all(!okoxycalib)){ # there is a SBE43 attached
+        currentCalibration <- oxycalib[okoxycalib][[1]][['calibrationCoefficients']]
+      } else { # another type oxygen sensor
+        currentCalibration <- NULL
+      }
+    } else { # sheet has not been updated
+        currentCalibration <- NULL
+      }
+    
+    data <- readSeaExplorerRealTime(datadir = datadir, 
+                                    glider = input$Glider, 
+                                    mission = input$Mission,
+                                    oxygenCalibCoef = currentCalibration)
     PLD <- data$PLD
     NAV <- data$NAV
     # find bad conductivity values and make pressure and salinity NA
