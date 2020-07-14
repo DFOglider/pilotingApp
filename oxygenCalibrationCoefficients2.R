@@ -1,8 +1,11 @@
 oxycalib <- vector(mode = 'list')
-
+# note : using the CTD calibration date to hook up the appropriate coefficients to use
+#        sometimes the calibration of the oxygen sensor was done before/after to CTD
+#        so the month here might differ by one from what is actually on the calibration sheets.
+#        notes have been made for these instances.
 oxycalib[[1]] <- list(serialNumber = '43-3338',
                       model = 'SBE43F',
-                      calibrationDate = 'Apr2016',
+                      calibrationDate = 'May2016', # note : oxy cal sheet says Apr but CTD calib in May
                       calibrationCoefficients = data.frame(Soc = 3.2305e-4,
                                                            Foffset = -830.74,
                                                            Tau20 = 1.40,
@@ -21,9 +24,19 @@ oxycalib[[2]] <- list(serialNumber = '43-3338',
                                                            B = 1.1716e-4,
                                                            C = -1.3298e-6,
                                                            Enom = 0.036))
+oxycalib[[3]] <- list(serialNumber = '43-3338',
+                      model = 'SBE43F',
+                      calibrationDate = 'Aug2019', # note : oxy cal sheet says Jul but CTD calib in Aug
+                      calibrationCoefficients = data.frame(Soc = 2.9006e-4,
+                                                           Foffset = -829.48,
+                                                           Tau20 = 1.06,
+                                                           A = -4.4375e-3,
+                                                           B = 1.7964e-4,
+                                                           C = -2.8796e-6,
+                                                           Enom = 0.036))
 oxycalib[[3]] <- list(serialNumber = '43-3336',
                       model = 'SBE43F',
-                      calibrationDate = 'Apr2016',
+                      calibrationDate = 'May2016', # note : oxy cal sheet says Apr but CTD calib in May
                       calibrationCoefficients = data.frame(Soc = 2.7945e-4,
                                                            Foffset = -794.20,
                                                            Tau20 = 1.91,
@@ -53,7 +66,7 @@ oxycalib[[5]] <- list(serialNumber = '43-3336',
                                                            Enom = 0.036))
 oxycalib[[6]] <- list(serialNumber = '43-3276',
                       model = 'SBE43',
-                      calibrationDate = 'Jan2016',
+                      calibrationDate = 'Mar2016', # note : oxy cal sheet says Jan but CTD calib in Mar
                       calibrationCoefficients = data.frame(Soc = 3.1884e-4,
                                                            Foffset = -807.15,
                                                            Tau20 = 1.67,
@@ -63,7 +76,7 @@ oxycalib[[6]] <- list(serialNumber = '43-3276',
                                                            Enom = 0.036))
 oxycalib[[7]] <- list(serialNumber = '43-3276',
                       model = 'SBE43',
-                      calibrationDate = 'Mar2019',
+                      calibrationDate = 'Apr2019', # note : oxy cal sheet says Mar but CTD calib in Apr
                       calibrationCoefficients = data.frame(Soc = 2.9165e-4,
                                                            Foffset = -800.49,
                                                            Tau20 = 1.11,
@@ -73,7 +86,7 @@ oxycalib[[7]] <- list(serialNumber = '43-3276',
                                                            Enom = 0.036))
 oxycalib[[8]] <- list(serialNumber = '43-3365',
                       model = 'SBE43F',
-                      calibrationDate = 'Apr2016',
+                      calibrationDate = 'May2016', # note : oxy cal sheet says Apr but CTD calib in May
                       calibrationCoefficients = data.frame(Soc = 2.8277e-4,
                                                            Foffset = -847.84,
                                                            Tau20 = 1.40,
@@ -83,7 +96,7 @@ oxycalib[[8]] <- list(serialNumber = '43-3365',
                                                            Enom = 0.036))
 oxycalib[[9]] <- list(serialNumber = '43-3365',
                       model = 'SBE43F',
-                      calibrationDate = 'Aug2018',
+                      calibrationDate = 'Jul2018', # note : oxy cal sheet says Aug but CTD calib in Jul
                       calibrationCoefficients = data.frame(Soc = 3.1993e-4,
                                                            Foffset = -834.99,
                                                            Tau20 = 0.98,
