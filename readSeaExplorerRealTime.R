@@ -272,60 +272,6 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
       PLD$OxyConc <- PLD$OxySat <- rep(NA, length(PLD$Temp))
     }
   }
-  # if(glider != 'SEA032' & glider != 'SEA035'){
-  #  okcalib <- which(names(oxycalib) == glider)
-  #   cal <- oxycalib[[okcalib]]
-  #   calDate <- as.POSIXct(unlist(lapply(cal, function(x) x[['date']])), origin = '1970-01-01', tz = 'UTC')
-  #   # get first time idx, there was an instance of NA, so find first not na value
-  #   # do it just on first 10 values for now
-  #   t10 <- head(PLD$timesci, 10)  
-  #   ok <- !is.na(t10)
-  #   t1 <- t10[ok][1]
-  #   okcal <- which(t1 > calDate)
-  #   oxycal <- cal[[okcal[length(okcal)]]]
-  # 
-  # 
-  # # # oxygen calibration for 24 and 21 oxygen sensor both occured in July 2018
-  # # if (glider == 'SEA024' | glider == 'SEA021') {
-  # # 
-  # # 
-  # #   if(t1 > as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
-  # #     cal <- cal[[2]]
-  # #     }
-  # #   if(t1 < as.POSIXct('2018-07-01 00:00:00', tz = 'UTC')){
-  # #     cal <- cal[[1]]
-  # #  }
-  # # }
-  # 
-  #   DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
-  #   PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, salinity = PLD$Sal, 
-  #                              pressure = PLD$Press, oxygenFrequency = DOF,
-  #                              Soc = oxycal[['Soc']], Foffset = oxycal[['Foffset']], 
-  #                              A = oxycal[['A']], B = oxycal[['B']],
-  #                              C = oxycal[['C']], Enom = oxycal[['Enom']])
-  #   PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
-  # }
-  # 
-  # if(glider == 'SEA032' | glider == 'SEA035'){
-  #   rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
-  #   nado <- which(rinkodo == 9999.00)
-  #   rinkodo[nado] <- NA
-  #   # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
-  #   rinkooxyconc <-  rinkodo / 44.661
-  #   oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
-  #   nat <- which(oxytemp == 9999.00)
-  #   oxytemp[nat] <- NA
-  #   PLD$OxySat <- (rinkooxyconc / swSatO2(temperature = oxytemp, salinity = rep(0, length(oxytemp)))) * 100
-  #   #remove 9999.0 from ctd temp and sal for calculation
-  #   #assuming that the 9999.00 are the same for temp and sal
-  #   nactd <- which(PLD$Temp == 9999.00)
-  #   ctdTemp <- PLD$Temp
-  #   ctdTemp[nactd] <- NA
-  #   ctdSal <- PLD$Sal
-  #   ctdSal[nactd] <- NA
-  #   PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
-  # }
-
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]

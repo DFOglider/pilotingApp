@@ -37,8 +37,7 @@ gm <- gm[ok, ]
 # pull out information about oxygen calibration coeff
 oxycalibMeta <- data.frame(serialNumber = unlist(lapply(oxycalib, function(k) k[['serialNumber']])),
                           calibrationDate = unlist(lapply(oxycalib, function(k) k[['calibrationDate']])))
-
-data('coastlineWorldFine')
+# make some icons for map
 returnIcon <- makeIcon(iconUrl = 'icon1.bmp',
                        iconWidth = 13,
                        iconHeight = 13)
