@@ -1083,6 +1083,9 @@ server <- function(input, output) {
                                            #map_track_kml),
                          options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE),
                          position = 'bottomright') %>%
+        hideGroup(group = c(map_allposition,
+                            map_track,
+                            map_desiredHeading)) %>%
         setView(tail(glon, 1), tail(glat, 1), zoom=11)
     output$map <- renderLeaflet(map) #closes leafletplot
 
