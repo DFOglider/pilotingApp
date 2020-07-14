@@ -335,8 +335,10 @@ server <- function(input, output) {
     for (pi in seq_along(profileNumber)) {
       ok <- profileNumber[pi] == NAV$profileNumber & NAV$Lon != 0 & NAV$Lat != 0
       profileTimes <- c(profileTimes, NAV$time[ok][1])
-      glon <- c(glon, NAV$Lon[ok][1])
-      glat <- c(glat, NAV$Lat[ok][1])
+      #glon <- c(glon, NAV$Lon[ok][1])
+      #glat <- c(glat, NAV$Lat[ok][1])
+      glon <- c(glon, tail(NAV$Lon[ok], 1))
+      glat <- c(glat, tail(NAV$Lat[ok], 1))
       heading <- NAV$DesiredHeading[ok][1] #- NAV$Declination[ok][1] # what DH calls 'geographical' heading
       gdeshead <- c(gdeshead, heading)
     }
