@@ -289,9 +289,13 @@ server <- function(input, output) {
     gmcurrent <- gm[okgm, ]
     if(dim(gmcurrent)[1] != 0){ # meaning the sheet has been updated
       okoxycalib <- oxycalibMeta$serialNumber == gmcurrent$OxygenSN & oxycalibMeta$calibrationDate == gmcurrent$CTDcaldate
-      if(!all(!okoxycalib)){ # there is a SBE43 attached
-        currentCalibration <- oxycalib[okoxycalib][[1]][['calibrationCoefficients']]
-      } else { # another type oxygen sensor
+      if(!all(is.na(okoxycalib))){
+        if(!all(!okoxycalib)){ # there is a SBE43 attached
+          currentCalibration <- oxycalib[okoxycalib][[1]][['calibrationCoefficients']]
+        } else { # another type oxygen sensor
+          currentCalibration <- NULL
+        }
+      } else { # no oxygen sensor
         currentCalibration <- NULL
       }
     } else { # sheet has not been updated
