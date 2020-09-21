@@ -216,6 +216,14 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
     #DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
     Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
   )
+  # check if legato ctd and add these
+  if('LEGATO_TEMPERATURE' %in% names(data_allsci[[1]])){ # just check for one variable
+    PLD$temperatureLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_TEMPERATURE))
+    PLD$conductivityLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_CONDUCTIVITY))
+    # it internally calculates salinity
+    PLD$salinityLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_SALINITY))
+    PLD$pressureLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_PRESSURE))
+  }
   # set 9999.00 values to NA before calculation of other variables
   # think these values are only in PLD files
   bad99 <- PLD == 9999.00

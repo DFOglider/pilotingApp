@@ -2,7 +2,6 @@ rm(list=ls())
 library(shiny)
 library(oce)
 library(ocedata)
-library(measurements)
 library(leaflet)
 library(RCurl)
 library(geosphere)
@@ -170,11 +169,12 @@ ui <- fluidPage(
 
         #conditional panels for science in plots tab
         conditionalPanel(
-          condition = "input.Var == 'Science' & input.tabs == 'Plots'",
+          condition = "(input.Var == 'Science' || input.Var == 'Science2') && input.tabs == 'Plots'",
+          #condition = "input.Var == 'Science' & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
-        
+        # only GPCTD
         conditionalPanel(
-          condition="input.Var=='Science' & input.tabs == 'Plots'",
+          condition="input.Var == 'Science' && input.tabs == 'Plots'",
             radioButtons(inputId = "SciVar",
                       label = "Variables:",
                       choices = c('Temperature'='Temp',
@@ -189,8 +189,34 @@ ui <- fluidPage(
                                   'CDOM'='CDOM_scaled',
                                   'BB_700nm'='BB_scaled'),
                       selected = 'Temp'),
-            uiOutput('sciScaleBar')),
-        
+            uiOutput('sciScaleBar')
+          ),
+        # GPCTD and LEGATO
+        conditionalPanel(
+          condition="input.Var == 'Science2' && input.tabs == 'Plots'",
+          radioButtons(inputId = "SciVar2",
+                       label = "Variables:",
+                       choices = c('Temperature'='Temp',
+                                   'TemperatureLegato' = 'temperatureLegato',
+                                   'Conductivity'='Cond',
+                                   'ConductivytLegato' = 'conductivityLegato',
+                                   'Salinity'='Sal',
+                                   'SalinityLegato' = 'salinityLegato',
+                                   'Density'='Dens',
+                                   'Sound Speed' = 'SoundSpeed',
+                                   #'Oxygen Frequency'='DOF',
+                                   'Oxygen Concentration' = 'OxyConc',
+                                   'Oxygen Saturation' = 'OxySat',
+                                   'Chlorophyl'='CHL_scaled',
+                                   'CDOM'='CDOM_scaled',
+                                   'BB_700nm'='BB_scaled'),
+                       selected = 'Temp'),
+          uiOutput('sciScaleBar2')
+          ),
+        # conditionalPanel(
+        #   condition = "input.Var == 'Science' || input.Var == 'Science2'",
+        #   uiOutput('sciScaleBar')
+        # ),
         #conditional panels for porpoise in plots tab
         conditionalPanel(
             condition = "input.Var == 'Porpoise' & input.tabs == 'Plots'",
@@ -285,7 +311,7 @@ server <- function(input, output) {
     # download and process data
     downloadData(ftpUrl = input$ftp, datadir = datadir, glider = input$Glider, mission = input$Mission)
     # get oxygen coefficients, if applicable
-    okgm <- gm$Glider == input$Glider & gm$Mission == as.numeric(input$Mission)
+    okgm <- gm$Glider == input$Glider & gm$Mission %in% (as.numeric(input$Mission) + c(0, 1)) # in attempts to capture simulations
     gmcurrent <- gm[okgm, ]
     if(dim(gmcurrent)[1] != 0){ # meaning the sheet has been updated
       okoxycalib <- oxycalibMeta$serialNumber == gmcurrent$OxygenSN & oxycalibMeta$calibrationDate == gmcurrent$CTDcaldate
@@ -321,19 +347,23 @@ server <- function(input, output) {
       # similar to readSeaExplorerRealTime.R code
       # for CTD/ eco puck set up check for two variables (CHL_count and Temp)
       # for porpoise, check for one variable (diskMounted)
-      if('CHL_count' %in% names(PLD) && 'Temp' %in% names(PLD)){
+      # add or statement incase ecopuck missing
+      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & !'temperatureLegato' %in% names(PLD)){
         choices <- c('Navigation'='Navigation','Science'='Science')
       }
-      if('diskMounted' %in% names(PLD)){
+      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & 'temperatureLegato' %in% names(PLD)){
+        choices <- c('Navigation'='Navigation','Science'='Science2')
+      }
+      if('diskMounted' %in% names(PLD)){ # we'll have to add another if statement if legato gets put on with porpoise
         choices <- c('Navigation'='Navigation','Porpoise'='Porpoise')
       }
+      print(choices)
       selectInput(inputId="Var",
                label="Data Set:",
                choices = choices,
                selected = choices[1])
     })
-    
-    
+
     profileNumber <- unique(NAV$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
     for (pi in seq_along(profileNumber)) {
@@ -469,6 +499,7 @@ server <- function(input, output) {
     output$sciScaleBar <- renderUI({
       rng <- switch(input$SciVar,
                     'Temp' = c(-2, 22),
+                    'temperatureLegato' = c(-2,22),
                     'Sal' = c(29, 35.5),
                     'Cond' = c(0,7),
                     'Dens' = c(20, 28),
@@ -508,6 +539,58 @@ server <- function(input, output) {
       sliderInput("sciLimits", "Choose colorbar limits:", min = rng[1], max = rng[2],
                   value = value, step = step, animate = FALSE)
 
+    })
+    output$sciScaleBar2 <- renderUI({
+      rng <- switch(input$SciVar2,
+                    'Temp' = c(-2, 22),
+                    'temperatureLegato' = c(-2,22),
+                    'Sal' = c(29, 35.5),
+                    'salinityLegato' = c(29, 35.5),
+                    'Cond' = c(0,7),
+                    'conductivityLegato' = c(0,7) * 10,
+                    'Dens' = c(20, 28),
+                    'SoundSpeed' = c(1425, 1575),
+                    'CHL_scaled' = c(-.02,5),
+                    'CDOM_scaled' = c(-2,12),
+                    'BB_scaled' = c(-0.001, 0.003) * 1000,
+                    'DOF' = c(2000, 5000),
+                    'OxyConc' = c(0,10),
+                    'OxySat' = c(0,120))
+      value <- switch(input$SciVar2,
+                      'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.98), na.rm = TRUE)),
+                      'temperatureLegato' = unname(quantile(PLD$temperatureLegato, probs = c(0.01, 0.98), na.rm = TRUE)),
+                      'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.98),  na.rm = TRUE)),
+                      'salinityLegato' = unname(quantile(PLD$salinityLegato, probs = c(0.02, 0.98),  na.rm = TRUE)),
+                      'Cond' = unname(quantile(PLD$Conduc, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'conductivityLegato' = unname(quantile(PLD$conductivityLegato, probs = c(0.02, 0.98),  na.rm = TRUE)),
+                      'Dens' = unname(quantile(PLD$SigTheta, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'SoundSpeed' = unname(quantile(PLD$SoundSpeed, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'CHL_scaled' = unname(quantile(PLD$CHL_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'CDOM_scaled' = unname(quantile(PLD$CDOM_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)) * 1000,
+                      'DOF' = unname(quantile(PLD$DOF, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'OxyConc' = unname(quantile(PLD$OxyConc, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'OxySat' = unname(quantile(PLD$OxySat, probs = c(0.01, 0.97), na.rm = TRUE)))
+      step <- switch(input$SciVar2,
+                     'Temp' = 0.5,
+                     'temperatureLegato' = 0.5,
+                     'Sal' = 0.1,
+                     'salinityLegato' = 0.1,
+                     'Cond' = 0.01,
+                     'conductivityLegato' = 0.01 * 10,
+                     'Dens' = 0.1,
+                     'SoundSpeed' = 10,
+                     'CHL_scaled' = 0.1,
+                     'CDOM_scaled' = 0.1,
+                     'BB_scaled' = 0.0005 * 100,
+                     'DOF' = 100,
+                     'OxyConc' = 0.5,
+                     'OxySat' = 1)
+      # deal with values that vary little during simulation
+      if(diff(value) < 5*step){value[2] <- value[2] + 5*step}
+      sliderInput("sciLimits2", "Choose colorbar limits:", min = rng[1], max = rng[2],
+                  value = value, step = step, animate = FALSE)
+      
     })
     # scaleBar for porpoise data
     output$porpScaleBar <- renderUI({
@@ -726,13 +809,17 @@ server <- function(input, output) {
         grid(lwd = 1)
         par(mar=mardef)
                     
-    } else if (input$Var == 'Science') {
+    } else if (input$Var %in% c('Science', 'Science2')) {
         # CL's work for science plots
         # get science data, make color map
-        data <- switch(input$SciVar,
+        var <- ifelse(input$Var == 'Science', input$SciVar, input$SciVar2)
+        data <- switch(var,
                        'Temp' = PLD$Temp,
+                       'temperatureLegato' = PLD$temperatureLegato,
                        'Sal' = PLD$Sal,
+                       'salinityLegato' = PLD$salinityLegato,
                        'Cond' = PLD$Conduc,
+                       'conductivityLegato' = PLD$conductivityLegato,
                        'Dens' = PLD$SigTheta,
                        'SoundSpeed' = PLD$SoundSpeed,
                        'CHL_scaled' = PLD$CHL_scaled,
@@ -742,10 +829,13 @@ server <- function(input, output) {
                        'OxyConc' = PLD$OxyConc,
                        'OxySat' = PLD$OxySat)
         #use CL's file for resizable label for biological variables ?
-        zlab <- switch(input$SciVar,
+        zlab <- switch(var,
                        'Temp' = resizableLabel('T', axis = 'y'),
+                       'temperatureLegato' = resizableLabel('T', axis = 'y'),
                        'Sal' = resizableLabel('S', axis = 'y'),
+                       'salinityLegato' = resizableLabel('S', axis = 'y'),
                        'Cond' = resizableLabel('conductivity S/m', axis = 'y'),
+                       'conductivityLegato' = resizableLabel('conductivity mS/cm', axis = 'y'),
                        'Dens' = resizableLabel('sigmaTheta', axis = 'y'),
                        'SoundSpeed' = bquote('Sound speed ' * '[' * 'm/s' * ']'),
                        'CHL_scaled' = expression(paste('Chlorophyll [', mu, 'g/l]')),
@@ -754,7 +844,8 @@ server <- function(input, output) {
                        'DOF' = 'Dissolved Oxygen [Hz]',
                        'OxyConc' = 'Oxygen [ml/l]',
                        'OxySat' = 'Oxygen Saturation [%]')
-        cm <- colormap(data, zlim = input$sciLimits)
+        if(input$Var == 'Science'){cmlim <- input$sciLimits} else {cmlim <- input$sciLimits2}
+        cm <- colormap(data, zlim = cmlim)
         ylabp <- resizableLabel('p', axis = 'y')
         #par(xaxs='i',yaxs='i', mar=mardef)
         par(mar=mardef)
