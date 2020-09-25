@@ -314,7 +314,7 @@ server <- function(input, output) {
     okgm <- gm$Glider == input$Glider & gm$Mission %in% (as.numeric(input$Mission) + c(0, 1)) # in attempts to capture simulations
     gmcurrent <- gm[okgm, ]
     if(dim(gmcurrent)[1] != 0){ # meaning the sheet has been updated
-      okoxycalib <- oxycalibMeta$serialNumber == gmcurrent$OxygenSN & oxycalibMeta$calibrationDate == gmcurrent$CTDcaldate
+      okoxycalib <- oxycalibMeta$serialNumber == gmcurrent$OxygenSN & oxycalibMeta$calibrationDate == gsub(' ', '', gmcurrent$CTDcaldate)
       if(!all(is.na(okoxycalib))){
         if(!all(!okoxycalib)){ # there is a SBE43 attached
           currentCalibration <- oxycalib[okoxycalib][[1]][['calibrationCoefficients']]

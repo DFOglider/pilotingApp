@@ -56,7 +56,7 @@ oxycalib[[5]] <- list(serialNumber = '43-3336',
                                                            Enom = 0.036))
 oxycalib[[6]] <- list(serialNumber = '43-3336',
                       model = 'SBE43',
-                      calibrationDate = 'Dec2019',
+                      calibrationDate = 'Jan2020',
                       calibrationCoefficients = data.frame(Soc = 3.0636e-4,
                                                            Foffset = -785.65,
                                                            Tau20 = 1.02,
