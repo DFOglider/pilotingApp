@@ -452,7 +452,7 @@ server <- function(input, output) {
                       'Heading' = c(0, 360),
                       'BallastPos' = c(-500, 500),
                       'AngPos' = c(-70, 70),
-                      'LinPos' = c(20, 100),
+                      'LinPos' = c(0, 100),
                       'Roll' = c(-20, 30),
                       'profileNumber' = c(0, 1500))
         value <- switch(input$NavVar,
@@ -470,7 +470,7 @@ server <- function(input, output) {
                         'Heading' = c(0, 360),
                         'BallastPos' = c(-500, 500),
                         'AngPos' = c(-70, 70),
-                        'LinPos' = c(20, 100),
+                        'LinPos' = c(0, 100),
                         'Roll' = c(-20, 30),
                         'profileNumber' = c(0, 1200))
         step <- switch(input$NavVar,
