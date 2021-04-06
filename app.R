@@ -366,8 +366,14 @@ server <- function(input, output) {
 
     profileNumber <- unique(NAV$profileNumber)
     profileTimes <- glon <- glat <- gdeshead <- NULL
+    # add some things to understand dead reckoned values, commented them out for now
+    onlydr <- NULL
     for (pi in seq_along(profileNumber)) {
-      ok <- profileNumber[pi] == NAV$profileNumber & NAV$Lon != 0 & NAV$Lat != 0
+      ok <- profileNumber[pi] == NAV$profileNumber & NAV$Lon != 0 & NAV$Lat != 0 #& NAV$deadReckoning == 0
+      # if(all(!ok)){
+      #   cat(paste('pi = ', pi, 'Only deadReckoned values, skipping'), sep = '\n')
+      #   onlydr <- c(onlydr, pi)
+      # } else {
       profileTimes <- c(profileTimes, NAV$time[ok][1])
       #glon <- c(glon, NAV$Lon[ok][1])
       #glat <- c(glat, NAV$Lat[ok][1])
@@ -375,6 +381,7 @@ server <- function(input, output) {
       glat <- c(glat, tail(NAV$Lat[ok], 1))
       heading <- NAV$DesiredHeading[ok][1] #- NAV$Declination[ok][1] # what DH calls 'geographical' heading
       gdeshead <- c(gdeshead, heading)
+      # }
     }
     gdeshead[gdeshead < 0] <- NA
     profileTimes <- numberAsPOSIXct(profileTimes)
