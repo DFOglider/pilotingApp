@@ -169,7 +169,7 @@ ui <- fluidPage(
 
         #conditional panels for science in plots tab
         conditionalPanel(
-          condition = "(input.Var == 'Science' || input.Var == 'Science2') && input.tabs == 'Plots'",
+          condition = "(input.Var == 'Science' || input.Var == 'Science2' || input.Var == 'Science3') && input.tabs == 'Plots'",
           #condition = "input.Var == 'Science' & input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
         # only GPCTD
@@ -213,6 +213,28 @@ ui <- fluidPage(
                        selected = 'Temp'),
           uiOutput('sciScaleBar2')
           ),
+        # GPCTD and Minifluo UV1
+        conditionalPanel(
+          condition="input.Var == 'Science3' && input.tabs == 'Plots'",
+          radioButtons(inputId = "SciVar3",
+                       label = "Variables:",
+                       choices = c('Temperature'='Temp',
+                                   'Conductivity'='Cond',
+                                   'Salinity'='Sal',
+                                   'Density'='Dens',
+                                   'Sound Speed' = 'SoundSpeed',
+                                   #'Oxygen Frequency'='DOF',
+                                   'Oxygen Concentration' = 'OxyConc',
+                                   'Oxygen Saturation' = 'OxySat',
+                                   'Chlorophyl'='CHL_scaled',
+                                   'CDOM'='CDOM_scaled',
+                                   'BB_700nm'='BB_scaled',
+                                   'Tryptophan' = 'tryptophan',
+                                   'Naphthalen' = 'naphthalen',
+                                   'Phenanthren' = 'phenanthren'),
+                       selected = 'Temp'),
+          uiOutput('sciScaleBar3')
+        ),
         # conditionalPanel(
         #   condition = "input.Var == 'Science' || input.Var == 'Science2'",
         #   uiOutput('sciScaleBar')
@@ -348,11 +370,14 @@ server <- function(input, output) {
       # for CTD/ eco puck set up check for two variables (CHL_count and Temp)
       # for porpoise, check for one variable (diskMounted)
       # add or statement incase ecopuck missing
-      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & !'temperatureLegato' %in% names(PLD)){
+      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & !'temperatureLegato' %in% names(PLD)){ # seabird ctd and ecopuck
         choices <- c('Navigation'='Navigation','Science'='Science')
       }
-      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & 'temperatureLegato' %in% names(PLD)){
+      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & 'temperatureLegato' %in% names(PLD)){ # seabird ctd, eco puck, rbr ctd 
         choices <- c('Navigation'='Navigation','Science'='Science2')
+      }
+      if(('CHL_count' %in% names(PLD) | 'Temp' %in% names(PLD)) & 'tryptophan' %in% names(PLD)){ # seabird ctd, eco puck, alseamar minifluo uv1
+        choices <- c('Navigation'='Navigation','Science'='Science3')
       }
       if('diskMounted' %in% names(PLD)){ # we'll have to add another if statement if legato gets put on with porpoise
         choices <- c('Navigation'='Navigation','Porpoise'='Porpoise')
@@ -547,6 +572,7 @@ server <- function(input, output) {
                   value = value, step = step, animate = FALSE)
 
     })
+    # scale bar for gpctd and legato
     output$sciScaleBar2 <- renderUI({
       rng <- switch(input$SciVar2,
                     'Temp' = c(-2, 22),
@@ -596,6 +622,60 @@ server <- function(input, output) {
       # deal with values that vary little during simulation
       if(diff(value) < 5*step){value[2] <- value[2] + 5*step}
       sliderInput("sciLimits2", "Choose colorbar limits:", min = rng[1], max = rng[2],
+                  value = value, step = step, animate = FALSE)
+      
+    })
+    # scale bar for gpctd and minifluo uv1
+    output$sciScaleBar3 <- renderUI({
+      rng <- switch(input$SciVar3,
+                    'Temp' = c(-2, 22),
+                    'temperatureLegato' = c(-2,22),
+                    'Sal' = c(29, 35.5),
+                    'Cond' = c(0,7),
+                    'Dens' = c(20, 28),
+                    'SoundSpeed' = c(1425, 1575),
+                    'CHL_scaled' = c(-.02,5),
+                    'CDOM_scaled' = c(-2,12),
+                    'BB_scaled' = c(-0.001, 0.003) * 1000,
+                    'DOF' = c(2000, 5000),
+                    'OxyConc' = c(0,10),
+                    'OxySat' = c(0,120),
+                    'tryptophan' = c(0,800),
+                    'naphthalen' = c(0,600),
+                    'phenanthren' = c(0,250))
+      value <- switch(input$SciVar,
+                      'Temp' = unname(quantile(PLD$Temp, probs = c(0.01, 0.98), na.rm = TRUE)),
+                      'Sal' = unname(quantile(PLD$Sal, probs = c(0.02, 0.98),  na.rm = TRUE)),
+                      'Cond' = unname(quantile(PLD$Conduc, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'Dens' = unname(quantile(PLD$SigTheta, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'SoundSpeed' = unname(quantile(PLD$SoundSpeed, probs = c(0.02, 0.98), na.rm = TRUE)),
+                      'CHL_scaled' = unname(quantile(PLD$CHL_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'CDOM_scaled' = unname(quantile(PLD$CDOM_scaled, probs = c(0.01, 0.99), na.rm = TRUE)),
+                      'BB_scaled' = unname(quantile(PLD$BB_scaled, probs = c(0.01, 0.99), na.rm = TRUE)) * 1000,
+                      'DOF' = unname(quantile(PLD$DOF, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'OxyConc' = unname(quantile(PLD$OxyConc, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'OxySat' = unname(quantile(PLD$OxySat, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'tryptophan' = unname(quantile(PLD$tryptophan, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'naphthalen' = unname(quantile(PLD$naphthalen, probs = c(0.01, 0.97), na.rm = TRUE)),
+                      'phenanthren' = unname(quantile(PLD$phenanthren, probs = c(0.01, 0.97), na.rm = TRUE)))
+      step <- switch(input$SciVar,
+                     'Temp' = 0.5,
+                     'Sal' = 0.1,
+                     'Cond' = 0.01,
+                     'Dens' = 0.1,
+                     'SoundSpeed' = 10,
+                     'CHL_scaled' = 0.1,
+                     'CDOM_scaled' = 0.1,
+                     'BB_scaled' = 0.0005 * 100,
+                     'DOF' = 100,
+                     'OxyConc' = 0.5,
+                     'OxySat' = 1,
+                     'tryptophan' = 0.15,
+                     'naphthalen' = 0.15,
+                     'phenanthren' = 0.20)
+      # deal with values that vary little during simulation
+      if(diff(value) < 5*step){value[2] <- value[2] + 5*step}
+      sliderInput("sciLimits3", "Choose colorbar limits:", min = rng[1], max = rng[2],
                   value = value, step = step, animate = FALSE)
       
     })
@@ -660,9 +740,6 @@ server <- function(input, output) {
       }
   })
     # plot2 - bottom plot
-    # TO-DO : use switch argument for navigation plots
-    #         to make code shorter
-    #         see how science plots are created below
     output$plot2 <- renderPlot({
     if (input$Var == 'Navigation') {
         navdata <- switch(input$NavVar,
@@ -816,10 +893,17 @@ server <- function(input, output) {
         grid(lwd = 1)
         par(mar=mardef)
                     
-    } else if (input$Var %in% c('Science', 'Science2')) {
+    } else if (input$Var %in% c('Science', 'Science2', 'Science3')) {
         # CL's work for science plots
         # get science data, make color map
-        var <- ifelse(input$Var == 'Science', input$SciVar, input$SciVar2)
+      if(input$Var == 'Science'){
+        var <- input$SciVar
+      } else if(input$Var == 'Science2'){
+        var <- input$SciVar2
+      } else {
+        var <- input$SciVar3
+      }
+        #var <- ifelse(input$Var == 'Science', input$SciVar, input$SciVar2)
         data <- switch(var,
                        'Temp' = PLD$Temp,
                        'temperatureLegato' = PLD$temperatureLegato,
@@ -834,7 +918,10 @@ server <- function(input, output) {
                        'BB_scaled' = PLD$BB_scaled * 1000,
                        'DOF' = PLD$DOF,
                        'OxyConc' = PLD$OxyConc,
-                       'OxySat' = PLD$OxySat)
+                       'OxySat' = PLD$OxySat,
+                       'tryptophan' = PLD$tryptophan,
+                       'naphthalen' = PLD$naphthalen,
+                       'phenanthren' = PLD$phenanthren)
         #use CL's file for resizable label for biological variables ?
         zlab <- switch(var,
                        'Temp' = resizableLabel('T', axis = 'y'),
@@ -850,8 +937,15 @@ server <- function(input, output) {
                        'BB_scaled' = expression(paste('Backscatter [', 10^3, '/ m sr]')),
                        'DOF' = 'Dissolved Oxygen [Hz]',
                        'OxyConc' = 'Oxygen [ml/l]',
-                       'OxySat' = 'Oxygen Saturation [%]')
-        if(input$Var == 'Science'){cmlim <- input$sciLimits} else {cmlim <- input$sciLimits2}
+                       'OxySat' = 'Oxygen Saturation [%]',
+                       'tryptophan' = bquote('Tryptophan [' * mu * 'g/L ]'),
+                       'naphthalen' = bquote('Naphthalene [' * mu * 'g/L ]'),
+                       'phenanthren' = bquote('Phenanthren [' * mu * 'g/L ]'))
+        cmlim <- switch(input$Var,
+                        'Science' = input$sciLimits,
+                        'Science2' = input$sciLimits2,
+                        'Science3' = input$sciLimits3)
+        #if(input$Var == 'Science'){cmlim <- input$sciLimits} else {cmlim <- input$sciLimits2}
         cm <- colormap(data, zlim = cmlim)
         ylabp <- resizableLabel('p', axis = 'y')
         #par(xaxs='i',yaxs='i', mar=mardef)
@@ -987,7 +1081,7 @@ server <- function(input, output) {
                       latitude = glat, 
                       phi = gdesheadpolar,
                       L = 2)
-      map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
+    map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
         addProviderTiles(providers$Esri.OceanBasemap) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
                   lat1 = min(glat, na.rm = TRUE) + 0.2,
@@ -1104,15 +1198,16 @@ server <- function(input, output) {
                          group = map_allposition) %>%
           # desired heading of glider
           # syntax is kinda weird, but leaflet doesn't like for loops
-        {
-          for(i in unique(df$group)){
-            . <- addPolylines(., lng = df$longitude[df$group == i],
-                                 lat = df$latitude[df$group == i],
-                              group = map_desiredHeading,
-                              weight = 2)
-              }
-            return (.)
-        } %>%
+      # 20210510 for some reason this doesn't work for me anymore ...
+        # {
+        #   for(i in unique(df$group)){
+        #     . <- addPolylines(., lng = df$longitude[df$group == i],
+        #                          lat = df$latitude[df$group == i],
+        #                       group = map_desiredHeading,
+        #                       weight = 2)
+        #       }
+        #     return (.)
+        # } %>%
         # map_track
           #line track
         addPolylines(lng = glon, lat = glat,

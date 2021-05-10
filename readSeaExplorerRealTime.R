@@ -224,6 +224,15 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
     PLD$salinityLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_SALINITY))
     PLD$pressureLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_PRESSURE))
   }
+  # check if minifluo UV1 sensor is attached, add to PLD
+  if('MFLUV1_NAPH_SCALED' %in% names(data_allsci[[1]])){ # just check for one variable
+    # only going to keep the scaled variables right now
+    # like the ecopuck, count variables are also included in the files, but we won't read them in for now
+    #   not going to put '_scaled' to parameter names like the other optical sensor parameters
+    PLD$tryptophan <- unlist(lapply(data_allsci, function(k) k$MFLUV1_TRY_SCALED))
+    PLD$naphthalen <- unlist(lapply(data_allsci, function(k) k$MFLUV1_PHE_SCALED))
+    PLD$phenanthren <- unlist(lapply(data_allsci, function(k) k$MFLUV1_NAPH_SCALED))
+  }
   # set 9999.00 values to NA before calculation of other variables
   # think these values are only in PLD files
   bad99 <- PLD == 9999.00
