@@ -196,120 +196,134 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
   Latd <- conv(LatT)
  
   # to put everything in a dataframe where all the dive are together
-  # PLD with CTD and ecopuck
-  # check if there is an eco puck variable (chl, bb or cdom) and a physical variable, (temp, cond, press)
-  if('FLBBCD_CHL_COUNT' %in% names(data_allsci[[1]]) && 'GPCTD_TEMPERATURE' %in% names(data_allsci[[1]])){
-  PLD <- data.frame(
-    profileNumSci = profileNumSci,
-    timesci=timesci,
-    Lat=Latd,
-    Lon=Lond,
-    Depthsci=unlist(lapply(data_allsci, function(k) k$NAV_DEPTH)),
-    CHL_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_COUNT)),
-    CHL_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_SCALED)),
-    BB_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_BB_700_COUNT)),
-    BB_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_BB_700_SCALED)),
-    CDOM_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_CDOM_COUNT)),
-    CDOM_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CDOM_SCALED)),
-    Temp=unlist(lapply(data_allsci, function(k) k$GPCTD_TEMPERATURE)),
-    Press=unlist(lapply(data_allsci, function(k) k$GPCTD_PRESSURE)),
-    #DOF=unlist(lapply(data_allsci, function(k) k$GPCTD_DOF)),
-    Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY))
-  )
-  # check if legato ctd and add these
-  if('LEGATO_TEMPERATURE' %in% names(data_allsci[[1]])){ # just check for one variable
-    PLD$temperatureLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_TEMPERATURE))
-    PLD$conductivityLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_CONDUCTIVITY))
-    # it internally calculates salinity
-    PLD$salinityLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_SALINITY))
-    PLD$pressureLegato <- unlist(lapply(data_allsci, function(k) k$LEGATO_PRESSURE))
-  }
-  # check if minifluo UV1 sensor is attached, add to PLD
-  if('MFLUV1_NAPH_SCALED' %in% names(data_allsci[[1]])){ # just check for one variable
-    # only going to keep the scaled variables right now
-    # like the ecopuck, count variables are also included in the files, but we won't read them in for now
-    #   not going to put '_scaled' to parameter names like the other optical sensor parameters
-    PLD$tryptophan <- unlist(lapply(data_allsci, function(k) k$MFLUV1_TRY_SCALED))
-    PLD$naphthalen <- unlist(lapply(data_allsci, function(k) k$MFLUV1_PHE_SCALED))
-    PLD$phenanthren <- unlist(lapply(data_allsci, function(k) k$MFLUV1_NAPH_SCALED))
-  }
-  # set 9999.00 values to NA before calculation of other variables
-  # think these values are only in PLD files
-  bad99 <- PLD == 9999.00
-  PLD[bad99] <- NA
-  
-  # calculate salinity, sigTheta, soundSpeed, and oxygen saturation
-  PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
-                    temperature = PLD$Temp, 
-                    pressure = PLD$Press, 
-                    conductivityUnit = "S/m")
-  PLD$SigTheta <- swSigmaTheta(salinity = PLD$Sal,
-                               temperature = PLD$Temp,
-                               pressure = PLD$Press)
-  PLD$SoundSpeed <- swSoundSpeed(salinity = PLD$Sal,
-                                 temperature = PLD$Temp,
-                                 pressure = PLD$Press)
-  # calculate oxygen saturation
-  # TO-DO implement new oxygen sensor for SEA032
-  # use coefficients from calibration files for SBE 43 DO sensor
-  if(!is.null(oxygenCalibCoef)){ # SBE43
-    DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
-    PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, 
-                               salinity = PLD$Sal, 
-                               pressure = PLD$Press, 
-                               oxygenFrequency = DOF,
-                               Soc = oxygenCalibCoef[['Soc']], 
-                               Foffset = oxygenCalibCoef[['Foffset']], 
-                               A = oxygenCalibCoef[['A']],
-                               B = oxygenCalibCoef[['B']],
-                               C = oxygenCalibCoef[['C']], 
-                               Enom = oxygenCalibCoef[['Enom']])
-    PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
-  } else { # check to see if rinko is there
-    okrinko <- 'AROD_FT_DO' %in% names(data_allsci[[1]])
-    if(okrinko) {
-      rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
-      nado <- which(rinkodo == 9999.00)
-      rinkodo[nado] <- NA
-      # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
-      rinkooxyconc <-  rinkodo / 44.661
-      oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
-      nat <- which(oxytemp == 9999.00)
-      oxytemp[nat] <- NA
-      PLD$OxySat <- (rinkooxyconc / swSatO2(temperature = oxytemp, salinity = rep(0, length(oxytemp)))) * 100
-      #remove 9999.0 from ctd temp and sal for calculation
-      #assuming that the 9999.00 are the same for temp and sal
-      nactd <- which(PLD$Temp == 9999.00)
-      ctdTemp <- PLD$Temp
-      ctdTemp[nactd] <- NA
-      ctdSal <- PLD$Sal
-      ctdSal[nactd] <- NA
-      PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
-    } else { # either no oxy sensor or no calib coeff have been supplied so return all NAs
-      PLD$OxyConc <- PLD$OxySat <- rep(NA, length(PLD$Temp))
-    }
-  }
+  # first create data.frame with already extracted variables
+  PLD <- data.frame(profileNumSci = profileNumSci,
+                    timesci = timesci,
+                    Lat = Latd,
+                    Lon = Lond,
+                    Depthsci = unlist(lapply(data_allsci, function(k) k$NAV_DEPTH)))
   
   bad <- is.na(PLD$timesci)
   PLD <- PLD[!bad,]
   bad <- is.na(NAV$time)
   NAV <- NAV[!bad,]
   
-  ## approx pressure by using depth from navigation for simulation
-  if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
-    newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
-    PLD$Press <- newPress$y
+  # GPCTD
+  if('GPCTD_TEMPERATURE' %in% names(data_allsci[[1]])){
+    PLD <- data.frame(PLD, 
+                      Temp=unlist(lapply(data_allsci, function(k) k$GPCTD_TEMPERATURE)),
+                      Press=unlist(lapply(data_allsci, function(k) k$GPCTD_PRESSURE)),
+                      Conduc=unlist(lapply(data_allsci, function(k) k$GPCTD_CONDUCTIVITY)))
+    
+    # set 9999.00 values to NA before calculation of other variables
+    # think these values are only in PLD files
+    bad99 <- PLD == 9999.00
+    PLD[bad99] <- NA
+    ## approx pressure by using depth from navigation for simulation
+    if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
+      newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
+      PLD$Press <- newPress$y
     }
-  } # closes if there is a CTD and ECOpuck, note that it would have to be moved if using profile stuff below
+    # calculate salinity, sigTheta, soundSpeed, and oxygen saturation
+    PLD$Sal <- swSCTp(conductivity = PLD$Conduc, 
+                      temperature = PLD$Temp, 
+                      pressure = PLD$Press, 
+                      conductivityUnit = "S/m")
+    PLD$SigTheta <- swSigmaTheta(salinity = PLD$Sal,
+                                 temperature = PLD$Temp,
+                                 pressure = PLD$Press)
+    PLD$SoundSpeed <- swSoundSpeed(salinity = PLD$Sal,
+                                   temperature = PLD$Temp,
+                                   pressure = PLD$Press)
+    # calculate oxygen saturation
+    # use coefficients from calibration files for SBE 43 DO sensor
+    if(!is.null(oxygenCalibCoef)){ # SBE43
+      DOF <- unlist(lapply(data_allsci, function(k) k$GPCTD_DOF))
+      PLD$OxyConc <- sbeO2Hz2Sat(temperature = PLD$Temp, 
+                                 salinity = PLD$Sal, 
+                                 pressure = PLD$Press, 
+                                 oxygenFrequency = DOF,
+                                 Soc = oxygenCalibCoef[['Soc']], 
+                                 Foffset = oxygenCalibCoef[['Foffset']], 
+                                 A = oxygenCalibCoef[['A']],
+                                 B = oxygenCalibCoef[['B']],
+                                 C = oxygenCalibCoef[['C']], 
+                                 Enom = oxygenCalibCoef[['Enom']])
+      PLD$OxySat <- (PLD$OxyConc / swSatO2(temperature = PLD$Temp, salinity = PLD$Sal))*100
+    } else { # check to see if rinko is there
+      okrinko <- 'AROD_FT_DO' %in% names(data_allsci[[1]])
+      if(okrinko) {
+        rinkodo <- unlist(lapply(data_allsci, function(k) k$AROD_FT_DO))
+        nado <- which(rinkodo == 9999.00)
+        rinkodo[nado] <- NA
+        # 1 ml/l = 10^3/22.391 = 44.661 umol/l from http://ocean.ices.dk/tools/unitconversion.aspx
+        rinkooxyconc <-  rinkodo / 44.661
+        oxytemp <- unlist(lapply(data_allsci, function(k) k$AROD_FT_TEMP))
+        nat <- which(oxytemp == 9999.00)
+        oxytemp[nat] <- NA
+        PLD$OxySat <- (rinkooxyconc / swSatO2(temperature = oxytemp, salinity = rep(0, length(oxytemp)))) * 100
+        #remove 9999.0 from ctd temp and sal for calculation
+        #assuming that the 9999.00 are the same for temp and sal
+        nactd <- which(PLD$Temp == 9999.00)
+        ctdTemp <- PLD$Temp
+        ctdTemp[nactd] <- NA
+        ctdSal <- PLD$Sal
+        ctdSal[nactd] <- NA
+        PLD$OxyConc <- (PLD$OxySat * swSatO2(temperature = ctdTemp, salinity = ctdSal))/100
+      } else { # either no oxy sensor or no calib coeff have been supplied so return all NAs
+        PLD$OxyConc <- PLD$OxySat <- rep(NA, length(PLD$Temp))
+      }
+    }
+    
+  }
   
+  # ECOPUCK
+  if('FLBBCD_CHL_COUNT' %in% names(data_allsci[[1]])){
+  PLD <- data.frame(PLD, 
+    CHL_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_COUNT)),
+    CHL_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CHL_SCALED)),
+    BB_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_BB_700_COUNT)),
+    BB_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_BB_700_SCALED)),
+    CDOM_count=unlist(lapply(data_allsci, function(k) k$FLBBCD_CDOM_COUNT)),
+    CDOM_scaled=unlist(lapply(data_allsci, function(k) k$FLBBCD_CDOM_SCALED))
+  )
+  }
+  
+  # LEGATO
+  if('LEGATO_TEMPERATURE' %in% names(data_allsci[[1]])){ # just check for one variable
+    # it internally calculates salinity
+    PLD <- data.frame(PLD,
+                      temperatureLegato = unlist(lapply(data_allsci, function(k) k$LEGATO_TEMPERATURE)),
+                      conductivityLegato = unlist(lapply(data_allsci, function(k) k$LEGATO_CONDUCTIVITY)),
+                      salinityLegato = unlist(lapply(data_allsci, function(k) k$LEGATO_SALINITY)),
+                      pressureLegato = unlist(lapply(data_allsci, function(k) k$LEGATO_PRESSURE)))
+    if(!'Press' %in% names(PLD)){ # needs to be done for app, this is if there is no GPCTD
+      PLD$Press <- unlist(lapply(data_allsci, function(k) k$LEGATO_PRESSURE))
+      ## approx pressure by using depth from navigation for simulation
+      if(diff(range(PLD$Press, na.rm = TRUE)) < 5){
+        newPress <- approx(x = NAV$time, y = NAV$depth, xout = PLD$timesci, rule = 1)
+        PLD$Press <- newPress$y
+      }
+    }
+  }
+  
+  # MINIFLUO UV1
+  if('MFLUV1_NAPH_SCALED' %in% names(data_allsci[[1]])){ # just check for one variable
+    # only going to keep the scaled variables right now
+    # like the ecopuck, count variables are also included in the files, but we won't read them in for now
+    #   not going to put '_scaled' to parameter names like the other optical sensor parameters
+    PLD <- data.frame(PLD,
+                      tryptophan = unlist(lapply(data_allsci, function(k) k$MFLUV1_TRY_SCALED)),
+                      naphthalen = unlist(lapply(data_allsci, function(k) k$MFLUV1_PHE_SCALED)),
+                      phenanthren = unlist(lapply(data_allsci, function(k) k$MFLUV1_NAPH_SCALED)))
+  }
+  
+
+
   # check if there are porpoise variables
   # unlike CTD and ECOpuck, only need to check one var
   if('PORPOISE_DISK_MOUNTED' %in% names(data_allsci[[1]])){
-    PLD <- data.frame(
-      profileNumSci = profileNumSci,
-      timesci=timesci,
-      Lat=Latd,
-      Lon=Lond,
+    PLD <- data.frame(PLD, 
       events = unlist(lapply(data_allsci, function(k) k$PORPOISE_EVTS)),
       status = unlist(lapply(data_allsci, function(k) k$PORPOISE_STATUS)),
       diskMounted = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISK_MOUNTED)),
@@ -319,8 +333,12 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
       acousticRecording = unlist(lapply(data_allsci, function(k) k$PORPOISE_ACOUSTIC_RECORDING))
     )
   } # closes if its a porpoise
-  } #closes if there are new files
   
+  # set 9999.00 values to NA before calculation of other variables
+  # think these values are only in PLD files
+  bad99 <- PLD == 9999.00
+  PLD[bad99] <- NA
+  } #closes if there are new files
   # if there are no files, then create an empty data frame with all variables for CTD and ecoPUCK setup
   else{
     PLD <- data.frame(
