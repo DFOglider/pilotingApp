@@ -119,7 +119,7 @@ pldVarNames <- c('Temperature'='Temp', # GPCTD
                   'Chlorophyll'='CHL_scaled', # eco puck
                   'CDOM'='CDOM_scaled',
                   'BB_700nm'='BB_scaled',
-                  'Events'='events', # porpoise
+                  #'Events'='events', # porpoise
                   'Status'='status',
                   'Disk Mounted'='diskMounted',
                   'Disks Usage'='disksUsage',
@@ -129,7 +129,7 @@ pldVarNames <- c('Temperature'='Temp', # GPCTD
                   'Tryptophan' = 'tryptophan', # Minifluo UV1
                   'Naphthalen' = 'naphthalen',
                   'Phenanthren' = 'phenanthren')
-porpVars <- c('events',
+porpVars <- c(#'events',
               'status',
               'diskMounted',
               'disksUsage',
@@ -196,12 +196,10 @@ ui <- fluidPage(
                               'Yo Numbers'='profileNumber'),
                   selected = 'Pitch'),
           uiOutput('navScaleBar')),
-
         #conditional panels for science in plots tab
         conditionalPanel(
           condition = "(input.Var == 'Science' && input.tabs == 'Plots'",
           actionButton("resetSci", "Reset plot")),
-        # only GPCTD
         conditionalPanel(
           condition="input.Var == 'Science' && input.tabs == 'Plots'",
             uiOutput('pldVar'),
@@ -465,7 +463,9 @@ server <- function(input, output) {
     })
     # get payload variable names that have been read.
     output$pldVar <- renderUI({
+      req(input$Var == 'Science')
       print(names(PLD))
+      print(input$Var)
       okpldvars <- pldVarNames %in% names(PLD)
       pldchoices <- pldVarNames[okpldvars]
       radioButtons(inputId = "SciVar",
@@ -475,6 +475,7 @@ server <- function(input, output) {
     })
     # scaleBar for science plots
     output$sciScaleBar <- renderUI({
+      req(input$Var == 'Science')
       rng <- switch(input$SciVar,
                     'Temp' = c(-2, 22),
                     'temperatureLegato' = c(-2,22),
