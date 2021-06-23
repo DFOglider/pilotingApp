@@ -183,7 +183,6 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
-                              'Battery Percentage'='BatteriePerc',
                               'Internal Temperature'='Temperature',
                               'Internal Pressure'='int_pres',
                               'Distance'='distkm',
@@ -410,7 +409,6 @@ server <- function(input, output) {
                       'Pitch' = c(-80,50),
                       'VertSpeed' = c(-50, 50),
                       'BatterieVolt' = c(24, 30),
-                      'BatteriePerc' = c(0, 100),
                       'Temperature' = c(0,30),
                       'int_pres' = c(6.9e4, 8.1e4),
                       'distkm' = c(0, 700),
@@ -428,7 +426,6 @@ server <- function(input, output) {
                         'Pitch' = c(-80,50),
                         'VertSpeed' = c(-50, 50),
                         'BatterieVolt' = c(24, 30),
-                        'BatteriePerc' = c(0, 100),
                         'Temperature' = c(0,26),
                         'int_pres' = c(6.9e4, 8.1e4),
                         'distkm' = c(0, 1000),
@@ -446,7 +443,6 @@ server <- function(input, output) {
                        'Pitch' = 5,
                        'VertSpeed' = 5,
                        'BatterieVolt' = 0.05,
-                       'BatteriePerc' = 1,
                        'Temperature' = 1,
                        'int_pres' = 50,
                        'distkm' = 50,
@@ -599,7 +595,6 @@ server <- function(input, output) {
                           'Pitch' = NAV$Pitch,
                           'VertSpeed' = NAV$VertSpeed,
                           'BatterieVolt' = NAV$BatterieVolt,
-                          'BatteriePerc' = NAV$BatteriePerc,
                           'speedms' = NAV$speedms,
                           'distkm' = NAV$distkm,
                           'Temperature' = NAV$Temperature,
@@ -619,7 +614,6 @@ server <- function(input, output) {
                           'Pitch' = bquote('Pitch'*.(L)*'degrees'*.(R)),
                           'VertSpeed' = bquote('Vertical speed'*.(L)*'m/s'*.(R)),
                           'BatterieVolt' = bquote('Battery voltage'*.(L)*'V'*.(R)),
-                          'BatteriePerc' = bquote('Battery percentage'*.(L)*'%'*.(R)),
                           'speedms' = bquote('Glider speed'*.(L)*'m/s'*.(R)),
                           'distkm' = bquote('Distance travelled'*.(L)*'km'*.(R)),
                           'Temperature' = bquote('Internal temperature'*.(L)*degree*'C'*.(R)),
@@ -641,7 +635,6 @@ server <- function(input, output) {
                           'Pitch' = c('l', 'black',2),
                           'VertSpeed' = c('l','black',2),
                           'BatterieVolt' = c('l','red',2),
-                          'BatteriePerc' = c('l', 'red',2),
                           'Temperature' = c('l','red',2),
                           'int_pres' = c('l', 'blue',2),
                           'distkm' = c('p', 'darkgreen',1),
@@ -705,15 +698,6 @@ server <- function(input, output) {
         if(input$NavVar == 'BatterieVolt'){
             xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
             ypoly <- c(24, 24, 26, 26)
-            polygon(xpoly, ypoly,
-                    col = gray(0.8), border = NA)
-            polygon(xpoly, rev(ypoly) * -1, 
-                    col = gray(0.8), border = NA)
-            lines(NAV$time, navdata, lwd = 2, col = navtype[2])
-        }
-        if(input$NavVar == 'BatteriePerc'){
-            xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
-            ypoly <- sx(c(24, 24, 26, 26))
             polygon(xpoly, ypoly,
                     col = gray(0.8), border = NA)
             polygon(xpoly, rev(ypoly) * -1, 

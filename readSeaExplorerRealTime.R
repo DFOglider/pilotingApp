@@ -71,9 +71,9 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
   alt[alt<0]<-0
   altHit<-depth+alt
 
-      ##calculate battery percentage using spline
-      load('sx_spline.rda')
-      batteryPerc <- sx(unlist(lapply(data_all, function(k) k$Voltage)))
+      # ##calculate battery percentage using spline
+      # load('sx_spline.rda')
+      # batteryPerc <- sx(unlist(lapply(data_all, function(k) k$Voltage)))
       
   # to put everything in a dataframe where all the dives are together
   NAV <- data.frame(
@@ -98,7 +98,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
     AngCmd=unlist(lapply(data_all, function(k) k$AngCmd)),
     AngPos=unlist(lapply(data_all, function(k) k$AngPos)),
     BatterieVolt=unlist(lapply(data_all, function(k) k$Voltage)),
-    BatteriePerc=batteryPerc,
+    #BatteriePerc=batteryPerc,
     alt=unlist(lapply(data_all, function(k) k$Altitude)),
     Lat=conv(unlist(lapply(data_all, function(k) k$Lat))),
     Lon=conv(unlist(lapply(data_all, function(k) k$Lon))))
