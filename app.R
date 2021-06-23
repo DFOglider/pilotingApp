@@ -696,12 +696,12 @@ server <- function(input, output) {
             lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
         if(input$NavVar == 'BatterieVolt'){
-            xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
-            ypoly <- c(24, 24, 26, 26)
-            polygon(xpoly, ypoly,
-                    col = gray(0.8), border = NA)
-            polygon(xpoly, rev(ypoly) * -1, 
-                    col = gray(0.8), border = NA)
+            # xpoly <- c(NAV$time[1], NAV$time[length(NAV$time)], NAV$time[length(NAV$time)], NAV$time[1])
+            # ypoly <- c(24, 24, 26, 26)
+            # polygon(xpoly, ypoly,
+            #         col = gray(0.8), border = NA)
+            # polygon(xpoly, rev(ypoly) * -1, 
+            #         col = gray(0.8), border = NA)
             lines(NAV$time, navdata, lwd = 2, col = navtype[2])
         }
         if(input$NavVar == 'Heading'){
