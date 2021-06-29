@@ -150,6 +150,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
   NAV$speedms[indexspeed] <- speed_good
   NAV$distkm[indexdist] <- distsum[!is.na(distsum)]
   
+  # remove any NA time values in NAV
+  bad <- is.na(NAV$time)
+  NAV <- NAV[!bad,]
+  
   
   
   #############################
@@ -202,11 +206,6 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
                     Lat = Latd,
                     Lon = Lond,
                     Depthsci = unlist(lapply(data_allsci, function(k) k$NAV_DEPTH)))
-  
-  bad <- is.na(PLD$timesci)
-  PLD <- PLD[!bad,]
-  bad <- is.na(NAV$time)
-  NAV <- NAV[!bad,]
   
   # GPCTD
   if('GPCTD_TEMPERATURE' %in% names(data_allsci[[1]])){
@@ -334,6 +333,10 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
     )
   } # closes if its a porpoise
   
+  # remove any NA time values
+  bad <- is.na(PLD$timesci)
+  PLD <- PLD[!bad,]
+
   # set 9999.00 values to NA before calculation of other variables
   # think these values are only in PLD files
   bad99 <- PLD == 9999.00
