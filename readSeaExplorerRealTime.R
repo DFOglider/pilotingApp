@@ -323,7 +323,7 @@ readSeaExplorerRealTime <- function(datadir, glider, mission, oxygenCalibCoef = 
   # unlike CTD and ECOpuck, only need to check one var
   if('PORPOISE_DISK_MOUNTED' %in% names(data_allsci[[1]])){
     PLD <- data.frame(PLD, 
-      events = unlist(lapply(data_allsci, function(k) k$PORPOISE_EVTS)),
+      #events = unlist(lapply(data_allsci, function(k) k$PORPOISE_EVTS)), # no longer in files as of 20210712
       status = unlist(lapply(data_allsci, function(k) k$PORPOISE_STATUS)),
       diskMounted = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISK_MOUNTED)),
       disksUsage = unlist(lapply(data_allsci, function(k) k$PORPOISE_DISKS_USAGE)),
