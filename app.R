@@ -94,6 +94,11 @@ gllat <- conv(gllatdmm)
 bblon <- c(-52.967, -52.750, -52.650, -52.400, -52.067, -51.830, -51.542, -51.280, -51.017, -50.533, -50.017, -49.500, -49, -48.472, -47.947)
 bblat <- c(48.7300, 48.800, 48.833, 48.917, 49.025, 49.100, 49.190, 49.280, 49.367, 49.517, 49.683, 49.850, 50.000, 50.177, 50.332)
 
+# modified bonavista line (BB1, BBn2, BBn3, BBn4, BBn1.5, BBn5)
+bbmlon <- c(-52.967, -52.40, -51.83, -50.7, -52.76, -50.0)
+bbmlat <- c(48.733, 49.065, 49.39, 50.00, 48.85, 50.83)
+bbmname <- c('BB1', 'BBn2', 'BBn3', 'BBn4', 'BBn1.5', 'BBn5')
+
 # halifax shipping lane boundaries
 load('shippingBoundaries.rda')
 
@@ -1077,6 +1082,14 @@ server <- function(input, output) {
                                        paste0('BB', seq(1,15)),
                                        paste0(as.character(round(bblat, 4)), ',', as.character(round(bblon, 3)))),
                          label = paste0('BB', seq(1,15)))%>%
+          # bonavista modified
+      addCircleMarkers(lng = bbmlon, lat = bbmlat,
+                       radius = 7, fillOpacity = 0.5, stroke = F,
+                       color = 'gray48',
+                       popup = paste(sep = "<br/>",
+                                     bbmname,
+                                     paste0(as.character(round(bbmlat, 4)), ',', as.character(round(bbmlon, 3)))),
+                       label = bbmname)%>%
           # last received / current location
         addCircleMarkers(lng = glon[length(glon)], lat = glat[length(glon)],
                          radius = 6, fillOpacity = 1, stroke = F,
