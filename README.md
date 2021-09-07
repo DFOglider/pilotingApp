@@ -17,7 +17,7 @@ then displays plots of the various fields of interest.
 2. Download the Shiny app code from this repository, either through
    direct download, using Github Desktop, or by typing:
    ```
-   $ git clone https://github.com/melanybelzile/pilotingApp.git
+   $ git clone https://github.com/DFOglider/pilotingApp.git
    ```
    in a terminal.
 
