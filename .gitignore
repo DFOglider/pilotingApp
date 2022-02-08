@@ -40,3 +40,6 @@ vignettes/*.pdf
 # Downloaded data files
 data/
 .Rproj.user
+
+# other things
+sandbox/cl/*.csv
