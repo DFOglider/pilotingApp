@@ -3,6 +3,7 @@ library(shiny)
 library(oce)
 library(ocedata)
 library(leaflet)
+library(leaflet.esri) # for basemaps
 library(RCurl)
 library(geosphere)
 library(XML)
@@ -906,19 +907,11 @@ server <- function(input, output) {
                       phi = gdesheadpolar,
                       L = 2)
     map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
-        addProviderTiles(providers$Esri.OceanBasemap) %>%
+        addEsriBasemapLayer(esriBasemapLayers$Oceans, autoLabels = TRUE) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
                   lat1 = min(glat, na.rm = TRUE) + 0.2,
                   lng2 = min(glon, na.rm = TRUE) + 0.2,
                   lat2 = max(glat, na.rm = TRUE) - 0.2) %>%
-        # use NOAA graticules
-        # not sure if it does much, but it allows to zoom further in
-        # no bathy when zoomed less than 500m though.
-        addWMSTiles(
-          "https://maps.ngdc.noaa.gov/arcgis/services/graticule/MapServer/WMSServer/",
-          layers = c("1-degree grid", "5-degree grid"),
-          options = WMSTileOptions(format = "image/png8", transparent = TRUE),
-          attribution = "NOAA") %>%
         # add extra map features
         addMouseCoordinates(style = 'basic')%>%
         addScaleBar(position = 'topright')%>%
