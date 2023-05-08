@@ -8,7 +8,16 @@ library(RCurl)
 library(geosphere)
 library(XML)
 library(readxl)
-load('sx_spline.rda')
+load('sx_spline.rda') # for 1st gen battery, P,V, sx fn
+load('secondGenerationBatteryDischarge.rda') # for 2nd gen battery, data.frame d with 'x' and 'y'
+# get smooth.spline fits for `1st gen` and `2nd gen` battery curves
+firstGenss <- smooth.spline(x = V, # voltage
+                            y = P # percentage
+                            )
+secondGenss <- smooth.spline(x = d[['y']], # voltage
+                             y = d[['x']] # percentage
+                            )
+
 data(ctd) # for initial plotProfile tests, delete later
 options(oceEOS='unesco') # prevent error for calculated values using swSigmaTheta, etc
 
@@ -189,6 +198,7 @@ ui <- fluidPage(
                               'Pitch'='Pitch',
                               'Vertical Speed'='VertSpeed',
                               'Battery Voltage'='BatterieVolt',
+                              'Battery Percentage'='batteryPercentage',
                               'Internal Temperature'='Temperature',
                               'Internal Pressure'='int_pres',
                               'Distance'='distkm',
@@ -309,6 +319,20 @@ server <- function(input, output) {
                                     oxygenCalibCoef = currentCalibration)
     PLD <- data$PLD
     NAV <- data$NAV
+    # calculate battery percentage
+    batteryss <- NULL
+    if(gmcurrent$Battery == '1st gen'){
+        batteryss <- firstGenss
+    }
+    if(gmcurrent$Battery == '2nd gen'){
+        batteryss <- secondGenss
+    }
+    
+    if(!is.null(batteryss)){
+        batteryPercentage <- predict(batteryss, x = NAV$BatterieVolt)
+        NAV$batteryPercentage <- batteryPercentage$y
+    }
+    
     # find bad conductivity values and make pressure and salinity NA
     # this will be enough for plotting purposes
     badConduc <- which(PLD$Conduc > 9)
@@ -415,6 +439,7 @@ server <- function(input, output) {
                       'Pitch' = c(-80,50),
                       'VertSpeed' = c(-50, 50),
                       'BatterieVolt' = c(24, 30),
+                      'batteryPercentage' = c(-5, 105),
                       'Temperature' = c(0,30),
                       'int_pres' = c(6.9e4, 8.1e4),
                       'distkm' = c(0, 700),
@@ -432,6 +457,7 @@ server <- function(input, output) {
                         'Pitch' = c(-80,50),
                         'VertSpeed' = c(-50, 50),
                         'BatterieVolt' = c(24, 30),
+                        'batteryPercentage' = c(0, 100),
                         'Temperature' = c(0,26),
                         'int_pres' = c(6.9e4, 8.1e4),
                         'distkm' = c(0, 1000),
@@ -449,6 +475,7 @@ server <- function(input, output) {
                        'Pitch' = 5,
                        'VertSpeed' = 5,
                        'BatterieVolt' = 0.05,
+                       'batteryPercentage' = 5,
                        'Temperature' = 1,
                        'int_pres' = 50,
                        'distkm' = 50,
@@ -601,6 +628,7 @@ server <- function(input, output) {
                           'Pitch' = NAV$Pitch,
                           'VertSpeed' = NAV$VertSpeed,
                           'BatterieVolt' = NAV$BatterieVolt,
+                          'batteryPercentage' = NAV$batteryPercentage,
                           'speedms' = NAV$speedms,
                           'distkm' = NAV$distkm,
                           'Temperature' = NAV$Temperature,
@@ -620,6 +648,7 @@ server <- function(input, output) {
                           'Pitch' = bquote('Pitch'*.(L)*'degrees'*.(R)),
                           'VertSpeed' = bquote('Vertical speed'*.(L)*'m/s'*.(R)),
                           'BatterieVolt' = bquote('Battery voltage'*.(L)*'V'*.(R)),
+                          'batteryPercentage' = bquote('Battery percentage'*.(L)*'%'*.(R)),
                           'speedms' = bquote('Glider speed'*.(L)*'m/s'*.(R)),
                           'distkm' = bquote('Distance travelled'*.(L)*'km'*.(R)),
                           'Temperature' = bquote('Internal temperature'*.(L)*degree*'C'*.(R)),
@@ -641,6 +670,7 @@ server <- function(input, output) {
                           'Pitch' = c('l', 'black',2),
                           'VertSpeed' = c('l','black',2),
                           'BatterieVolt' = c('l','red',2),
+                          'batteryPercentage' = c('l', 'red', 2),
                           'Temperature' = c('l','red',2),
                           'int_pres' = c('l', 'blue',2),
                           'distkm' = c('p', 'darkgreen',1),
