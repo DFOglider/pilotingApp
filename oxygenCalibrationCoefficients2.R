@@ -106,7 +106,7 @@ oxycalib[[10]] <- list(serialNumber = '43-3276',
                                                            Enom = 0.036))
 oxycalib[[11]] <- list(serialNumber = '43-3276',
                        model = 'SBE43',
-                       calibrationDate = '20221221', # '20211222' # note : oxy cal sheet says Dec but CTD calib in Feb
+                       calibrationDate = '20211222', # '20211222' # note : oxy cal sheet says Dec but CTD calib in Feb
                        calibrationCoefficients = data.frame(Soc = 3.4723e-4,
                                                             Foffset = -836.94,
                                                             Tau20 = 1.86,
@@ -153,4 +153,14 @@ oxycalib[[15]] <- list(serialNumber = '43-3365',
                                                             A = -4.2429e-3,
                                                             B = 1.9045e-4,
                                                             C = -3.1421e-6,
+                                                            Enom = 0.036))
+oxycalib[[16]] <- list(serialNumber = '43-3365',
+                       model = 'SBE43F',
+                       calibrationDate = '20230121',
+                       calibrationCoefficients = data.frame(Soc = 3.2649e-4,
+                                                            Foffset = -839.79,
+                                                            Tau20 = 1.23,
+                                                            A = -3.7164e-3,
+                                                            B = 1.6743e-4,
+                                                            C = -2.7266e-6,
                                                             Enom = 0.036))
