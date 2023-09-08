@@ -438,7 +438,7 @@ server <- function(input, output) {
                       'alarm' = log2adjusted(c(0.5, 2^20)),
                       'Pitch' = c(-80,50),
                       'VertSpeed' = c(-50, 50),
-                      'BatterieVolt' = c(24, 30),
+                      'BatterieVolt' = c(19, 30),
                       'batteryPercentage' = c(-5, 105),
                       'Temperature' = c(0,30),
                       'int_pres' = c(6.9e4, 8.1e4),
