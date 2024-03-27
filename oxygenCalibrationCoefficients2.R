@@ -175,3 +175,13 @@ oxycalib[[17]] <- list(serialNumber = '43-3365',
                                                             B = 1.6743e-4,
                                                             C = -2.7266e-6,
                                                             Enom = 0.036))
+oxycalib[[18]] <- list(serialNumber = '43-3365',
+                       model = 'SBE43F',
+                       calibrationDate = '20240131',
+                       calibrationCoefficients = data.frame(Soc = 2.6773e-4,
+                                                            Foffset = -800.03,
+                                                            Tau20 = 1.27,
+                                                            A = -3.3140-3,
+                                                            B = 1.0937-4,
+                                                            C = -1.9124-6,
+                                                            Enom = 0.036))
