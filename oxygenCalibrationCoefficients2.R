@@ -100,7 +100,7 @@ oxycalib[[10]] <- list(serialNumber = '43-3336',
                       calibrationCoefficients = data.frame(Soc = 2.6916e-4,
                                                            Foffset = -862.73,
                                                            Tau20 = 1.54,
-                                                           A = -2.9084-3,
+                                                           A = -2.9084e-3,
                                                            B = 1.0020e-4,
                                                            C = -9.6617e-7,
                                                            Enom = 0.036))
