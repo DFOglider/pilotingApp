@@ -3,7 +3,7 @@ library(shiny)
 library(oce)
 library(ocedata)
 library(leaflet)
-library(leaflet.esri) # for basemaps
+# library(leaflet.esri) # for basemaps
 library(RCurl)
 library(geosphere)
 library(XML)
@@ -937,7 +937,8 @@ server <- function(input, output) {
                       phi = gdesheadpolar,
                       L = 2)
     map <- leaflet(as.data.frame(cbind(glon, glat)))%>%
-        addEsriBasemapLayer(esriBasemapLayers$Oceans, autoLabels = TRUE) %>%
+        # addEsriBasemapLayer(esriBasemapLayers$Oceans, autoLabels = TRUE) %>%
+        addProviderTiles(providers$Esri.WorldImagery) %>%
         fitBounds(lng1 = max(glon, na.rm = TRUE) - 0.2,
                   lat1 = min(glat, na.rm = TRUE) + 0.2,
                   lng2 = min(glon, na.rm = TRUE) + 0.2,
