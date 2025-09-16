@@ -1173,21 +1173,23 @@ server <- function(input, output) {
     })
     
     output$TS  <- renderPlot({
+        salVar <- ifelse('Sal' %in% names(PLD), 'Sal', 'salinityLegato')
+        tempVar <- ifelse('Temp' %in% names(PLD), 'Temp', 'temperatureLegato')
         if (is.null(state$xlim) & is.null(state$Tlim)) {
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1)
+            plotTS(as.ctd(PLD[[salVar]], PLD[[tempVar]], PLD[['Press']]), pch=19, col=1)
         } else if (is.null(state$xlim) & !is.null(state$Tlim)) {
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col=1,
+            plotTS(as.ctd(PLD[[salVar]], PLD[[tempVar]], PLD[['Press']]), pch=19, col=1,
                    Tlim=state$Tlim, Slim=state$Slim)
         } else if (!is.null(state$xlim) & is.null(state$Tlim)) {
             II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey')
-            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+            plotTS(as.ctd(PLD[[salVar]], PLD[[tempVar]], PLD[['Press']]), pch=19, col='lightgrey')
+            plotTS(as.ctd(PLD[[salVar]][II], PLD[[tempVar]][II], PLD[['Press']][II]), pch=19, col=1,
                    add=TRUE)
         } else {
             II <- state$xlim[1] <= PLD$timesci & PLD$timesci <= state$xlim[2]
-            plotTS(as.ctd(PLD$Sal, PLD$Temp, PLD$Press), pch=19, col='lightgrey',
+            plotTS(as.ctd(PLD[[salVar]], PLD[[tempVar]], PLD[['Press']]), pch=19, col='lightgrey',
                    Tlim=state$Tlim, Slim=state$Slim)
-            plotTS(as.ctd(PLD$Sal[II], PLD$Temp[II], PLD$Press[II]), pch=19, col=1,
+            plotTS(as.ctd(PLD[[salVar]][II], PLD[[tempVar]][II], PLD[['Press']][II]), pch=19, col=1,
                    add=TRUE)
         }
     })
